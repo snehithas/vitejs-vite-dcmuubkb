@@ -930,13 +930,46 @@ function checkAns(user,correct){
   const u=norm(user);
   if(!u) return false;
   const alts=correct.split("|").map(norm);
+  
   for(const a of alts){
     if(!a) continue;
+    
+    // 1. Exact match after normalisation
     if(u===a) return true;
-    const uN=parseFloat(u);const aN=parseFloat(a);
-    if(!isNaN(uN)&&!isNaN(aN)&&/^-?[0-9.]+$/.test(u)&&Math.abs(uN-aN)<0.001) return true;
-    if(a.length<=12&&u.includes(a)) return true;
-    if(u.length<=12&&a.includes(u)) return true;
+    
+    // 2. Numeric equivalence: 3/4 = 0.75, -1/2 = -0.5
+    const uN=parseFloat(u);
+    const aN=parseFloat(a);
+    if(!isNaN(uN)&&!isNaN(aN)&&Math.abs(uN-aN)<0.001) return true;
+    
+    // 3. Fraction equivalence: 6/36 = 1/6
+    const uFrac=u.match(/^(-?[0-9]+)\/([0-9]+)$/);
+    const aFrac=a.match(/^(-?[0-9]+)\/([0-9]+)$/);
+    if(uFrac&&aFrac){
+      const uVal=parseInt(uFrac[1])/parseInt(uFrac[2]);
+      const aVal=parseInt(aFrac[1])/parseInt(aFrac[2]);
+      if(Math.abs(uVal-aVal)<0.0001) return true;
+    }
+    
+    // 4. Two-solution order independence: x=2,x=-3 = x=-3,x=2
+    if(u.includes(",")&&a.includes(",")){
+      const uParts=u.split(",").map(s=>s.trim()).sort();
+      const aParts=a.split(",").map(s=>s.trim()).sort();
+      if(uParts.length===aParts.length&&uParts.every((p,i)=>p===aParts[i])) return true;
+    }
+    
+    // 5. Factor order independence: (x+3)(x-4) = (x-4)(x+3)
+    const uFactors=u.match(/\([^)]+\)/g);
+    const aFactors=a.match(/\([^)]+\)/g);
+    if(uFactors&&aFactors&&uFactors.length===aFactors.length&&uFactors.length>1){
+      const uSorted=[...uFactors].sort().join("");
+      const aSorted=[...aFactors].sort().join("");
+      if(uSorted===aSorted) return true;
+    }
+    
+    // 6. Short keyword match (yes/no/open/closed etc - max 12 chars)
+    if(a.length<=12&&u===a) return true;
+    if(/^(yes|no|open|closed|true|false|prime|composite|rational|irrational|imaginary|real|infinite|increasing|decreasing|undefined)$/.test(a)&&u===a) return true;
   }
   return false;
 }
@@ -1462,13 +1495,50 @@ function RevealBox({answer,onNext,nextLabel}){
   );
 }
 function getFormatTip(a){
-  if(!a)return null;const f=a.split("|")[0];
-  if(f.includes("/")&&/[a-z(]/.test(f))return"Format: (x-1)/2 — use parentheses and / for fractions";
-  if(f.includes("/"))return"Format: 3/4 or 1/6 — use / for fractions";
-  if(f.includes("^"))return"Format: x^2 or 2^3 — use ^ for exponents";
-  if(f.match(/x=[^,]+,x=/))return"Two solutions: type  x=2,x=-3";
-  if(f.match(/^\([0-9-]/))return"Format: (2,3) — include the parentheses";
-  if(/yes|no|open|closed|true|false|prime|rational|irrational|imaginary|real|infinite|function/i.test(f))return"Type a word answer";
+  // IMPORTANT: never reveal the actual answer value — only reveal the FORMAT TYPE
+  if(!a) return null;
+  const f=a.split("|")[0];
+  
+  // Two solutions: x=a,x=b
+  if(f.match(/x=[^,]+,x=/)) 
+    return "Two answers needed · Format: x=5,x=-2 (use your own values)";
+  
+  // Coordinate pair
+  if(f.match(/^\(-?[0-9]/)) 
+    return "Coordinate pair · Format: (a,b) — include the parentheses";
+  
+  // Fraction with variable (expression)
+  if(f.includes("/")&&/[a-zA-Z(]/.test(f.replace(/[0-9]/g,"")))
+    return "Expression · Format: (x-1)/2 — use / for division, () for grouping";
+  
+  // Plain fraction
+  if(f.match(/^-?[0-9]+\/-?[0-9]+$/))
+    return "Fraction · Type as: a/b — decimals also accepted";
+  
+  // Factored form  
+  if(f.match(/\([a-z][^)]*\)\([a-z]/))
+    return "Factored form · Format: (x+a)(x+b) — either order accepted";
+  
+  // Exponents
+  if(f.includes("^"))
+    return "Use ^ for exponents · Example: x^2 means x squared";
+  
+  // Variable expression like 3x+5 or 2x-1
+  if(f.match(/^-?[0-9]*[a-z]\+/) || f.match(/^-?[0-9]*[a-z]-/))
+    return "Expression · No spaces needed · Example: 3x+5";
+    
+  // Single variable equation like x=5  
+  if(f.match(/^[a-z]=-?[0-9]/))
+    return "Format: variable=value · Example: x=7";
+    
+  // Word answer
+  if(/^(yes|no|open|closed|true|false|prime|rational|irrational|imaginary|real|infinite|increasing|decreasing|undefined|function)$/i.test(f.trim()))
+    return "Word answer · Type one word";
+    
+  // Pure number
+  if(f.match(/^-?[0-9.]+$/))
+    return "Number answer · Decimals OK · Example: 42 or 3.5";
+    
   return null;
 }
 function InputRow({inputRef,value,onChange,onEnter,flash,color,onCheck,correctAnswer}){
@@ -2166,6 +2236,47 @@ function generateTestQuestions(profile){
 }
 
 // ═══════════════════════════════════════════════════════════
+// ANSWER FORMAT GUIDE — shown once on first math session
+// ═══════════════════════════════════════════════════════════
+const FORMAT_EXAMPLES = [
+  {type:"Number",      format:"42",           desc:"Just type the number. Decimals OK: 3.5"},
+  {type:"Fraction",    format:"3/4",          desc:"Use / for fractions. 3/4 and 0.75 both work."},
+  {type:"Expression",  format:"3x+5",         desc:"No spaces needed. 3x+5 or 3x + 5 both work."},
+  {type:"Exponent",    format:"x^2",          desc:"Use ^ for powers. x^2 means x squared."},
+  {type:"Factored",    format:"(x+3)(x-4)",   desc:"Either order works: (x-4)(x+3) also accepted."},
+  {type:"Two answers", format:"x=2,x=-3",     desc:"Separate with a comma. Either order works."},
+  {type:"Fraction eq", format:"(x-1)/2",      desc:"Use () to group the top: (x-1)/2"},
+  {type:"Word",        format:"yes / no",     desc:"Just type the word. Spelling counts!"},
+];
+
+function AnswerGuide({onClose}){
+  return(
+    <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.92)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:"#060d18",border:"1px solid #00ffcc55",width:"100%",maxWidth:580,maxHeight:"90vh",overflowY:"auto"}}>
+        <div style={{padding:"1rem 1.25rem",borderBottom:"1px solid #1a2a3a",position:"relative"}}>
+          <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,#00ffcc,#ffdd00)"}}/>
+          <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1rem",color:"#00ffcc",letterSpacing:"0.1em",marginBottom:"0.2rem"}}>HOW TO TYPE ANSWERS</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.9rem",color:"#8899aa"}}>Read once — you'll see format hints on every question too</div>
+        </div>
+        <div style={{padding:"1rem 1.25rem",display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0.75rem"}}>
+          {FORMAT_EXAMPLES.map(ex=>(
+            <div key={ex.type} style={{background:"#040b14",border:"1px solid #1a2a3a",padding:"0.75rem"}}>
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#8899aa",marginBottom:"0.25rem",letterSpacing:"0.08em"}}>{ex.type.toUpperCase()}</div>
+              <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1rem",color:"#ffdd00",marginBottom:"0.3rem"}}>{ex.format}</div>
+              <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"0.9rem",color:"#c8d8e8",lineHeight:1.4}}>{ex.desc}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{padding:"0.75rem 1.25rem",borderTop:"1px solid #1a2a3a",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.84rem",color:"#8899aa"}}>Format hints appear on every question below the answer box</div>
+          <button onClick={onClose} style={{...S.btnCyber,whiteSpace:"nowrap"}}>GOT IT →</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
 // LEARN MODE — no timer, scaffolded help, Apex-powered
 // ═══════════════════════════════════════════════════════════
 function LearnMode({section,book,profile,onComplete,onClose,onSpendLC}){
@@ -2183,6 +2294,9 @@ function LearnMode({section,book,profile,onComplete,onClose,onSpendLC}){
   const [streak,setStreak]=useState(0);
   const [xpEarned,setXpEarned]=useState(0);
   const [fluxEarned,setFluxEarned]=useState(0);
+  const [showGuide,setShowGuide]=useState(()=>{
+    try{return!localStorage.getItem("vanguard_guide_seen");}catch{return true;}
+  });
   const inputRef=useRef(null);
   const isShield=profile.name==="CIPHER"; // streak shield for 11yr old
 
@@ -2280,6 +2394,7 @@ Show a similar worked example.`}]})});
   return(
     <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.88)",zIndex:8000,display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem"}}>
       {showWarning&&<TabWarning message={getTabMessage(tabCount)} onDismiss={()=>setShowWarning(false)}/>}
+      {showGuide&&<AnswerGuide onClose={()=>{setShowGuide(false);try{localStorage.setItem("vanguard_guide_seen","1");}catch{}}}/>}
       <div onClick={e=>e.stopPropagation()} style={{background:"#060d18",border:`1px solid ${color}44`,width:"100%",maxWidth:560,maxHeight:"90vh",overflowY:"auto"}}>
         {/* Header */}
         <div style={{padding:"0.9rem 1.25rem",borderBottom:"1px solid #1a2a3a",display:"flex",justifyContent:"space-between",alignItems:"center",position:"relative"}}>
@@ -2290,6 +2405,7 @@ Show a similar worked example.`}]})});
           </div>
           <div style={{display:"flex",gap:"0.75rem",alignItems:"center"}}>
             {streak>=3&&<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.8rem",color:"#ff8800"}}>{streak}🔥{isShield?" 🛡":""}</div>}
+            <button onClick={()=>setShowGuide(true)} style={{...S.btnGhost,fontSize:"0.78rem",padding:"0.15rem 0.5rem",borderColor:"#ffdd0033",color:"#ffdd00"}}>? FORMAT</button>
             <button onClick={onClose} style={S.xBtn}>✕</button>
           </div>
         </div>
@@ -2345,6 +2461,7 @@ function LiveMode({profile,onExit,onEarn}){
   const [done,setDone]=useState(false);
   const [showWarning,setShowWarning]=useState(false);
   const [tabCount,setTabCount]=useState(0);
+  const [showLiveGuide,setShowLiveGuide]=useState(false);
   const timerRef=useRef(null);
   const inputRef=useRef(null);
 
@@ -2428,6 +2545,7 @@ function LiveMode({profile,onExit,onEarn}){
   return(
     <div style={{minHeight:"100vh",background:"#03080f",display:"flex",flexDirection:"column",fontFamily:"Rajdhani,sans-serif",position:"relative"}}>
       {showWarning&&<TabWarning message={getTabMessage(tabCount)} onDismiss={()=>setShowWarning(false)}/>}
+      {showLiveGuide&&<AnswerGuide onClose={()=>setShowLiveGuide(false)}/>}
       {fluxPop&&<div style={{position:"fixed",top:"40%",left:"50%",transform:"translateX(-50%)",fontFamily:"Orbitron,sans-serif",fontSize:"2.5rem",fontWeight:900,color:"#ffdd00",zIndex:9000,pointerEvents:"none",animation:"fadeUp 1s forwards"}}>
         {fluxPop}
       </div>}
@@ -2446,6 +2564,7 @@ function LiveMode({profile,onExit,onEarn}){
             <span style={{color:timeColor,fontWeight:700}}>{timeLeft}s</span>
           </div>
         </div>
+        <button onClick={()=>setShowLiveGuide(true)} style={{...S.btnGhost,fontSize:"0.8rem",padding:"0.2rem 0.6rem",borderColor:"#ffdd0033",color:"#ffdd00"}}>? FORMAT</button>
         <button onClick={onExit} style={{...S.btnGhost,fontSize:"0.8rem",padding:"0.2rem 0.6rem",borderColor:"#ff444433",color:"#ff6644"}}>EXIT</button>
       </div>
       {/* Progress bar */}
