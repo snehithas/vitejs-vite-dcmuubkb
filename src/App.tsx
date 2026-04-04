@@ -1105,7 +1105,7 @@ function BountyBoard({profile,onClose,onCorrect,onSpendLC}){
               Session: +{sessionXP} XP · {sessionCorrect} correct · +{sessionCorrect*MINS_PER_BOUNTY_CORRECT} min game time
             </div>
           )}
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.86rem",color:"#445566",marginBottom:"1.5rem"}}>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",marginBottom:"1.5rem"}}>
             {remaining<=0?"Come back tomorrow for more bounties. Solve more sections to unlock harder questions!":"Great work! Earn game time by answering more tomorrow."}
           </div>
           <button onClick={onClose} style={S.btnCyber}>RETURN TO OS</button>
@@ -1159,14 +1159,14 @@ function BountyBoard({profile,onClose,onCorrect,onSpendLC}){
       <div style={{padding:"0.9rem 1.25rem",borderBottom:"1px solid #1a2a3a",display:"flex",justifyContent:"space-between",alignItems:"center",position:"relative"}}>
         <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,#ffdd00,#ff8800)"}}/>
         <div>
-          <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.85rem",color:"#ffdd00",letterSpacing:"0.1em"}}>⚡ BOUNTY BOARD</div>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.6rem",color:"#445566",marginTop:"0.15rem"}}>
+          <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.95rem",color:"#ffdd00",letterSpacing:"0.1em"}}>⚡ BOUNTY BOARD</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#8899aa",marginTop:"0.15rem"}}>
             Q {qIdx+1}/{Math.min(totalQ,remaining)} · {remaining-qIdx-1} remaining today · Session +{sessionXP} XP
           </div>
         </div>
         <div style={{textAlign:"right"}}>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.86rem",color:"#00ffcc"}}>⏱ {Math.min(MAX_GAME_MINS,earnedMins+sessionCorrect*MINS_PER_BOUNTY_CORRECT)} min earned</div>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#334455"}}>+{MINS_PER_BOUNTY_CORRECT}min per correct</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#00ffcc"}}>⏱ {Math.min(MAX_GAME_MINS,earnedMins+sessionCorrect*MINS_PER_BOUNTY_CORRECT)} min earned</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#aabbcc"}}>+{MINS_PER_BOUNTY_CORRECT}min per correct</div>
         </div>
       </div>
 
@@ -1181,12 +1181,12 @@ function BountyBoard({profile,onClose,onCorrect,onSpendLC}){
 
       {/* Topic tag + difficulty */}
       <div style={{display:"flex",justifyContent:"space-between",padding:"0.5rem 1.25rem",background:"#040b14",borderBottom:"1px solid #1a2a3a"}}>
-        <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.6rem",color:"#445566",textTransform:"uppercase",letterSpacing:"0.1em"}}>{q.tag||"math"}</span>
-        <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.86rem",color:diffColor,fontWeight:700}}>+{q.xp} XP</span>
+        <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#8899aa",textTransform:"uppercase",letterSpacing:"0.1em"}}>{q.tag||"math"}</span>
+        <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.96rem",color:diffColor,fontWeight:700}}>+{q.xp} XP</span>
       </div>
 
       {/* Question */}
-      <div style={{margin:"0.85rem 1.25rem",padding:"1rem 1.1rem",background:"#040b14",border:"1px solid #ffdd0033",borderLeft:"3px solid #ffdd00",fontFamily:"Rajdhani,sans-serif",fontSize:"1.05rem",lineHeight:1.7,color:"#d0e0f0",minHeight:72}}>{q.q}</div>
+      <div style={{margin:"0.85rem 1.25rem",padding:"1rem 1.1rem",background:"#040b14",border:"1px solid #ffdd0033",borderLeft:"3px solid #ffdd00",fontFamily:"Rajdhani,sans-serif",fontSize:"1.1rem",lineHeight:1.8,color:"#e0eeff",minHeight:72}}>{q.q}</div>
 
       {/* Hint */}
       {hint&&q.hint&&<div style={{margin:"0 1.25rem 0.5rem",padding:"0.5rem 0.9rem",background:"#1a1a00",border:"1px solid #ffdd0033",fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#ffdd00"}}>💡 {q.hint}</div>}
@@ -1194,15 +1194,15 @@ function BountyBoard({profile,onClose,onCorrect,onSpendLC}){
       {/* Answer or reveal */}
       {revealed?(
         <div style={{margin:"0 1.25rem 0.75rem",padding:"0.75rem 1rem",background:"#001a10",border:"1px solid #00ffcc33"}}>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#445566",marginBottom:"0.2rem"}}>ANSWER:</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",marginBottom:"0.2rem"}}>ANSWER:</div>
           <div style={{fontFamily:"Orbitron,sans-serif",color:"#00ffcc",fontSize:"1rem",marginBottom:"0.5rem"}}>{q.a.split("|")[0]}</div>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.6rem",color:"#ff6644",marginBottom:"0.94rem"}}>✗ No XP for revealed answers · Study it and move on</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#ff6644",marginBottom:"0.94rem"}}>✗ No XP for revealed answers · Study it and move on</div>
           <button onClick={nextQ} style={S.btnCyber}>{qIdx+1<Math.min(totalQ,remaining)?"NEXT QUESTION →":"FINISH SESSION"}</button>
         </div>
       ):(
         <>
           <div style={{padding:"0 1.25rem 0.6rem"}}>
-            {q.a&&getFormatTip(q.a)&&<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.80rem",color:"#556677",marginBottom:"0.3rem",padding:"0.28rem 0.5rem",background:"#060d18",border:"1px solid #1a2a3a"}}>📝 {getFormatTip(q.a)}</div>}
+            {q.a&&getFormatTip(q.a)&&<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#99aabb",marginBottom:"0.3rem",padding:"0.28rem 0.5rem",background:"#060d18",border:"1px solid #1a2a3a"}}>📝 {getFormatTip(q.a)}</div>}
             <div style={{display:"flex",gap:"0.5rem"}}>
               <input ref={inputRef} value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()}
                 placeholder="Your answer..."
@@ -1213,7 +1213,7 @@ function BountyBoard({profile,onClose,onCorrect,onSpendLC}){
           <div style={{display:"flex",gap:"0.94rem",padding:"0 1.25rem 1.25rem",flexWrap:"wrap"}}>
             {!hint&&q.hint&&<button onClick={()=>setHint(true)} style={S.btnGhost}>💡 HINT (no penalty)</button>}
             <button onClick={revealAns} style={{...S.btnGhost,color:"#ff6644",borderColor:"#ff664433"}}>REVEAL ANSWER</button>
-            <div style={{flex:1,textAlign:"right",fontFamily:"Share Tech Mono,monospace",fontSize:"0.6rem",color:"#223344",paddingTop:"0.4rem"}}>Correct = +{MINS_PER_BOUNTY_CORRECT}min game time</div>
+            <div style={{flex:1,textAlign:"right",fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#99aabb",paddingTop:"0.4rem"}}>Correct = +{MINS_PER_BOUNTY_CORRECT}min game time</div>
           </div>
         </>
       )}
@@ -1379,7 +1379,7 @@ function ProofModal({section,book,existingProofs,existingChallenge,onComplete,on
     return(
       <Overlay onClose={onClose}>
         <ModalHeader title={`§${section.num} — CHALLENGE PROBLEM`} color="#ffdd00" onClose={onClose}/>
-        <div style={{padding:"0.4rem 1.25rem 0.5rem",background:"#1a1500",fontFamily:"Share Tech Mono,monospace",fontSize:"0.86rem",color:"#ffaa00",borderBottom:"1px solid #2a2000"}}>
+        <div style={{padding:"0.4rem 1.25rem 0.5rem",background:"#1a1500",fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#ffaa00",borderBottom:"1px solid #2a2000"}}>
           ⚡ OPTIONAL · +{CHALLENGE_XP} XP if correct · Skip to save XP and continue
         </div>
         <QBox q={challenge.q} color="#ffdd00"/>
@@ -1402,7 +1402,7 @@ function ProofModal({section,book,existingProofs,existingChallenge,onComplete,on
   return(
     <Overlay onClose={onClose}>
       <ModalHeader title={`§${section.num} ${section.name} — PROOF OF WORK`} color={accentColor} onClose={onClose}/>
-      <div style={{padding:"0.4rem 1.25rem 0.5rem",background:"#030810",fontFamily:"Share Tech Mono,monospace",fontSize:"0.86rem",color:"#445566",display:"flex",justifyContent:"space-between",borderBottom:"1px solid #1a2a3a"}}>
+      <div style={{padding:"0.4rem 1.25rem 0.5rem",background:"#030810",fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",display:"flex",justifyContent:"space-between",borderBottom:"1px solid #1a2a3a"}}>
         <span>Q {pIdx+1}/{proofs.length}</span>
         <span style={{color:"#00ffcc"}}>{passedProofs} correct · +{proofXp} XP so far</span>
       </div>
@@ -1454,9 +1454,9 @@ function HintBox({hint}){
 function RevealBox({answer,onNext,nextLabel}){
   return(
     <div style={{margin:"0 1.25rem 0.75rem",padding:"0.75rem 1rem",background:"#001a10",border:"1px solid #00ffcc33"}}>
-      <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#445566",marginBottom:"0.25rem"}}>ANSWER:</div>
+      <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",marginBottom:"0.25rem"}}>ANSWER:</div>
       <div style={{fontFamily:"Orbitron,sans-serif",color:"#00ffcc",fontSize:"1rem",marginBottom:"0.5rem"}}>{answer}</div>
-      <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.6rem",color:"#ff6644",marginBottom:"0.94rem"}}>✗ MARKED INCORRECT — no XP for this question</div>
+      <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#ff6644",marginBottom:"0.94rem"}}>✗ MARKED INCORRECT — no XP for this question</div>
       <button onClick={onNext} style={S.btnCyber}>{nextLabel||"NEXT →"}</button>
     </div>
   );
@@ -1475,7 +1475,7 @@ function InputRow({inputRef,value,onChange,onEnter,flash,color,onCheck,correctAn
   const tip=correctAnswer?getFormatTip(correctAnswer):null;
   return(
     <div style={{padding:"0 1.25rem 0.6rem"}}>
-      {tip&&<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.80rem",color:"#556677",marginBottom:"0.3rem",padding:"0.28rem 0.5rem",background:"#060d18",border:"1px solid #1a2a3a"}}>📝 {tip}</div>}
+      {tip&&<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#99aabb",marginBottom:"0.3rem",padding:"0.28rem 0.5rem",background:"#060d18",border:"1px solid #1a2a3a"}}>📝 {tip}</div>}
       <div style={{display:"flex",gap:"0.5rem"}}>
         <input ref={inputRef} value={value} onChange={onChange} onKeyDown={e=>e.key==="Enter"&&onCheck()}
           placeholder="Type your answer..."
@@ -1793,20 +1793,20 @@ function SlitherGame({onExit,gameTimeLeft,onTimeUsed}){
     <div style={{minHeight:"100vh",background:"#060d18",display:"flex",flexDirection:"column",userSelect:"none"}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"0.6rem 1.5rem",background:"#030810",borderBottom:"1px solid #00ffcc22",flexWrap:"wrap",gap:"0.5rem"}}>
         <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.1rem",fontWeight:700,color:"#00ffcc",letterSpacing:"0.1em"}}>◈ SLITHER</div>
-        <div style={{display:"flex",gap:"1.5rem",alignItems:"center",fontFamily:"Share Tech Mono,monospace",fontSize:"0.88rem"}}>
+        <div style={{display:"flex",gap:"1.5rem",alignItems:"center",fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem"}}>
           <span style={{color:"#c8d8e8"}}>SCORE: <b style={{color:"#00ffcc"}}>{score}</b></span>
           <div style={{display:"flex",alignItems:"center",gap:"0.5rem"}}>
             <div style={{width:100,height:6,background:"#1a2a3a",borderRadius:3,overflow:"hidden"}}>
               <div style={{height:"100%",background:timeColor,width:`${timePct*100}%`,transition:"width 1s linear",borderRadius:3}}/>
             </div>
-            <span style={{color:timeColor,fontSize:"0.84rem"}}>{mins}:{String(secs).padStart(2,"0")}</span>
+            <span style={{color:timeColor,fontSize:"0.94rem"}}>{mins}:{String(secs).padStart(2,"0")}</span>
           </div>
           {started&&!gameOver&&<button onClick={togglePause} style={{background:"none",border:"1px solid #2a3a4a",color:"#8899aa",padding:"0.2rem 0.6rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.8rem",borderRadius:3}}>{paused?"▶":"⏸"}</button>}
         </div>
         <button onClick={()=>{clearTimeout(loopRef.current);if(startRef.current)onTimeUsed(Math.min(Date.now()-startRef.current,gameTimeLeft));onExit();}}
           style={{background:"none",border:"1px solid #ff4444",color:"#ff4444",padding:"0.25rem 0.75rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.8rem",borderRadius:3}}>EXIT</button>
       </div>
-      <div style={{padding:"0.25rem 1.5rem",background:"#030810",borderBottom:"1px solid #0a1a2a",fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#445566"}}>
+      <div style={{padding:"0.25rem 1.5rem",background:"#030810",borderBottom:"1px solid #0a1a2a",fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa"}}>
         Arrow keys / WASD · Eat food to grow · Avoid other snakes · You are CYAN
       </div>
 
@@ -1815,8 +1815,8 @@ function SlitherGame({onExit,gameTimeLeft,onTimeUsed}){
           <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",zIndex:10,background:"rgba(3,8,16,0.85)"}}>
             <div style={{background:"#060d18",border:"1px solid #00ffcc44",padding:"2.5rem 3.5rem",borderRadius:12,textAlign:"center",maxWidth:400}}>
               <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"2.5rem",fontWeight:900,color:"#00ffcc",marginBottom:"0.5rem",letterSpacing:"0.15em"}}>SLITHER</div>
-              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.88rem",color:"#8899aa",marginBottom:"0.5rem"}}>Grow by eating food · Avoid bots · You are the CYAN snake</div>
-              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.84rem",color:timeColor,marginBottom:"1.5rem"}}>⏱ {mins}:{String(secs).padStart(2,"0")} game time left today</div>
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",marginBottom:"0.5rem"}}>Grow by eating food · Avoid bots · You are the CYAN snake</div>
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:timeColor,marginBottom:"1.5rem"}}>⏱ {mins}:{String(secs).padStart(2,"0")} game time left today</div>
               <button onClick={startGame} style={{background:"#00ffcc",border:"none",color:"#000",padding:"0.8rem 2.5rem",borderRadius:8,fontFamily:"Orbitron,sans-serif",fontWeight:700,fontSize:"1rem",cursor:"pointer",letterSpacing:"0.05em"}}>PLAY</button>
             </div>
           </div>
@@ -2006,11 +2006,11 @@ function BaselineAssessment({profile,onComplete}){
       <div style={{padding:"1rem 1.5rem",background:"#060d18",borderBottom:"1px solid #1a2a3a",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <div>
           <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1rem",fontWeight:700,color:color,letterSpacing:"0.1em"}}>BASELINE ASSESSMENT</div>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#556677",marginTop:"0.15rem"}}>This calibrates your personal curriculum · One time only</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#99aabb",marginTop:"0.15rem"}}>This calibrates your personal curriculum · One time only</div>
         </div>
         <div style={{textAlign:"right"}}>
           <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.5rem",fontWeight:900,color:timeColor}}>{Math.floor(timeLeft/60)}:{String(timeLeft%60).padStart(2,"0")}</div>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#445566"}}>Q {qIdx+1} / {questions.length}</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa"}}>Q {qIdx+1} / {questions.length}</div>
         </div>
       </div>
       {/* Progress */}
@@ -2019,8 +2019,8 @@ function BaselineAssessment({profile,onComplete}){
       </div>
       {/* Difficulty badge */}
       <div style={{padding:"0.5rem 1.5rem",background:"#040b14",borderBottom:"1px solid #1a2a3a",display:"flex",gap:"1rem",alignItems:"center"}}>
-        <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#445566",textTransform:"uppercase"}}>{TOPIC_LABELS[q?.topic]||q?.topic}</span>
-        <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.74rem",color:q?.difficulty===3?"#ff4444":q?.difficulty===2?"#ffaa00":"#00ffcc"}}>
+        <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#8899aa",textTransform:"uppercase"}}>{TOPIC_LABELS[q?.topic]||q?.topic}</span>
+        <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:q?.difficulty===3?"#ff4444":q?.difficulty===2?"#ffaa00":"#00ffcc"}}>
           {"◆".repeat(q?.difficulty||1)}{"◇".repeat(3-(q?.difficulty||1))} DIFFICULTY
         </span>
         <div style={{flex:1,height:4,background:"#1a2a3a",borderRadius:2}}>
@@ -2034,13 +2034,13 @@ function BaselineAssessment({profile,onComplete}){
         </div>
         {revealed?(
           <div style={{background:"#001a10",border:"1px solid #00ffcc33",padding:"1rem",marginBottom:"1rem"}}>
-            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.74rem",color:"#445566",marginBottom:"0.25rem"}}>ANSWER:</div>
+            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",marginBottom:"0.25rem"}}>ANSWER:</div>
             <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.1rem",color:"#00ffcc"}}>{q?.a.split("|")[0]}</div>
-            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#ff6644",marginTop:"0.5rem"}}>Moving to next question...</div>
+            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#ff6644",marginTop:"0.5rem"}}>Moving to next question...</div>
           </div>
         ):(
           <>
-            {q?.a&&getFormatTip(q.a)&&<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#556677",marginBottom:"0.5rem",padding:"0.3rem 0.6rem",background:"#060d18",border:"1px solid #1a2a3a"}}>📝 {getFormatTip(q.a)}</div>}
+            {q?.a&&getFormatTip(q.a)&&<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#99aabb",marginBottom:"0.5rem",padding:"0.3rem 0.6rem",background:"#060d18",border:"1px solid #1a2a3a"}}>📝 {getFormatTip(q.a)}</div>}
             <div style={{display:"flex",gap:"0.75rem",marginBottom:"0.75rem"}}>
               <input ref={inputRef} value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()}
                 placeholder="Your answer..."
@@ -2118,23 +2118,23 @@ function BiweeklyTest({profile,onComplete}){
       <div style={{padding:"1rem 1.5rem",background:"#060d18",borderBottom:"1px solid #1a2a3a",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <div>
           <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1rem",fontWeight:700,color:color}}>BI-WEEKLY TEST</div>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#556677"}}>Auto-generated from your recent curriculum</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#99aabb"}}>Auto-generated from your recent curriculum</div>
         </div>
         <div style={{textAlign:"right"}}>
           <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.5rem",fontWeight:900,color:timeColor}}>{Math.floor(timeLeft/60)}:{String(timeLeft%60).padStart(2,"0")}</div>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#445566"}}>Q {qIdx+1} / {questions.length}</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa"}}>Q {qIdx+1} / {questions.length}</div>
         </div>
       </div>
       <div style={{height:5,background:"#0a1520"}}><div style={{height:"100%",background:color,width:`${(qIdx/questions.length)*100}%`,transition:"width 0.4s"}}/></div>
       <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",padding:"2rem 1.5rem",maxWidth:640,margin:"0 auto",width:"100%"}}>
-        <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#556677",marginBottom:"0.75rem",display:"flex",justifyContent:"space-between"}}>
+        <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#99aabb",marginBottom:"0.75rem",display:"flex",justifyContent:"space-between"}}>
           <span>{TOPIC_LABELS[q?.topic]||q?.topic}</span>
           <div style={{width:160,height:5,background:"#1a2a3a",borderRadius:2,alignSelf:"center"}}>
             <div style={{height:"100%",background:timeColor,width:`${(timeLeft/120)*100}%`,transition:"width 0.9s linear",borderRadius:2}}/>
           </div>
         </div>
         <div style={{background:"#060d18",border:`1px solid ${color}33`,borderLeft:`4px solid ${color}`,padding:"1.25rem",marginBottom:"1rem",fontSize:"1.1rem",lineHeight:1.7,color:"#d0e8f0"}}>{q?.q}</div>
-        {q?.a&&getFormatTip(q.a)&&<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#556677",marginBottom:"0.5rem",padding:"0.3rem 0.6rem",background:"#060d18",border:"1px solid #1a2a3a"}}>📝 {getFormatTip(q.a)}</div>}
+        {q?.a&&getFormatTip(q.a)&&<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#99aabb",marginBottom:"0.5rem",padding:"0.3rem 0.6rem",background:"#060d18",border:"1px solid #1a2a3a"}}>📝 {getFormatTip(q.a)}</div>}
         <div style={{display:"flex",gap:"0.75rem"}}>
           <input ref={inputRef} value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()}
             placeholder="Your answer..."
@@ -2264,9 +2264,9 @@ Show a similar worked example.`}]})});
         <div onClick={e=>e.stopPropagation()} style={{background:"#060d18",border:`1px solid ${color}55`,padding:"2.5rem",maxWidth:440,textAlign:"center"}}>
           <div style={{fontSize:"3rem",marginBottom:"0.5rem"}}>{pct===100?"🏆":pct>=70?"✅":"📋"}</div>
           <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.2rem",color,marginBottom:"0.5rem"}}>{pct===100?"PERFECT":"SECTION LEARNED"}</div>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.84rem",color:"#8899aa",marginBottom:"0.35rem"}}>{correct.filter(Boolean).length}/{proofs.length} correct</div>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.84rem",color:"#00ffcc",marginBottom:"0.35rem"}}>+{xpEarned} XP</div>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.84rem",color:"#ffdd00",marginBottom:"1.5rem"}}>+{fluxEarned} ⚡ Flux</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#8899aa",marginBottom:"0.35rem"}}>{correct.filter(Boolean).length}/{proofs.length} correct</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#00ffcc",marginBottom:"0.35rem"}}>+{xpEarned} XP</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#ffdd00",marginBottom:"1.5rem"}}>+{fluxEarned} ⚡ Flux</div>
           <div style={{display:"flex",gap:"0.75rem",justifyContent:"center",flexWrap:"wrap"}}>
             <button onClick={()=>onComplete(correct)} style={S.btnCyber}>DONE ✓</button>
             <button onClick={onClose} style={S.btnGhost}>BACK</button>
@@ -2285,8 +2285,8 @@ Show a similar worked example.`}]})});
         <div style={{padding:"0.9rem 1.25rem",borderBottom:"1px solid #1a2a3a",display:"flex",justifyContent:"space-between",alignItems:"center",position:"relative"}}>
           <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:color}}/>
           <div>
-            <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.82rem",color,letterSpacing:"0.1em"}}>LEARN MODE · {section.num} {section.name}</div>
-            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.74rem",color:"#445566",marginTop:"0.1rem"}}>No timer · Ask for help · Build understanding</div>
+            <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.92rem",color,letterSpacing:"0.1em"}}>LEARN MODE · {section.num} {section.name}</div>
+            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",marginTop:"0.1rem"}}>No timer · Ask for help · Build understanding</div>
           </div>
           <div style={{display:"flex",gap:"0.75rem",alignItems:"center"}}>
             {streak>=3&&<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.8rem",color:"#ff8800"}}>{streak}🔥{isShield?" 🛡":""}</div>}
@@ -2295,22 +2295,22 @@ Show a similar worked example.`}]})});
         </div>
         {/* Progress */}
         <div style={{display:"flex",gap:3,padding:"0.5rem 1.25rem",borderBottom:"1px solid #1a2a3a"}}>
-          {proofs.map((_,i)=><div key={i} style={{flex:1,height:6,background:i<correct.length?(correct[i]?"#00ffcc":"#ff4444"):i===qIdx?color:"#1a2a3a",transition:"all 0.3s"}}/>)}
+          {proofs.map((_,i)=><div key={i} style={{flex:1,height:6,background:i<correct.length?(correct[i]?"#00ffcc":"#ff4444"):i===qIdx?color:"#8899aa",transition:"all 0.3s"}}/>)}
         </div>
         {/* XP earned ticker */}
         <div style={{padding:"0.3rem 1.25rem",background:"#040b14",borderBottom:"1px solid #1a2a3a",display:"flex",gap:"1.5rem"}}>
-          <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#00ffcc"}}>+{xpEarned} XP</span>
-          <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#ffdd00"}}>+{fluxEarned} Flux</span>
-          <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#445566"}}>Q {qIdx+1}/{proofs.length}</span>
+          <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#00ffcc"}}>+{xpEarned} XP</span>
+          <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#ffdd00"}}>+{fluxEarned} Flux</span>
+          <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa"}}>Q {qIdx+1}/{proofs.length}</span>
         </div>
         {/* Question */}
-        <div style={{margin:"0.85rem 1.25rem",padding:"1rem",background:"#040b14",border:`1px solid ${color}22`,borderLeft:`3px solid ${color}`,fontSize:"1.05rem",lineHeight:1.7,color:"#d0e0f0",fontFamily:"Rajdhani,sans-serif"}}>{q.q}</div>
+        <div style={{margin:"0.85rem 1.25rem",padding:"1rem",background:"#040b14",border:`1px solid ${color}22`,borderLeft:`3px solid ${color}`,fontSize:"1.1rem",lineHeight:1.8,color:"#e0eeff",fontFamily:"Rajdhani,sans-serif"}}>{q.q}</div>
         {/* Help display */}
-        {helpLevel===1&&<div style={{margin:"0 1.25rem 0.5rem",padding:"0.6rem 0.85rem",background:"#1a1000",border:"1px solid #ffdd0033",fontFamily:"Share Tech Mono,monospace",fontSize:"0.82rem",color:"#ffdd00"}}>💡 {q.hint}</div>}
+        {helpLevel===1&&<div style={{margin:"0 1.25rem 0.5rem",padding:"0.6rem 0.85rem",background:"#1a1000",border:"1px solid #ffdd0033",fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#ffdd00"}}>💡 {q.hint}</div>}
         {helpLevel>=2&&scaffoldText&&<div style={{margin:"0 1.25rem 0.5rem",padding:"0.75rem",background:"#001a30",border:"1px solid #00aaff33",fontFamily:"Rajdhani,sans-serif",fontSize:"0.95rem",lineHeight:1.6,color:"#88ccff"}}>{loadingHelp?"Loading help...":scaffoldText}</div>}
-        {flash==="shield"&&<div style={{margin:"0 1.25rem 0.5rem",padding:"0.5rem",background:"#1a0a00",border:"1px solid #ff880044",fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#ff8800",textAlign:"center"}}>🛡 STREAK SHIELD ACTIVATED — try again!</div>}
+        {flash==="shield"&&<div style={{margin:"0 1.25rem 0.5rem",padding:"0.5rem",background:"#1a0a00",border:"1px solid #ff880044",fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#ff8800",textAlign:"center"}}>🛡 STREAK SHIELD ACTIVATED — try again!</div>}
         {/* Input */}
-        {q.a&&getFormatTip(q.a)&&<div style={{margin:"0 1.25rem 0.35rem",fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#556677",padding:"0.28rem 0.5rem",background:"#060d18",border:"1px solid #1a2a3a"}}>📝 {getFormatTip(q.a)}</div>}
+        {q.a&&getFormatTip(q.a)&&<div style={{margin:"0 1.25rem 0.35rem",fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#99aabb",padding:"0.28rem 0.5rem",background:"#060d18",border:"1px solid #1a2a3a"}}>📝 {getFormatTip(q.a)}</div>}
         <div style={{display:"flex",gap:"0.5rem",padding:"0 1.25rem 0.6rem"}}>
           <input ref={inputRef} value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()}
             placeholder="Your answer (take your time)..."
@@ -2318,11 +2318,11 @@ Show a similar worked example.`}]})});
           <button onClick={submit} style={{...S.btnCyber,borderColor:color,color,whiteSpace:"nowrap"}}>CHECK</button>
         </div>
         {/* Help buttons */}
-        <div style={{display:"flex",gap:"0.6rem",padding:"0 1.25rem 1.25rem",flexWrap:"wrap"}}>
+        <div style={{display:"flex",gap:"0.90rem",padding:"0 1.25rem 1.25rem",flexWrap:"wrap"}}>
           {helpLevel===0&&<button onClick={()=>getHelp(1)} style={{...S.btnGhost,fontSize:"0.8rem"}}>💡 Nudge (free)</button>}
           {helpLevel<=1&&<button onClick={()=>getHelp(2)} style={{...S.btnGhost,fontSize:"0.8rem",borderColor:"#00aaff44",color:"#00aaff"}}>{loadingHelp?"...":"🔧 Scaffold ("}{!loadingHelp&&`${SCAFFOLD_COST} LC)`}</button>}
           {helpLevel<=2&&<button onClick={()=>getHelp(3)} style={{...S.btnGhost,fontSize:"0.8rem",borderColor:"#aa66ff44",color:"#aa66ff"}}>{loadingHelp?"...":"📖 Example ("}{!loadingHelp&&`${WORKED_EXAMPLE_COST} LC)`}</button>}
-          <div style={{flex:1,textAlign:"right",fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#334455",paddingTop:"0.35rem"}}>⚡ {profile.lc} LC available</div>
+          <div style={{flex:1,textAlign:"right",fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#aabbcc",paddingTop:"0.35rem"}}>⚡ {profile.lc} LC available</div>
         </div>
       </div>
     </div>
@@ -2414,7 +2414,7 @@ function LiveMode({profile,onExit,onEarn}){
         <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"2rem",fontWeight:900,color:profile.color,marginBottom:"0.5rem"}}>SESSION OVER</div>
         <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"3rem",fontWeight:900,color:"#ffdd00",marginBottom:"0.25rem"}}>{fluxEarned}</div>
         <div style={{fontFamily:"Share Tech Mono,monospace",color:"#ffdd00",marginBottom:"0.5rem"}}>⚡ FLUX EARNED</div>
-        <div style={{fontFamily:"Share Tech Mono,monospace",color:"#8899aa",fontSize:"0.84rem",marginBottom:"1.5rem"}}>Score: {score} · Max streak: {streak}</div>
+        <div style={{fontFamily:"Share Tech Mono,monospace",color:"#8899aa",fontSize:"0.94rem",marginBottom:"1.5rem"}}>Score: {score} · Max streak: {streak}</div>
         <button onClick={onExit} style={S.btnCyber}>RETURN TO OS</button>
       </div>
     </div>
@@ -2435,7 +2435,7 @@ function LiveMode({profile,onExit,onEarn}){
       {/* Header */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"0.7rem 1.5rem",background:"#060d18",borderBottom:`1px solid ${color}33`,flexWrap:"wrap",gap:"0.5rem"}}>
         <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1rem",fontWeight:700,color,letterSpacing:"0.1em"}}>⚡ LIVE MODE</div>
-        <div style={{display:"flex",gap:"1.25rem",alignItems:"center",fontFamily:"Share Tech Mono,monospace",fontSize:"0.84rem"}}>
+        <div style={{display:"flex",gap:"1.25rem",alignItems:"center",fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem"}}>
           <span>SCORE <b style={{color,fontSize:"1rem"}}>{score}</b></span>
           {streak>=2&&<span style={{color:"#ff8800"}}>{streak}🔥 x{streakMult}</span>}
           <span style={{color:"#ffdd00"}}>⚡{fluxEarned}</span>
@@ -2454,21 +2454,21 @@ function LiveMode({profile,onExit,onEarn}){
       </div>
       {/* Question */}
       <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",padding:"2rem 1.5rem",maxWidth:640,margin:"0 auto",width:"100%"}}>
-        <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#445566",marginBottom:"0.75rem",display:"flex",justifyContent:"space-between"}}>
+        <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",marginBottom:"0.75rem",display:"flex",justifyContent:"space-between"}}>
           <span>Q {qIdx+1} / {questions.length}</span>
           {streakMult>1&&<span style={{color:"#ff8800",fontWeight:700}}>{streakMult}× FLUX MULTIPLIER 🔥</span>}
         </div>
         <div style={{background:"#060d18",border:`1px solid ${color}33`,borderLeft:`4px solid ${color}`,padding:"1.25rem",marginBottom:"1rem",fontSize:"1.1rem",lineHeight:1.7,color:"#d0e0f0",transition:"border-color 0.2s",boxShadow:flash==="good"?`0 0 20px ${color}33`:flash==="bad"?"0 0 20px #ff444433":"none"}}>
           {q?.q}
         </div>
-        {q?.a&&getFormatTip(q.a)&&<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#556677",marginBottom:"0.5rem",padding:"0.28rem 0.5rem",background:"#060d18",border:"1px solid #1a2a3a"}}>📝 {getFormatTip(q.a)}</div>}
+        {q?.a&&getFormatTip(q.a)&&<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#99aabb",marginBottom:"0.5rem",padding:"0.28rem 0.5rem",background:"#060d18",border:"1px solid #1a2a3a"}}>📝 {getFormatTip(q.a)}</div>}
         <div style={{display:"flex",gap:"0.75rem"}}>
           <input ref={inputRef} value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()}
             placeholder="Answer fast! 90 seconds..."
             style={{...S.ansInput,fontSize:"1.05rem",borderColor:flash==="good"?"#00ffcc":flash==="bad"?"#ff4444":color+"55",transition:"border-color 0.2s"}}/>
           <button onClick={submit} style={{...S.btnCyber,borderColor:color,color,padding:"0.55rem 1.25rem",whiteSpace:"nowrap"}}>GO!</button>
         </div>
-        <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#334455",marginTop:"0.5rem",textAlign:"center"}}>
+        <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#aabbcc",marginTop:"0.5rem",textAlign:"center"}}>
           Streak bonus: 2🔥=2× · 3🔥=3× · 4🔥=4× · 5🔥=5× Flux
         </div>
       </div>
@@ -2508,7 +2508,7 @@ function RedemptionCenter({profile,rewards,onClose,onRedeem}){
           <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,#ffdd00,#ff8800)"}}/>
           <div>
             <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.95rem",color:"#ffdd00",letterSpacing:"0.1em"}}>⚡ REDEMPTION CENTER</div>
-            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#556677",marginTop:"0.1rem"}}>Your Flux: <b style={{color:"#ffdd00",fontSize:"1rem"}}>{flux}</b></div>
+            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#99aabb",marginTop:"0.1rem"}}>Your Flux: <b style={{color:"#ffdd00",fontSize:"1rem"}}>{flux}</b></div>
           </div>
           <button onClick={onClose} style={S.xBtn}>✕</button>
         </div>
@@ -2516,12 +2516,12 @@ function RedemptionCenter({profile,rewards,onClose,onRedeem}){
         {/* Pending */}
         {pending.length>0&&(
           <div style={{padding:"0.75rem 1.25rem",background:"#1a1500",borderBottom:"1px solid #2a2000"}}>
-            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#ff8800",marginBottom:"0.4rem"}}>PENDING PARENT APPROVAL</div>
+            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#ff8800",marginBottom:"0.4rem"}}>PENDING PARENT APPROVAL</div>
             {pending.map(r=>(
               <div key={r.id} style={{display:"flex",alignItems:"center",gap:"0.75rem",padding:"0.4rem 0",borderBottom:"1px solid #2a2000"}}>
                 <span style={{fontSize:"1.2rem"}}>{r.emoji}</span>
                 <span style={{fontFamily:"Rajdhani,sans-serif",fontSize:"0.95rem",color:"#c8d8e8",flex:1}}>{r.label}</span>
-                <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.74rem",color:"#ff8800"}}>⏳ WAITING</span>
+                <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#ff8800"}}>⏳ WAITING</span>
               </div>
             ))}
           </div>
@@ -2529,29 +2529,29 @@ function RedemptionCenter({profile,rewards,onClose,onRedeem}){
 
         {/* Rewards grid */}
         <div style={{padding:"1rem 1.25rem"}}>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#445566",letterSpacing:"0.1em",marginBottom:"0.75rem"}}>AVAILABLE REWARDS</div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:"0.6rem"}}>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",letterSpacing:"0.1em",marginBottom:"0.75rem"}}>AVAILABLE REWARDS</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:"0.90rem"}}>
             {(rewards||DEFAULT_REWARDS).map(r=>{
               const canAfford=flux>=r.flux;
               const alreadyPending=pending.some(p=>p.rewardId===r.id);
               return(
-                <div key={r.id} style={{background:canAfford?"#0a1520":"#060d14",border:`1px solid ${canAfford?"#ffdd0033":"#1a2a3a"}`,padding:"0.85rem",opacity:canAfford?1:0.6,transition:"all 0.2s"}}>
+                <div key={r.id} style={{background:canAfford?"#0a1520":"#060d14",border:`1px solid ${canAfford?"#ffdd0033":"#1a2a3a"}`,padding:"0.95rem",opacity:canAfford?1:0.6,transition:"all 0.2s"}}>
                   <div style={{fontSize:"1.75rem",marginBottom:"0.25rem"}}>{r.emoji}</div>
                   <div style={{fontFamily:"Rajdhani,sans-serif",fontWeight:700,fontSize:"0.95rem",color:"#d0e0f0",marginBottom:"0.2rem"}}>{r.label}</div>
-                  <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.88rem",color:"#ffdd00",marginBottom:"0.6rem"}}>⚡ {r.flux}</div>
+                  <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.96rem",color:"#ffdd00",marginBottom:"0.90rem"}}>⚡ {r.flux}</div>
                   {alreadyPending?(
-                    <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.74rem",color:"#ff8800"}}>⏳ Pending approval</div>
+                    <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#ff8800"}}>⏳ Pending approval</div>
                   ):canAfford?(
                     confirming===r.id?(
                       <div style={{display:"flex",gap:"0.4rem"}}>
-                        <button onClick={()=>{onRedeem(r);setConfirming(null);}} style={{flex:1,background:"#ffdd00",border:"none",color:"#000",padding:"0.35rem",cursor:"pointer",fontFamily:"Orbitron,sans-serif",fontSize:"0.72rem",fontWeight:700}}>CONFIRM</button>
-                        <button onClick={()=>setConfirming(null)} style={{flex:1,...S.btnGhost,fontSize:"0.72rem",padding:"0.35rem"}}>NO</button>
+                        <button onClick={()=>{onRedeem(r);setConfirming(null);}} style={{flex:1,background:"#ffdd00",border:"none",color:"#000",padding:"0.35rem",cursor:"pointer",fontFamily:"Orbitron,sans-serif",fontSize:"0.94rem",fontWeight:700}}>CONFIRM</button>
+                        <button onClick={()=>setConfirming(null)} style={{flex:1,...S.btnGhost,fontSize:"0.94rem",padding:"0.35rem"}}>NO</button>
                       </div>
                     ):(
-                      <button onClick={()=>setConfirming(r.id)} style={{...S.btnCyber,width:"100%",borderColor:"#ffdd00",color:"#ffdd00",fontSize:"0.78rem",padding:"0.38rem"}}>REDEEM →</button>
+                      <button onClick={()=>setConfirming(r.id)} style={{...S.btnCyber,width:"100%",borderColor:"#ffdd00",color:"#ffdd00",fontSize:"0.90rem",padding:"0.38rem"}}>REDEEM →</button>
                     )
                   ):(
-                    <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.74rem",color:"#334455"}}>Need {r.flux-flux} more Flux</div>
+                    <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#aabbcc"}}>Need {r.flux-flux} more Flux</div>
                   )}
                 </div>
               );
@@ -2562,12 +2562,12 @@ function RedemptionCenter({profile,rewards,onClose,onRedeem}){
         {/* History */}
         {history.length>0&&(
           <div style={{padding:"0 1.25rem 1.25rem"}}>
-            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.74rem",color:"#334455",letterSpacing:"0.1em",marginBottom:"0.5rem"}}>RECENT REDEMPTIONS</div>
+            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#aabbcc",letterSpacing:"0.1em",marginBottom:"0.5rem"}}>RECENT REDEMPTIONS</div>
             {history.map(r=>(
               <div key={r.id} style={{display:"flex",alignItems:"center",gap:"0.75rem",padding:"0.3rem 0",borderBottom:"1px solid #1a2a3a"}}>
                 <span>{r.emoji}</span>
-                <span style={{fontFamily:"Rajdhani,sans-serif",fontSize:"0.9rem",color:"#667788",flex:1}}>{r.label}</span>
-                <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.72rem",color:r.status==="approved"?"#00ffcc":"#ff4444"}}>{r.status==="approved"?"✓ APPROVED":"✗ DENIED"}</span>
+                <span style={{fontFamily:"Rajdhani,sans-serif",fontSize:"0.9rem",color:"#aabbcc",flex:1}}>{r.label}</span>
+                <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:r.status==="approved"?"#00ffcc":"#ff4444"}}>{r.status==="approved"?"✓ APPROVED":"✗ DENIED"}</span>
               </div>
             ))}
           </div>
@@ -2628,7 +2628,7 @@ function PrimeHunterGame({onExit,gameTimeLeft,onTimeUsed}){
           <span style={{color:timeLeft<=3?"#ff4444":"#c8d8e8"}}>⏱ {timeLeft}s</span>
           <span style={{color:gameTimeLeft2<60000?"#ff4444":"#8899aa"}}>DAY: {mins2}:{String(secs2).padStart(2,"0")}</span>
         </div>
-        <button onClick={()=>{onTimeUsed(Date.now()-sessionStartRef.current);onExit();}} style={{background:"none",border:"1px solid #ff4444",color:"#ff4444",padding:"0.25rem 0.75rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.7rem"}}>EXIT</button>
+        <button onClick={()=>{onTimeUsed(Date.now()-sessionStartRef.current);onExit();}} style={{background:"none",border:"1px solid #ff4444",color:"#ff4444",padding:"0.25rem 0.75rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem"}}>EXIT</button>
       </div>
       {gameOver?(
         <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"1.5rem"}}>
@@ -2638,7 +2638,7 @@ function PrimeHunterGame({onExit,gameTimeLeft,onTimeUsed}){
         </div>
       ):(
         <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"1.25rem",padding:"2rem"}}>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#445566",letterSpacing:"0.3em"}}>IS THIS NUMBER PRIME?</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#8899aa",letterSpacing:"0.3em"}}>IS THIS NUMBER PRIME?</div>
           <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"min(7rem,22vw)",fontWeight:900,color:"#00ffcc",textShadow:"0 0 40px #00ffcc55",lineHeight:1}}>{question}</div>
           {feedback&&<div style={{fontFamily:"Share Tech Mono,monospace",padding:"0.5rem 1.5rem",border:"1px solid",color:feedback.startsWith("C")?"#00ffcc":"#ff4444",borderColor:feedback.startsWith("C")?"#00ffcc":"#ff4444",background:feedback.startsWith("C")?"#001a10":"#1a0000"}}>{feedback}</div>}
           <div style={{width:"min(280px,70vw)",height:5,background:"#1a2a3a"}}><div style={{height:"100%",background:`linear-gradient(90deg,${timeLeft<=3?"#ff4444":"#00ffcc"},${timeLeft<=3?"#ff8800":"#0066ff"})`,width:`${(timeLeft/8)*100}%`,transition:"width 0.9s linear"}}/></div>
@@ -2684,16 +2684,16 @@ function ApexCoach({profile,onClose,onDeductCredits}){
             <button onClick={onClose} style={S.xBtn}>✕</button>
           </div>
         </div>
-        <div style={{padding:"0.35rem 1.25rem",background:"#1a1000",fontFamily:"Share Tech Mono,monospace",fontSize:"0.84rem",color:"#ff8800",borderBottom:"1px solid #2a2000"}}>⚠ SOCRATIC MODE — {APEX_COST} LC/query · No direct answers</div>
+        <div style={{padding:"0.35rem 1.25rem",background:"#1a1000",fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#ff8800",borderBottom:"1px solid #2a2000"}}>⚠ SOCRATIC MODE — {APEX_COST} LC/query · No direct answers</div>
         <div style={{flex:1,overflowY:"auto",padding:"1rem",display:"flex",flexDirection:"column",gap:"0.94rem",minHeight:180}}>
           {msgs.length===0&&<div style={{textAlign:"center",padding:"2rem",color:"#8899aa"}}><div style={{fontSize:"2.5rem",color:"#ffdd00",marginBottom:"0.5rem"}}>◈</div><p>Neural link established, <b>{profile.name}</b>. Show your work.</p></div>}
           {msgs.map((m,i)=>(
             <div key={i} style={{display:"flex",flexDirection:"column",alignItems:m.role==="user"?"flex-end":"flex-start",gap:2}}>
-              <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.80rem",color:"#445566"}}>{m.role==="user"?profile.name:"APEX"}</span>
-              <div style={{background:m.role==="user"?"#001a10":"#1a1200",border:`1px solid ${m.role==="user"?"#00ffcc33":"#ffdd0033"}`,padding:"0.55rem 0.85rem",maxWidth:"80%",fontSize:"0.88rem",lineHeight:1.5}}>{m.content}</div>
+              <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#8899aa"}}>{m.role==="user"?profile.name:"APEX"}</span>
+              <div style={{background:m.role==="user"?"#001a10":"#1a1200",border:`1px solid ${m.role==="user"?"#00ffcc33":"#ffdd0033"}`,padding:"0.55rem 0.85rem",maxWidth:"80%",fontSize:"0.96rem",lineHeight:1.5}}>{m.content}</div>
             </div>
           ))}
-          {loading&&<div style={{display:"flex",flexDirection:"column",alignItems:"flex-start",gap:2}}><span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.80rem",color:"#445566"}}>APEX</span><div style={{background:"#1a1200",border:"1px solid #ffdd0033",padding:"0.55rem 0.85rem",color:"#ffdd00",fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem"}}>Processing...</div></div>}
+          {loading&&<div style={{display:"flex",flexDirection:"column",alignItems:"flex-start",gap:2}}><span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#8899aa"}}>APEX</span><div style={{background:"#1a1200",border:"1px solid #ffdd0033",padding:"0.55rem 0.85rem",color:"#ffdd00",fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem"}}>Processing...</div></div>}
           <div ref={endRef}/>
         </div>
         <div style={{display:"flex",gap:"0.5rem",padding:"0.9rem",borderTop:"1px solid #1a2a3a"}}>
@@ -2758,10 +2758,10 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
       <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.92)",zIndex:9500,display:"flex",alignItems:"center",justifyContent:"center"}}>
         <div onClick={e=>e.stopPropagation()} style={{background:"#060d18",border:"1px solid #ffdd0066",padding:"2.5rem",width:"100%",maxWidth:360,textAlign:"center"}}>
           <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.2rem",color:"#ffdd00",marginBottom:"0.5rem",letterSpacing:"0.1em"}}>PARENT MODE</div>
-          {allPending.length>0&&<div style={{background:"#1a1000",border:"1px solid #ff880044",padding:"0.5rem",marginBottom:"1rem",fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#ff8800"}}>⚡ {allPending.length} pending approval{allPending.length!==1?"s":""}</div>}
+          {allPending.length>0&&<div style={{background:"#1a1000",border:"1px solid #ff880044",padding:"0.5rem",marginBottom:"1rem",fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#ff8800"}}>⚡ {allPending.length} pending approval{allPending.length!==1?"s":""}</div>}
           <input type="password" value={pin} onChange={e=>setPin(e.target.value)} onKeyDown={e=>e.key==="Enter"&&tryPin()}
             placeholder="PIN" style={{...S.ansInput,textAlign:"center",fontSize:"1.5rem",letterSpacing:"0.5em",marginBottom:"1rem",border:`1px solid ${pinErr?"#ff4444":"#2a3a4a"}`}}/>
-          {pinErr&&<div style={{color:"#ff4444",fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",marginBottom:"0.5rem"}}>INCORRECT PIN</div>}
+          {pinErr&&<div style={{color:"#ff4444",fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",marginBottom:"0.5rem"}}>INCORRECT PIN</div>}
           <div style={{display:"flex",gap:"0.75rem",justifyContent:"center"}}>
             <button onClick={tryPin} style={S.btnCyber}>ENTER</button>
             <button onClick={onClose} style={S.btnGhost}>CANCEL</button>
@@ -2783,12 +2783,12 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
           <button onClick={onClose} style={S.xBtn}>✕</button>
         </div>
 
-        {msg&&<div style={{padding:"0.6rem 1.25rem",background:"#001a10",fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#00ffcc",borderBottom:"1px solid #1a2a3a"}}>✓ {msg}</div>}
+        {msg&&<div style={{padding:"0.6rem 1.25rem",background:"#001a10",fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#00ffcc",borderBottom:"1px solid #1a2a3a"}}>✓ {msg}</div>}
 
         {/* Tabs */}
         <div style={{display:"flex",borderBottom:"1px solid #1a2a3a"}}>
           {[["summary","📊 SUMMARY"],["approvals",`✅ APPROVALS${allPending.length>0?" ("+allPending.length+")":""}`],["rewards","🎁 REWARDS"],["reset","⚙ TOOLS"]].map(([key,label])=>(
-            <button key={key} onClick={()=>setTab(key)} style={{flex:1,padding:"0.65rem 0.5rem",background:tab===key?"#0a1520":"none",border:"none",borderBottom:tab===key?"2px solid #ffdd00":"2px solid transparent",color:tab===key?"#ffdd00":"#445566",fontFamily:"Share Tech Mono,monospace",fontSize:"0.72rem",cursor:"pointer",letterSpacing:"0.05em"}}>
+            <button key={key} onClick={()=>setTab(key)} style={{flex:1,padding:"0.65rem 0.5rem",background:tab===key?"#0a1520":"none",border:"none",borderBottom:tab===key?"2px solid #ffdd00":"2px solid transparent",color:tab===key?"#ffdd00":"#445566",fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",cursor:"pointer",letterSpacing:"0.05em"}}>
               {label}
             </button>
           ))}
@@ -2799,12 +2799,12 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
           <div style={{padding:"1.25rem"}}>
             <div style={{display:"flex",gap:"0.75rem",marginBottom:"1.25rem"}}>
               {Object.entries(profiles).filter(([,prof])=>prof&&"xp" in prof).map(([name,prof])=>(
-                <button key={name} onClick={()=>setSelectedUser(name)} style={{flex:1,padding:"0.75rem",background:selectedUser===name?`${prof.color}22`:"#0a1520",border:`2px solid ${selectedUser===name?prof.color:"#2a3a4a"}`,color:prof.color,fontFamily:"Orbitron,sans-serif",fontSize:"0.9rem",fontWeight:700,cursor:"pointer"}}>
+                <button key={name} onClick={()=>setSelectedUser(name)} style={{flex:1,padding:"0.75rem",background:selectedUser===name?`${prof.color}22`:"#0a1520",border:`2px solid ${selectedUser===name?prof.color:"#8899aa"}`,color:prof.color,fontFamily:"Orbitron,sans-serif",fontSize:"0.9rem",fontWeight:700,cursor:"pointer"}}>
                   {name}
                 </button>
               ))}
             </div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"0.6rem",marginBottom:"1.25rem"}}>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"0.90rem",marginBottom:"1.25rem"}}>
               {[
                 ["XP",p.xp,p.color],["FLUX",`⚡${p.flux||0}`,"#ffdd00"],["LC",`⚡${p.lc}`,"#ffdd00"],
                 ["SECTIONS",Object.keys(p.sectionsDone||{}).length,"#00ffcc"],
@@ -2814,8 +2814,8 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
                 ["LAST TEST",p.lastTestDate||"Never","#8899aa"],
                 ["NEXT TEST",p.nextTestDate||"Soon","#00aaff"],
               ].map(([label,val,color])=>(
-                <div key={label} style={{background:"#040b14",border:"1px solid #1a2a3a",padding:"0.6rem"}}>
-                  <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.68rem",color:"#445566",marginBottom:"0.15rem"}}>{label}</div>
+                <div key={label} style={{background:"#040b14",border:"1px solid #1a2a3a",padding:"0.90rem"}}>
+                  <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#8899aa",marginBottom:"0.15rem"}}>{label}</div>
                   <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.95rem",fontWeight:700,color}}>{val}</div>
                 </div>
               ))}
@@ -2823,10 +2823,10 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
             {/* Bi-weekly test history */}
             {(p.biweeklyTests||[]).length>0&&(
               <div>
-                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.74rem",color:"#445566",marginBottom:"0.5rem"}}>TEST HISTORY</div>
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",marginBottom:"0.5rem"}}>TEST HISTORY</div>
                 {[...(p.biweeklyTests||[])].reverse().slice(0,5).map((t,i)=>(
-                  <div key={i} style={{display:"flex",gap:"1rem",padding:"0.4rem 0",borderBottom:"1px solid #1a2a3a",fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem"}}>
-                    <span style={{color:"#556677"}}>{t.date}</span>
+                  <div key={i} style={{display:"flex",gap:"1rem",padding:"0.4rem 0",borderBottom:"1px solid #1a2a3a",fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem"}}>
+                    <span style={{color:"#99aabb"}}>{t.date}</span>
                     <span style={{color:t.score>=80?"#00ffcc":t.score>=60?"#ffaa00":"#ff4444",fontWeight:700}}>{t.score}%</span>
                     {t.weakTopics?.length>0&&<span style={{color:"#ff6644",flex:1}}>Weak: {t.weakTopics.slice(0,3).join(", ")}</span>}
                   </div>
@@ -2841,19 +2841,19 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
         {/* APPROVALS TAB */}
         {tab==="approvals"&&(
           <div style={{padding:"1.25rem"}}>
-            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#445566",marginBottom:"0.75rem"}}>PENDING REWARD REQUESTS</div>
+            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",marginBottom:"0.75rem"}}>PENDING REWARD REQUESTS</div>
             {allPending.length===0?(
-              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.84rem",color:"#334455",textAlign:"center",padding:"2rem"}}>No pending requests</div>
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#aabbcc",textAlign:"center",padding:"2rem"}}>No pending requests</div>
             ):allPending.map(r=>(
               <div key={r.id} style={{display:"flex",alignItems:"center",gap:"0.75rem",padding:"0.75rem",background:"#0a1520",border:"1px solid #1a2a3a",marginBottom:"0.5rem",flexWrap:"wrap"}}>
                 <span style={{fontSize:"1.5rem"}}>{r.emoji}</span>
                 <div style={{flex:1}}>
                   <div style={{fontFamily:"Rajdhani,sans-serif",fontWeight:700,fontSize:"1rem",color:"#d0e0f0"}}>{r.label}</div>
-                  <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.74rem",color:r.profileColor}}>{r.profileName} · ⚡{r.flux} Flux · {r.date}</div>
+                  <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:r.profileColor}}>{r.profileName} · ⚡{r.flux} Flux · {r.date}</div>
                 </div>
                 <div style={{display:"flex",gap:"0.5rem"}}>
-                  <button onClick={()=>approveRedemption(r.profileName,r.id,true)} style={{background:"#001a10",border:"1px solid #00ffcc",color:"#00ffcc",padding:"0.3rem 0.75rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem"}}>✓ APPROVE</button>
-                  <button onClick={()=>approveRedemption(r.profileName,r.id,false)} style={{background:"#1a0000",border:"1px solid #ff4444",color:"#ff4444",padding:"0.3rem 0.75rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem"}}>✗ DENY</button>
+                  <button onClick={()=>approveRedemption(r.profileName,r.id,true)} style={{background:"#001a10",border:"1px solid #00ffcc",color:"#00ffcc",padding:"0.3rem 0.75rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem"}}>✓ APPROVE</button>
+                  <button onClick={()=>approveRedemption(r.profileName,r.id,false)} style={{background:"#1a0000",border:"1px solid #ff4444",color:"#ff4444",padding:"0.3rem 0.75rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem"}}>✗ DENY</button>
                 </div>
               </div>
             ))}
@@ -2863,17 +2863,17 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
         {/* REWARDS TAB */}
         {tab==="rewards"&&(
           <div style={{padding:"1.25rem"}}>
-            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#445566",marginBottom:"0.75rem"}}>MANAGE REWARDS</div>
+            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",marginBottom:"0.75rem"}}>MANAGE REWARDS</div>
             {(rewards||DEFAULT_REWARDS).map(r=>(
               <div key={r.id} style={{display:"flex",alignItems:"center",gap:"0.75rem",padding:"0.5rem 0",borderBottom:"1px solid #1a2a3a"}}>
                 <span style={{fontSize:"1.3rem"}}>{r.emoji}</span>
                 <span style={{fontFamily:"Rajdhani,sans-serif",fontSize:"0.95rem",color:"#c8d8e8",flex:1}}>{r.label}</span>
-                <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.88rem",color:"#ffdd00"}}>⚡{r.flux}</span>
-                <button onClick={()=>removeReward(r.id)} style={{background:"none",border:"1px solid #ff444433",color:"#ff6644",padding:"0.2rem 0.5rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.72rem"}}>REMOVE</button>
+                <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.96rem",color:"#ffdd00"}}>⚡{r.flux}</span>
+                <button onClick={()=>removeReward(r.id)} style={{background:"none",border:"1px solid #ff444433",color:"#ff6644",padding:"0.2rem 0.5rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem"}}>REMOVE</button>
               </div>
             ))}
             <div style={{marginTop:"1rem",padding:"0.75rem",background:"#040b14",border:"1px solid #1a2a3a"}}>
-              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.74rem",color:"#445566",marginBottom:"0.5rem"}}>ADD NEW REWARD</div>
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",marginBottom:"0.5rem"}}>ADD NEW REWARD</div>
               <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap"}}>
                 <input value={newReward.emoji} onChange={e=>setNewReward(r=>({...r,emoji:e.target.value}))} style={{...S.ansInput,width:50,textAlign:"center"}} placeholder="🎁"/>
                 <input value={newReward.label} onChange={e=>setNewReward(r=>({...r,label:e.target.value}))} style={{...S.ansInput,flex:1}} placeholder="Reward name..."/>
@@ -2889,7 +2889,7 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
           <div style={{padding:"1.25rem",display:"flex",flexDirection:"column",gap:"0.75rem"}}>
             <div style={{display:"flex",gap:"0.75rem",marginBottom:"0.5rem"}}>
               {Object.entries(profiles).filter(([,prof])=>prof&&"xp" in prof).map(([name,prof])=>(
-                <button key={name} onClick={()=>setSelectedUser(name)} style={{flex:1,padding:"0.6rem",background:selectedUser===name?`${prof.color}22`:"#0a1520",border:`2px solid ${selectedUser===name?prof.color:"#2a3a4a"}`,color:prof.color,fontFamily:"Orbitron,sans-serif",fontSize:"0.9rem",cursor:"pointer"}}>
+                <button key={name} onClick={()=>setSelectedUser(name)} style={{flex:1,padding:"0.90rem",background:selectedUser===name?`${prof.color}22`:"#0a1520",border:`2px solid ${selectedUser===name?prof.color:"#8899aa"}`,color:prof.color,fontFamily:"Orbitron,sans-serif",fontSize:"0.9rem",cursor:"pointer"}}>
                   {name}
                 </button>
               ))}
@@ -2904,7 +2904,7 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
           </div>
         )}
 
-        <div style={{padding:"0.75rem 1.25rem",fontFamily:"Share Tech Mono,monospace",fontSize:"0.68rem",color:"#223344",borderTop:"1px solid #1a2a3a"}}>
+        <div style={{padding:"0.75rem 1.25rem",fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#99aabb",borderTop:"1px solid #1a2a3a"}}>
           PIN: {PARENT_PIN} · Change PARENT_PIN constant in code to update
         </div>
       </div>
@@ -2931,20 +2931,20 @@ function ChapterView({chapter,book,profile,sectionsLeft,onSectionProof,onBack,sh
         {/* Header */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1rem",paddingBottom:"0.94rem",borderBottom:"1px solid #1a2a3a",flexWrap:"wrap",gap:"0.5rem"}}>
           <button onClick={onBack} style={S.btnBack}>← BOOK</button>
-          <span style={{fontFamily:"Orbitron,sans-serif",color:book.color,fontSize:"0.85rem"}}>Ch.{chapter.num} — {chapter.name}</span>
+          <span style={{fontFamily:"Orbitron,sans-serif",color:book.color,fontSize:"0.95rem"}}>Ch.{chapter.num} — {chapter.name}</span>
           <div style={{display:"flex",gap:"0.94rem",alignItems:"center"}}>
-            <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.7rem",background:"#1a1500",border:"1px solid #ffdd0066",color:"#ffdd00",padding:"0.2rem 0.6rem",cursor:"pointer"}} onClick={onCoach}>⚡ {profile.lc} LC</span>
-            <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.7rem",color:sectionsLeft>0?"#00ffcc":"#ff4444"}}>SYNCS: {sectionsLeft}/{DAILY_SECTION_LIMIT}</span>
+            <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",background:"#1a1500",border:"1px solid #ffdd0066",color:"#ffdd00",padding:"0.2rem 0.6rem",cursor:"pointer"}} onClick={onCoach}>⚡ {profile.lc} LC</span>
+            <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:sectionsLeft>0?"#00ffcc":"#ff4444"}}>SYNCS: {sectionsLeft}/{DAILY_SECTION_LIMIT}</span>
           </div>
         </div>
 
         {/* Chapter summary bar */}
         <div style={{background:"#040c16",border:`1px solid ${book.color}33`,padding:"0.85rem 1.1rem",marginBottom:"1rem",display:"flex",flexWrap:"wrap",gap:"1.5rem",alignItems:"center"}}>
           <div style={{flex:1,minWidth:160}}>
-            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.86rem",color:"#445566",marginBottom:"0.2rem"}}>SECTIONS {doneSecs}/{totalSections} · {chXP} XP EARNED</div>
+            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",marginBottom:"0.2rem"}}>SECTIONS {doneSecs}/{totalSections} · {chXP} XP EARNED</div>
             <div style={{height:4,background:"#1a2a3a"}}><div style={{height:"100%",background:book.color,width:`${(doneSecs/totalSections)*100}%`,transition:"width 0.5s"}}/></div>
           </div>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.86rem",color:"#445566",textAlign:"right"}}>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",textAlign:"right"}}>
             <div>+{SECTION_XP} XP per section</div>
             <div style={{color:"#00ffcc88"}}>+{PROOF_PASS_XP} XP per proof Q</div>
             <div style={{color:"#ffdd0088"}}>+{CHALLENGE_XP} XP challenge</div>
@@ -2964,18 +2964,18 @@ function ChapterView({chapter,book,profile,sectionsLeft,onSectionProof,onBack,sh
             const maxXp=SECTION_XP+proofTotal*PROOF_PASS_XP+(hasChallenge?CHALLENGE_XP:0);
 
             return(
-              <div key={sec.id} style={{background:done?`${book.color}08`:"#060d18",border:`1px solid ${done?`${book.color}44`:"#1a2a3a"}`,padding:"0.85rem",position:"relative",overflow:"hidden",transition:"all 0.2s"}}>
+              <div key={sec.id} style={{background:done?`${book.color}08`:"#060d18",border:`1px solid ${done?`${book.color}44`:"#1a2a3a"}`,padding:"0.95rem",position:"relative",overflow:"hidden",transition:"all 0.2s"}}>
                 {done&&<div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,${book.color},transparent)`}}/>}
 
                 {/* Section number + name */}
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"0.5rem",gap:"0.5rem"}}>
                   <div style={{flex:1}}>
-                    <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:done?book.color:"#334455",letterSpacing:"0.1em",marginBottom:"0.2rem"}}>{sec.num}</div>
-                    <div style={{fontFamily:"Rajdhani,sans-serif",fontWeight:700,fontSize:"0.88rem",color:done?"#d0e8f0":"#7a8a9a",lineHeight:1.3}}>{sec.name}</div>
+                    <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:done?book.color:"#aabbcc",letterSpacing:"0.1em",marginBottom:"0.2rem"}}>{sec.num}</div>
+                    <div style={{fontFamily:"Rajdhani,sans-serif",fontWeight:700,fontSize:"0.96rem",color:done?"#d0e8f0":"#7a8a9a",lineHeight:1.3}}>{sec.name}</div>
                   </div>
                   <div style={{textAlign:"right",flexShrink:0}}>
-                    <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.85rem",fontWeight:700,color:book.color}}>{sectionXp}</div>
-                    <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#334455"}}>/{maxXp} XP</div>
+                    <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.95rem",fontWeight:700,color:book.color}}>{sectionXp}</div>
+                    <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#aabbcc"}}>/{maxXp} XP</div>
                   </div>
                 </div>
 
@@ -2983,8 +2983,8 @@ function ChapterView({chapter,book,profile,sectionsLeft,onSectionProof,onBack,sh
                 {proofTotal>0&&(
                   <div style={{marginBottom:"0.5rem"}}>
                     <div style={{display:"flex",justifyContent:"space-between",marginBottom:"0.2rem"}}>
-                      <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#00ffcc88"}}>PROOF Qs</span>
-                      <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#00ffcc88"}}>{proofCorrect}/{proofTotal}</span>
+                      <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#00ffcc88"}}>PROOF Qs</span>
+                      <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#00ffcc88"}}>{proofCorrect}/{proofTotal}</span>
                     </div>
                     <div style={{display:"flex",gap:2}}>
                       {Array.from({length:proofTotal},(_,i)=>(
@@ -2997,7 +2997,7 @@ function ChapterView({chapter,book,profile,sectionsLeft,onSectionProof,onBack,sh
                 {/* Challenge badge */}
                 {hasChallenge&&(
                   <div style={{marginBottom:"0.5rem"}}>
-                    <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:cDone?"#ffdd00":"#334455"}}>⚡ CHALLENGE {cDone?"✓":""}</span>
+                    <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:cDone?"#ffdd00":"#334455"}}>⚡ CHALLENGE {cDone?"✓":""}</span>
                   </div>
                 )}
 
@@ -3005,7 +3005,7 @@ function ChapterView({chapter,book,profile,sectionsLeft,onSectionProof,onBack,sh
                 <button
                   onClick={()=>onSectionProof(sec)}
                   disabled={!done&&sectionsLeft<=0}
-                  style={{width:"100%",padding:"0.45rem",background:done?"#001510":"#001a10",border:`1px solid ${done?book.color+"66":sectionsLeft>0?book.color:"#2a3a4a"}`,color:done?`${book.color}88`:sectionsLeft>0?book.color:"#334455",fontFamily:"Share Tech Mono,monospace",fontSize:"0.6rem",letterSpacing:"0.05em",cursor:done||sectionsLeft>0?"pointer":"not-allowed",opacity:!done&&sectionsLeft<=0?0.4:1,transition:"all 0.2s"}}>
+                  style={{width:"100%",padding:"0.45rem",background:done?"#001510":"#001a10",border:`1px solid ${done?book.color+"66":sectionsLeft>0?book.color:"#8899aa"}`,color:done?`${book.color}88`:sectionsLeft>0?book.color:"#aabbcc",fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",letterSpacing:"0.05em",cursor:done||sectionsLeft>0?"pointer":"not-allowed",opacity:!done&&sectionsLeft<=0?0.4:1,transition:"all 0.2s"}}>
                   {done?"REVIEW / REDO PROOFS":sectionsLeft<=0?"THROTTLED — COME BACK TOMORROW":"SYNC SECTION + PROOF"}
                 </button>
               </div>
@@ -3040,10 +3040,10 @@ function BookView({book,profile,sectionsLeft,onChapter,onBack}){
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1.25rem",paddingBottom:"0.94rem",borderBottom:"1px solid #1a2a3a",flexWrap:"wrap",gap:"0.5rem"}}>
           <button onClick={onBack} style={S.btnBack}>← DASHBOARD</button>
           <span style={{fontFamily:"Orbitron,sans-serif",color:book.color,fontSize:"0.9rem",letterSpacing:"0.05em"}}>{book.code} · {book.name}</span>
-          <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.7rem",color:"#445566"}}>{doneSections}/{allSections.length} SECTIONS · {bookXP} XP</span>
+          <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#8899aa"}}>{doneSections}/{allSections.length} SECTIONS · {bookXP} XP</span>
         </div>
 
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:"0.85rem"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:"0.95rem"}}>
           {book.chapters.map(ch=>{
             const total=ch.sections.length;
             const done=ch.sections.filter(s=>profile.sectionsDone[s.id]).length;
@@ -3055,13 +3055,13 @@ function BookView({book,profile,sectionsLeft,onChapter,onBack}){
             return(
               <button key={ch.id} onClick={()=>onChapter(ch)}
                 style={{background:"#060d18",border:`1px solid ${done>0?`${book.color}44`:"#1a2a3a"}`,padding:"1.1rem",cursor:"pointer",textAlign:"left",transition:"all 0.2s",position:"relative",overflow:"hidden"}}>
-                <div style={{position:"absolute",top:0,left:0,right:0,height:done>0?2:1,background:done>0?book.color:"#1a2a3a",transition:"all 0.3s"}}/>
-                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.80rem",color:book.color,letterSpacing:"0.15em",marginBottom:"0.3rem"}}>CHAPTER {ch.num}</div>
-                <div style={{fontFamily:"Rajdhani,sans-serif",fontWeight:700,fontSize:"0.88rem",color:"#c8d8e8",marginBottom:"0.7rem",lineHeight:1.3}}>{ch.name}</div>
+                <div style={{position:"absolute",top:0,left:0,right:0,height:done>0?2:1,background:done>0?book.color:"#8899aa",transition:"all 0.3s"}}/>
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:book.color,letterSpacing:"0.15em",marginBottom:"0.3rem"}}>CHAPTER {ch.num}</div>
+                <div style={{fontFamily:"Rajdhani,sans-serif",fontWeight:700,fontSize:"0.96rem",color:"#c8d8e8",marginBottom:"0.94rem",lineHeight:1.3}}>{ch.name}</div>
                 <div style={{height:4,background:"#1a2a3a",marginBottom:"0.3rem"}}><div style={{height:"100%",background:book.color,width:`${(done/total)*100}%`,transition:"width 0.5s"}}/></div>
                 <div style={{display:"flex",justifyContent:"space-between"}}>
-                  <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.80rem",color:"#445566"}}>{done}/{total} sections</span>
-                  <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.80rem",color:book.color}}>+{chXP} XP →</span>
+                  <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#8899aa"}}>{done}/{total} sections</span>
+                  <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:book.color}}>+{chXP} XP →</span>
                 </div>
               </button>
             );
@@ -3261,12 +3261,12 @@ export default function VanguardMathOS(){
     return(
       <div style={{minHeight:"100vh",background:"#03080f",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:"2.5rem",padding:"2rem",backgroundImage:"radial-gradient(ellipse at 50% 0%,#001833 0%,#03080f 60%)",fontFamily:"Rajdhani,sans-serif",position:"relative"}}>
         <Scanlines/>
-        <button onClick={()=>setShowParent(true)} style={{position:"absolute",top:"1rem",right:"1rem",background:"none",border:"1px solid #223344",color:"#334455",padding:"0.3rem 0.75rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.86rem",letterSpacing:"0.1em"}}>🔑 PARENT</button>
+        <button onClick={()=>setShowParent(true)} style={{position:"absolute",top:"1rem",right:"1rem",background:"none",border:"1px solid #223344",color:"#aabbcc",padding:"0.3rem 0.75rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",letterSpacing:"0.1em"}}>🔑 PARENT</button>
         
         <div style={{textAlign:"center"}}>
           <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"clamp(2rem,8vw,4rem)",fontWeight:900,color:"#00ffcc",letterSpacing:"0.2em",textShadow:"0 0 40px #00ffcc33"}}>VANGUARD</div>
-          <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"clamp(0.7rem,3vw,1.2rem)",color:"#334455",letterSpacing:"0.4em",marginTop:"0.25rem"}}>MATH OS</div>
-          <div style={{fontFamily:"Share Tech Mono,monospace",color:"#1a2a3a",fontSize:"0.6rem",letterSpacing:"0.25em",marginTop:"0.4rem"}}>AoPS TACTICAL INTERFACE · v6.0</div>
+          <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"clamp(0.7rem,3vw,1.2rem)",color:"#aabbcc",letterSpacing:"0.4em",marginTop:"0.25rem"}}>MATH OS</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",color:"#8899aa",fontSize:"0.90rem",letterSpacing:"0.25em",marginTop:"0.4rem"}}>AoPS TACTICAL INTERFACE · v6.0</div>
         </div>
         <div style={{display:"flex",gap:"2rem",flexWrap:"wrap",justifyContent:"center"}}>
           {Object.entries(profiles).filter(([name,prof])=>prof&&typeof prof==="object"&&"xp" in prof).map(([name,prof])=>{
@@ -3277,15 +3277,15 @@ export default function VanguardMathOS(){
               <button key={name} onClick={()=>setActiveUser(name)}
                 style={{background:"#060d18",border:`1px solid ${prof.color}33`,padding:"1.75rem 2.25rem",cursor:"pointer",minWidth:210,textAlign:"center",position:"relative",overflow:"hidden",fontFamily:"Rajdhani,sans-serif"}}>
                 <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:prof.color,opacity:0.6}}/>
-                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.80rem",color:rank.color,letterSpacing:"0.2em",marginBottom:"0.4rem"}}>{rank.name}</div>
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:rank.color,letterSpacing:"0.2em",marginBottom:"0.4rem"}}>{rank.name}</div>
                 <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.7rem",fontWeight:900,color:prof.color,marginBottom:"0.4rem"}}>{name}</div>
                 <div style={{fontSize:"1.2rem",fontWeight:700,color:"#c8d8e8",marginBottom:"0.2rem"}}>{prof.xp} XP</div>
-                <div style={{fontSize:"0.82rem",color:"#ff8800",marginBottom:"0.7rem"}}>PULSE {prof.pulse||0} 🔥</div>
-                <div style={{height:3,background:"#1a2a3a",marginBottom:"0.6rem"}}><div style={{height:"100%",background:prof.color,width:`${Math.min(100,(prof.xp%500)/5)}%`}}/></div>
-                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.80rem",color:"#445566",marginBottom:"0.2rem"}}>{doneSecs}/{totalSecs} SECTIONS</div>
-                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.80rem",color:prof.xp>=PRIME_HUNTER_COST?"#00ffcc":"#445566",marginBottom:"0.35rem"}}>{prof.xp>=PRIME_HUNTER_COST?"✓ ARCADE UNLOCKED":`${Math.max(0,PRIME_HUNTER_COST-prof.xp)} XP TO ARCADE`}</div>
-                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#ffdd0088",marginBottom:"0.7rem"}}>⚡ {getEarnedGameMins(prof)}min game time earned today</div>
-                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.7rem",color:prof.color}}>BOOT SESSION →</div>
+                <div style={{fontSize:"0.92rem",color:"#ff8800",marginBottom:"0.94rem"}}>PULSE {prof.pulse||0} 🔥</div>
+                <div style={{height:3,background:"#1a2a3a",marginBottom:"0.90rem"}}><div style={{height:"100%",background:prof.color,width:`${Math.min(100,(prof.xp%500)/5)}%`}}/></div>
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#8899aa",marginBottom:"0.2rem"}}>{doneSecs}/{totalSecs} SECTIONS</div>
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:prof.xp>=PRIME_HUNTER_COST?"#00ffcc":"#445566",marginBottom:"0.35rem"}}>{prof.xp>=PRIME_HUNTER_COST?"✓ ARCADE UNLOCKED":`${Math.max(0,PRIME_HUNTER_COST-prof.xp)} XP TO ARCADE`}</div>
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#ffdd0088",marginBottom:"0.94rem"}}>⚡ {getEarnedGameMins(prof)}min game time earned today</div>
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:prof.color}}>BOOT SESSION →</div>
               </button>
             );
           })}
@@ -3349,7 +3349,7 @@ export default function VanguardMathOS(){
             <span style={{color:p.color}}>◈ ARCADE · {activeUser} · {p.xp} XP</span>
             <div style={{display:"flex",gap:"0.94rem",alignItems:"center"}}>
               <span style={{color:gameTimeLeft<300000?"#ff4444":"#8899aa"}}>⏱ {gameMinLeft}min left</span>
-              <button onClick={()=>{setShowArcade(false);setShowBounty(true);}} style={{...S.btnGhost,borderColor:"#ffdd0066",color:"#ffdd00",fontSize:"0.86rem",padding:"0.2rem 0.65rem"}}>⚡ EARN TIME</button>
+              <button onClick={()=>{setShowArcade(false);setShowBounty(true);}} style={{...S.btnGhost,borderColor:"#ffdd0066",color:"#ffdd00",fontSize:"0.96rem",padding:"0.2rem 0.65rem"}}>⚡ EARN TIME</button>
             </div>
           </div>
           {gameTimeLeft<=0&&(
@@ -3366,14 +3366,14 @@ export default function VanguardMathOS(){
                 <div key={g.key} style={{background:"#060d18",border:`1px solid ${unlocked?c+"33":"#1a2a3a"}`,padding:"1.5rem",position:"relative",overflow:"hidden",opacity:unlocked?1:0.6,transition:"opacity 0.2s"}}>
                   <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:unlocked?c:"#1a2a3a"}}/>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"0.5rem"}}>
-                    <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.80rem",color:unlocked?c+"88":"#334455"}}>{g.cost} XP · {g.type==="math"?"MATH GAME":"RECREATION"}</div>
-                    {g.type==="math"&&<span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",background:"#001a10",border:"1px solid #00ffcc22",color:"#00ffcc88",padding:"0.1rem 0.4rem"}}>+XP potential</span>}
+                    <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:unlocked?c+"88":"#334455"}}>{g.cost} XP · {g.type==="math"?"MATH GAME":"RECREATION"}</div>
+                    {g.type==="math"&&<span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",background:"#001a10",border:"1px solid #00ffcc22",color:"#00ffcc88",padding:"0.1rem 0.4rem"}}>+XP potential</span>}
                   </div>
-                  <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.1rem",fontWeight:700,color:unlocked?c:"#334455",marginBottom:"0.6rem"}}>{g.label}</div>
-                  <div style={{fontSize:"0.85rem",color:"#8899aa",marginBottom:"1.1rem",lineHeight:1.5}}>{g.desc}</div>
+                  <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.1rem",fontWeight:700,color:unlocked?c:"#334455",marginBottom:"0.90rem"}}>{g.label}</div>
+                  <div style={{fontSize:"0.95rem",color:"#8899aa",marginBottom:"1.1rem",lineHeight:1.5}}>{g.desc}</div>
                   {unlocked
                     ?<button style={{...S.btnCyber,borderColor:c,color:c}} onClick={()=>{setShowArcade(false);if(g.key==="LIVE"){setActiveGame("LIVE");}else{setActiveGame(g.key);}}}>LAUNCH ▶</button>
-                    :<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.7rem",color:"#ff4444",padding:"0.45rem",border:"1px solid #ff444433",background:"#1a0000"}}>
+                    :<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#ff4444",padding:"0.45rem",border:"1px solid #ff444433",background:"#1a0000"}}>
                       {xpLocked?`LOCKED — ${g.cost-p.xp} XP needed`:`NO GAME TIME — solve bounties to earn time`}
                     </div>}
                 </div>
@@ -3425,7 +3425,7 @@ export default function VanguardMathOS(){
         {baselineNeeded&&(
           <div style={{background:"#0a1520",border:"2px solid "+p.color,padding:"1.25rem",marginBottom:"1.25rem",textAlign:"center"}}>
             <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.1rem",color:p.color,marginBottom:"0.5rem",letterSpacing:"0.1em"}}>CALIBRATION REQUIRED</div>
-            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.84rem",color:"#8899aa",marginBottom:"1rem"}}>Take your baseline assessment so we can personalise your curriculum. ~45 min, one time only.</div>
+            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#8899aa",marginBottom:"1rem"}}>Take your baseline assessment so we can personalise your curriculum. ~45 min, one time only.</div>
             <button onClick={()=>setActiveGame("BASELINE")} style={{...S.btnCyber,borderColor:p.color,color:p.color,fontSize:"1rem",padding:"0.65rem 2rem"}}>START BASELINE ASSESSMENT →</button>
           </div>
         )}
@@ -3435,7 +3435,7 @@ export default function VanguardMathOS(){
           <div style={{background:"#1a0a00",border:"2px solid #ff8800",padding:"0.85rem 1.25rem",marginBottom:"1rem",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:"0.5rem"}}>
             <div>
               <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.9rem",color:"#ff8800"}}>BI-WEEKLY TEST DUE</div>
-              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#556677"}}>Auto-generated from your last 2 weeks · 15 questions</div>
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#99aabb"}}>Auto-generated from your last 2 weeks · 15 questions</div>
             </div>
             <button onClick={()=>setActiveGame("BIWEEKLY")} style={{...S.btnCyber,borderColor:"#ff8800",color:"#ff8800",padding:"0.4rem 1.25rem"}}>TAKE TEST →</button>
           </div>
@@ -3446,15 +3446,15 @@ export default function VanguardMathOS(){
           <div style={{display:"flex",alignItems:"center",gap:"1rem"}}>
             <div>
               <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.5rem",fontWeight:900,color:rank.color,lineHeight:1}}>{activeUser}</div>
-              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.82rem",color:rank.color,marginTop:"0.15rem",letterSpacing:"0.1em"}}>{rank.name}{p.pulse>0?` · ${p.pulse}🔥`:""}</div>
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:rank.color,marginTop:"0.15rem",letterSpacing:"0.1em"}}>{rank.name}{p.pulse>0?` · ${p.pulse}🔥`:""}</div>
             </div>
             {nextRank&&(
               <div style={{paddingLeft:"1rem",borderLeft:"1px solid #1a2a3a"}}>
-                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.74rem",color:"#445566",marginBottom:"0.2rem"}}>→ {nextRank.name}</div>
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",marginBottom:"0.2rem"}}>→ {nextRank.name}</div>
                 <div style={{width:100,height:5,background:"#1a2a3a",borderRadius:2}}>
                   <div style={{height:"100%",background:rank.color,width:`${Math.min(100,((p.xp-(rank.min||0))/(nextRank.min-(rank.min||0)))*100)}%`,borderRadius:2,transition:"width 0.5s"}}/>
                 </div>
-                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.72rem",color:"#556677",marginTop:"0.1rem"}}>{nextRank.min-p.xp} XP</div>
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#99aabb",marginTop:"0.1rem"}}>{nextRank.min-p.xp} XP</div>
               </div>
             )}
           </div>
@@ -3475,11 +3475,11 @@ export default function VanguardMathOS(){
             <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,${rank.color},transparent)`}}/>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:"0.5rem"}}>
               <div>
-                <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.84rem",color:rank.color,letterSpacing:"0.1em",marginBottom:"0.2rem"}}>TODAY'S QUEST</div>
-                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.82rem",color:"#c8d8e8",marginBottom:"0.35rem"}}>
+                <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.94rem",color:rank.color,letterSpacing:"0.1em",marginBottom:"0.2rem"}}>TODAY'S QUEST</div>
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#c8d8e8",marginBottom:"0.35rem"}}>
                   Earn <b style={{color:"#ffdd00"}}>200 Flux</b> → unlock <b style={{color:"#ffdd00"}}>15 min TV 📺</b>
                 </div>
-                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#556677"}}>
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#99aabb"}}>
                   How: sync 2 sections (+20⚡ each) + 8 bounty questions (+15⚡ each)
                 </div>
               </div>
@@ -3488,7 +3488,7 @@ export default function VanguardMathOS(){
             <div style={{height:8,background:"#0a1520",borderRadius:4,marginTop:"0.75rem",overflow:"hidden"}}>
               <div style={{height:"100%",background:`linear-gradient(90deg,#ffdd00,#ff8800)`,width:`${Math.min(100,(questProgress/questFlux)*100)}%`,borderRadius:4,transition:"width 0.5s"}}/>
             </div>
-            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#556677",marginTop:"0.3rem"}}>{questProgress}/{questFlux} ⚡ Flux earned today</div>
+            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#99aabb",marginTop:"0.3rem"}}>{questProgress}/{questFlux} ⚡ Flux earned today</div>
           </div>
         )}
 
@@ -3497,9 +3497,9 @@ export default function VanguardMathOS(){
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.5rem",flexWrap:"wrap",gap:"0.5rem"}}>
             <div style={{display:"flex",alignItems:"baseline",gap:"0.5rem"}}>
               <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"2rem",fontWeight:900,color:gameColor,lineHeight:1}}>{gameMinLeft}</span>
-              <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.84rem",color:"#556677"}}>/ {earnedMins} min game time left</span>
+              <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#99aabb"}}>/ {earnedMins} min game time left</span>
             </div>
-            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.8rem",color:"#667788",textAlign:"right"}}>
+            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.8rem",color:"#aabbcc",textAlign:"right"}}>
               <div>{p.sectionsToday||0} sections = <span style={{color:"#00ffcc"}}>{Math.min(MAX_GAME_MINS,(p.sectionsToday||0)*MINS_PER_SECTION)}m</span></div>
               <div>{bountyCorrect} bounties = <span style={{color:"#ffdd00"}}>{Math.min(MAX_GAME_MINS,bountyCorrect*MINS_PER_BOUNTY_CORRECT)}m</span></div>
             </div>
@@ -3508,7 +3508,7 @@ export default function VanguardMathOS(){
             <div style={{height:"100%",background:`linear-gradient(90deg,${gameColor},${gameColor}88)`,width:`${gamePct*100}%`,borderRadius:4,transition:"width 0.5s"}}/>
           </div>
           <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:"0.5rem"}}>
-            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#445566"}}>
+            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#8899aa"}}>
               {sectionsLeft>0?`${sectionsLeft} section sync${sectionsLeft!==1?"s":""} left`:"Limit reached"} · {BOUNTY_DAILY_CAP-(isToday?(p.bountyCountToday||0):0)} bounties left
             </div>
             <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap"}}>
@@ -3521,24 +3521,24 @@ export default function VanguardMathOS(){
 
         {/* ── RIVALRY BAR ── */}
         <div style={{background:"#060d18",border:"1px solid #1a2a3a",padding:"0.85rem 1.25rem",marginBottom:"1rem"}}>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#445566",letterSpacing:"0.1em",marginBottom:"0.6rem"}}>RIVALRY</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#8899aa",letterSpacing:"0.1em",marginBottom:"0.90rem"}}>RIVALRY</div>
           <div style={{display:"flex",alignItems:"center",gap:"0.75rem",flexWrap:"wrap"}}>
             <div style={{textAlign:"center",minWidth:70}}>
               <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.9rem",fontWeight:700,color:p.color}}>{activeUser}</div>
-              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.82rem",color:"#c8d8e8"}}>{p.xp} XP</div>
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#c8d8e8"}}>{p.xp} XP</div>
             </div>
             <div style={{flex:1,position:"relative",height:22,background:"#0a1520",borderRadius:3,overflow:"hidden",minWidth:100}}>
               {(()=>{const total=p.xp+op.xp||1;const pPct=(p.xp/total)*100;return<>
                 <div style={{position:"absolute",left:0,top:0,height:"100%",width:`${pPct}%`,background:p.color,opacity:0.7,transition:"width 0.5s"}}/>
                 <div style={{position:"absolute",right:0,top:0,height:"100%",width:`${100-pPct}%`,background:op.color,opacity:0.7,transition:"width 0.5s"}}/>
-                <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"Orbitron,sans-serif",fontSize:"0.78rem",fontWeight:700,color:"#fff",textShadow:"0 1px 3px rgba(0,0,0,0.9)"}}>
+                <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"Orbitron,sans-serif",fontSize:"0.90rem",fontWeight:700,color:"#fff",textShadow:"0 1px 3px rgba(0,0,0,0.9)"}}>
                   {p.xp>op.xp?`▲ ${p.xp-op.xp}`:p.xp<op.xp?`▼ ${op.xp-p.xp}`:"TIED"}
                 </div>
               </>})()}
             </div>
             <div style={{textAlign:"center",minWidth:70}}>
               <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.9rem",fontWeight:700,color:op.color}}>{otherUser}</div>
-              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.82rem",color:"#c8d8e8"}}>{op.xp} XP</div>
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#c8d8e8"}}>{op.xp} XP</div>
             </div>
           </div>
         </div>
@@ -3552,22 +3552,22 @@ export default function VanguardMathOS(){
             {label:"STREAK",val:`${p.pulse||0}🔥`,color:"#ff8800",sub:"days"},
           ].map(s=>(
             <div key={s.label} style={{background:"#060d18",border:"1px solid #1a2a3a",padding:"0.65rem 0.75rem"}}>
-              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.72rem",color:"#556677",marginBottom:"0.2rem"}}>{s.label}</div>
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#99aabb",marginBottom:"0.2rem"}}>{s.label}</div>
               <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.2rem",fontWeight:700,color:s.color,lineHeight:1,marginBottom:"0.1rem"}}>{s.val}</div>
-              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.74rem",color:"#667788"}}>{s.sub}</div>
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#aabbcc"}}>{s.sub}</div>
             </div>
           ))}
         </div>
 
         {/* ── MISSION NODES ── */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.65rem"}}>
-          <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.9rem",color:"#c8d8e8",letterSpacing:"0.1em"}}>MISSION NODES</div>
+          <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1rem",color:"#e0eeff",letterSpacing:"0.1em",fontWeight:700}}>MISSION NODES</div>
           <div style={{display:"flex",gap:"0.5rem"}}>
-            <button onClick={()=>setShowCoach(true)} style={{...S.btnGhost,fontSize:"0.78rem",padding:"0.25rem 0.65rem",borderColor:"#ffdd0044",color:"#ffdd00"}}>◈ APEX ({p.lc} LC)</button>
-            {p.name==="NOVA"&&<button onClick={()=>setShowReport(true)} style={{...S.btnGhost,fontSize:"0.78rem",padding:"0.25rem 0.65rem",borderColor:"#00aaff44",color:"#00aaff"}}>📊 REPORT</button>}
+            <button onClick={()=>setShowCoach(true)} style={{...S.btnGhost,fontSize:"0.90rem",padding:"0.25rem 0.65rem",borderColor:"#ffdd0044",color:"#ffdd00"}}>◈ APEX ({p.lc} LC)</button>
+            {p.name==="NOVA"&&<button onClick={()=>setShowReport(true)} style={{...S.btnGhost,fontSize:"0.90rem",padding:"0.25rem 0.65rem",borderColor:"#00aaff44",color:"#00aaff"}}>📊 REPORT</button>}
           </div>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:"0.85rem",marginBottom:"1rem"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:"0.95rem",marginBottom:"1rem"}}>
           {CURRICULUM.map(book=>{
             const allSecs=book.chapters.flatMap(c=>c.sections);
             const total=allSecs.length;
@@ -3579,17 +3579,17 @@ export default function VanguardMathOS(){
             return(
               <button key={book.id} onClick={()=>{setActiveBook(book.id);setActiveChapter(null);}}
                 style={{background:"#060d18",border:`1px solid ${done>0?book.color+"44":"#1a2a3a"}`,padding:"1.1rem",cursor:"pointer",textAlign:"left",position:"relative",overflow:"hidden",transition:"border-color 0.2s"}}>
-                <div style={{position:"absolute",top:0,left:0,right:0,height:done>0?3:1,background:done>0?book.color:"#1a2a3a",transition:"height 0.3s"}}/>
+                <div style={{position:"absolute",top:0,left:0,right:0,height:done>0?3:1,background:done>0?book.color:"#8899aa",transition:"height 0.3s"}}/>
                 <div style={{display:"flex",justifyContent:"space-between",marginBottom:"0.4rem"}}>
-                  <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:book.color,letterSpacing:"0.12em"}}>{book.code}</div>
-                  <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.88rem",fontWeight:700,color:book.color}}>{bXP} XP</div>
+                  <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:book.color,letterSpacing:"0.12em"}}>{book.code}</div>
+                  <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.96rem",fontWeight:700,color:book.color}}>{bXP} XP</div>
                 </div>
-                <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.92rem",fontWeight:700,color:"#d0e0f0",marginBottom:"0.6rem",lineHeight:1.3}}>{book.name}</div>
+                <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.92rem",fontWeight:700,color:"#d0e0f0",marginBottom:"0.90rem",lineHeight:1.3}}>{book.name}</div>
                 <div style={{height:5,background:"#0a1520",borderRadius:2,marginBottom:"0.3rem"}}>
                   <div style={{height:"100%",background:book.color,width:`${(done/total)*100}%`,borderRadius:2,transition:"width 0.5s"}}/>
                 </div>
                 <div style={{display:"flex",justifyContent:"space-between"}}>
-                  <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.8rem",color:"#667788"}}>{done}/{total} sections</span>
+                  <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.8rem",color:"#aabbcc"}}>{done}/{total} sections</span>
                   <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.8rem",color:book.color}}>{book.chapters.length} chapters →</span>
                 </div>
               </button>
@@ -3599,12 +3599,12 @@ export default function VanguardMathOS(){
 
         {/* ── RANK LADDER ── */}
         <div style={{background:"#060d18",border:"1px solid #1a2a3a",padding:"0.85rem 1.25rem"}}>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#445566",letterSpacing:"0.1em",marginBottom:"0.6rem"}}>RANK LADDER · Ask your parent what each rank earns</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#8899aa",letterSpacing:"0.1em",marginBottom:"0.90rem"}}>RANK LADDER · Ask your parent what each rank earns</div>
           <div style={{display:"flex",gap:"0.4rem",flexWrap:"wrap"}}>
             {RANKS.map(r=>{const achieved=p.xp>=r.min;const isCurrent=getRank(p.xp).name===r.name;return(
               <div key={r.name} style={{flex:1,minWidth:65,padding:"0.4rem 0.5rem",background:isCurrent?`${r.color}11`:"#040b14",border:`1px solid ${achieved?r.color+"55":"#1a2a3a"}`,borderRadius:3,textAlign:"center"}}>
-                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.68rem",color:achieved?r.color:"#334455",fontWeight:isCurrent?700:400}}>{r.name}</div>
-                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.66rem",color:achieved?"#556677":"#2a3a4a"}}>{r.min} XP</div>
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:achieved?r.color:"#aabbcc",fontWeight:isCurrent?700:400}}>{r.name}</div>
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:achieved?"#556677":"#2a3a4a"}}>{r.min} XP</div>
                 {isCurrent&&<div style={{width:"100%",height:2,background:r.color,borderRadius:1,marginTop:2}}/>}
               </div>
             );})}
@@ -3624,23 +3624,23 @@ function SCard({label,accent,children}){
   return(
     <div style={{background:"#060d18",border:"1px solid #1a2a3a",padding:"1.1rem",position:"relative"}}>
       <div style={{position:"absolute",top:0,left:0,right:0,height:1,background:accent||"#00ffcc",opacity:0.45}}/>
-      <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#667788",letterSpacing:"0.08em",marginBottom:"0.45rem"}}>{label}</div>
+      <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#aabbcc",letterSpacing:"0.08em",marginBottom:"0.45rem"}}>{label}</div>
       {children}
     </div>
   );
 }
 function Big({val,color}){return<div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.8rem",fontWeight:700,color,marginBottom:"0.4rem",lineHeight:1}}>{val}</div>;}
 function Bar({pct,color}){return<div style={{height:3,background:"#1a2a3a",marginBottom:"0.35rem"}}><div style={{height:"100%",background:color,width:`${Math.min(100,pct*100)}%`,transition:"width 0.5s"}}/></div>;}
-function Sub({text}){return<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#556677"}}>{text}</div>;}
+function Sub({text}){return<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#99aabb"}}>{text}</div>;}
 
 // ═══════════════════════════════════════════════════════════
 // SHARED STYLES
 // ═══════════════════════════════════════════════════════════
 const S={
   btnCyber:{background:"#001a10",border:"1px solid #00ffcc",color:"#00ffcc",padding:"0.55rem 1.1rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",letterSpacing:"0.08em"},
-  btnBack:{background:"none",border:"1px solid #2a3a4a",color:"#00ffcc",padding:"0.28rem 0.75rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.88rem",letterSpacing:"0.08em"},
-  btnGhost:{background:"none",border:"1px solid #2a3a4a",color:"#8899aa",padding:"0.38rem 0.75rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.88rem",letterSpacing:"0.05em"},
-  ansInput:{flex:1,background:"#0a1520",border:"1px solid #2a3a4a",color:"#c8d8e8",padding:"0.55rem 0.85rem",fontFamily:"Rajdhani,sans-serif",fontSize:"0.95rem",outline:"none",width:"100%"},
+  btnBack:{background:"none",border:"1px solid #2a3a4a",color:"#00ffcc",padding:"0.28rem 0.75rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",letterSpacing:"0.08em"},
+  btnGhost:{background:"none",border:"1px solid #2a3a4a",color:"#8899aa",padding:"0.38rem 0.75rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",letterSpacing:"0.05em"},
+  ansInput:{flex:1,background:"#0a1520",border:"1px solid #2a3a4a",color:"#c8d8e8",padding:"0.55rem 0.85rem",fontFamily:"Rajdhani,sans-serif",fontSize:"1rem",outline:"none",width:"100%"},
   xBtn:{background:"none",border:"1px solid #2a3a4a",color:"#8899aa",width:26,height:26,cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0},
 };
 
