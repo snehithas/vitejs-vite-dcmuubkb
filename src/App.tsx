@@ -1308,7 +1308,19 @@ function TabWarning({message,onDismiss}){
 function useTabDetection(enabled, onTabReturn){
   useEffect(()=>{
     if(!enabled) return;
-    function onHide(){if(document.hidden) onTabReturn();}
+    // Only on desktop - skip mobile where visibilitychange fires from screen dim
+    const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if(isMobile) return;
+    let lastHidden=0;
+    function onHide(){
+      if(document.hidden){
+        lastHidden=Date.now();
+      } else {
+        // Only count as tab switch if they were gone > 2 seconds
+        if(lastHidden>0&&Date.now()-lastHidden>2000) onTabReturn();
+        lastHidden=0;
+      }
+    }
     document.addEventListener("visibilitychange",onHide);
     return()=>document.removeEventListener("visibilitychange",onHide);
   },[enabled,onTabReturn]);
@@ -1992,6 +2004,10 @@ function BaselineAssessment({profile,onComplete}){
   const [showWarning,setShowWarning]=useState(false);
   const [tabCount,setTabCount]=useState(0);
   const [revealed,setRevealed]=useState(false);
+  const [showReview,setShowReview]=useState(false);
+  const [finalResults,setFinalResults]=useState([]);
+  const [finalScore,setFinalScore]=useState(0);
+  const [finalWeak,setFinalWeak]=useState([]);
   const inputRef=useRef(null);
   const timerRef=useRef(null);
 
@@ -2020,7 +2036,7 @@ function BaselineAssessment({profile,onComplete}){
   useEffect(()=>{inputRef.current?.focus();},[qIdx]);
 
   function handleTimeout(){
-    const nr=[...results,{q:q.q,topic:q.topic,difficulty:q.difficulty,correct:false,answered:false}];
+    const nr=[...results,{q:q.q,a:q.a,topic:q.topic,difficulty:q.difficulty,correct:false,answered:false,userInput:"(time ran out)"}];
     setResults(nr);
     if(qIdx+1<questions.length) setTimeout(()=>{setQIdx(i=>i+1);setInput("");setRevealed(false);setTimeLeft(180);},500);
     else finish(nr);
@@ -2029,7 +2045,7 @@ function BaselineAssessment({profile,onComplete}){
   function submit(){
     if(revealed) return;
     const ok=checkAns(input,q.a);
-    const nr=[...results,{q:q.q,topic:q.topic,difficulty:q.difficulty,correct:ok,answered:true}];
+    const nr=[...results,{q:q.q,a:q.a,topic:q.topic,difficulty:q.difficulty,correct:ok,answered:true,userInput:input.trim()}];
     setResults(nr);
     setFlash(ok?"good":"bad");
     setTimeout(()=>{
@@ -2041,7 +2057,7 @@ function BaselineAssessment({profile,onComplete}){
 
   function reveal(){
     setRevealed(true);
-    const nr=[...results,{q:q.q,topic:q.topic,difficulty:q.difficulty,correct:false,answered:false,revealed:true}];
+    const nr=[...results,{q:q.q,a:q.a,topic:q.topic,difficulty:q.difficulty,correct:false,answered:false,revealed:true,userInput:"(revealed)"}];
     setResults(nr);
     clearInterval(timerRef.current);
     setTimeout(()=>{
@@ -2054,7 +2070,6 @@ function BaselineAssessment({profile,onComplete}){
     clearInterval(timerRef.current);
     const correct=finalResults.filter(r=>r.correct).length;
     const score=Math.round((correct/questions.length)*100);
-    // Find weak topics (< 50% correct per topic)
     const byTopic={};
     finalResults.forEach(r=>{
       if(!byTopic[r.topic]) byTopic[r.topic]={correct:0,total:0};
@@ -2062,11 +2077,97 @@ function BaselineAssessment({profile,onComplete}){
       if(r.correct) byTopic[r.topic].correct++;
     });
     const weak=Object.entries(byTopic).filter(([,v])=>v.correct/v.total<0.6).map(([k])=>k);
-    onComplete(score,weak);
+    // Show review screen first, THEN call onComplete
+    setFinalScore(score);
+    setFinalWeak(weak);
+    setFinalResults(finalResults);
+    setShowReview(true);
   }
 
   const pct=(qIdx/questions.length)*100;
   const timeColor=timeLeft>60?"#00ffcc":timeLeft>30?"#ffaa00":"#ff4444";
+
+  // ── REVIEW SCREEN ────────────────────────────────────────────────────────
+  if(showReview){
+    const correctCount=finalResults.filter(r=>r.correct).length;
+    const scoreColor=finalScore>=80?"#00ffcc":finalScore>=60?"#ffaa00":"#ff4444";
+    return(
+      <div style={{minHeight:"100vh",background:"#03080f",fontFamily:"Rajdhani,sans-serif",overflowY:"auto"}}>
+        <Scanlines/>
+        {/* Score header */}
+        <div style={{background:"#060d18",borderBottom:"1px solid #1a2a3a",padding:"1.25rem 1.5rem",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:"1rem",position:"sticky",top:0,zIndex:10}}>
+          <div>
+            <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1rem",color:profile.color,letterSpacing:"0.1em"}}>BASELINE COMPLETE</div>
+            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.9rem",color:"#8899aa",marginTop:"0.2rem"}}>{correctCount}/{finalResults.length} correct · Curriculum adjusted to your results</div>
+          </div>
+          <div style={{textAlign:"center"}}>
+            <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"3rem",fontWeight:900,color:scoreColor,lineHeight:1}}>{finalScore}%</div>
+            {finalWeak.length>0&&<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.82rem",color:"#ff8800",marginTop:"0.2rem"}}>Focus areas: {finalWeak.slice(0,3).map(t=>TOPIC_LABELS[t]||t).join(", ")}</div>}
+          </div>
+          <button onClick={()=>onComplete(finalScore,finalWeak)} style={{...S.btnCyber,borderColor:profile.color,color:profile.color,fontSize:"0.9rem",padding:"0.6rem 1.5rem"}}>CONTINUE TO OS →</button>
+        </div>
+
+        {/* Question review */}
+        <div style={{maxWidth:800,margin:"0 auto",padding:"1.25rem"}}>
+          <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.88rem",color:"#c8d8e8",letterSpacing:"0.1em",marginBottom:"1rem"}}>ANSWER REVIEW — What you typed vs what was expected</div>
+          {finalResults.map((r,i)=>{
+            const notAnswered=!r.answered&&!r.revealed;
+            const borderColor=r.correct?"#00ffcc33":r.revealed?"#ffaa0033":notAnswered?"#33445533":"#ff444433";
+            const topColor=r.correct?"#00ffcc":r.revealed?"#ffaa00":notAnswered?"#445566":"#ff4444";
+            const icon=r.correct?"✓":r.revealed?"👁":notAnswered?"⏱":"✗";
+            const statusLabel=r.correct?"CORRECT":r.revealed?"REVEALED":notAnswered?"TIMED OUT":"INCORRECT";
+            const statusColor=r.correct?"#00ffcc":r.revealed?"#ffaa00":notAnswered?"#556677":"#ff4444";
+            const expectedAns=(r.a||"").split("|")[0]; // show first accepted form
+            return(
+              <div key={i} style={{background:"#060d18",border:`1px solid ${borderColor}`,marginBottom:"0.75rem",position:"relative",overflow:"hidden"}}>
+                <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:topColor}}/>
+                <div style={{padding:"0.85rem 1rem"}}>
+                  {/* Question number + topic + status */}
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.5rem",flexWrap:"wrap",gap:"0.4rem"}}>
+                    <div style={{display:"flex",gap:"0.75rem",alignItems:"center"}}>
+                      <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.84rem",color:"#8899aa"}}>Q{i+1}</span>
+                      <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#8899aa",background:"#0a1520",padding:"0.1rem 0.4rem",borderRadius:2}}>{TOPIC_LABELS[r.topic]||r.topic}</span>
+                      <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#556677"}}>{"◆".repeat(r.difficulty||1)}{"◇".repeat(3-(r.difficulty||1))}</span>
+                    </div>
+                    <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.84rem",color:statusColor,fontWeight:700}}>{icon} {statusLabel}</span>
+                  </div>
+                  {/* Question text */}
+                  <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"1rem",color:"#d0e8f0",marginBottom:"0.75rem",lineHeight:1.5}}>{r.q}</div>
+                  {/* Answer comparison */}
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"0.6rem"}}>
+                    <div style={{background:"#0a1520",border:`1px solid ${r.correct?"#00ffcc33":"#ff444433"}`,padding:"0.6rem"}}>
+                      <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.72rem",color:"#8899aa",marginBottom:"0.2rem"}}>YOU TYPED</div>
+                      <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.95rem",color:r.correct?"#00ffcc":r.userInput?"#ff6644":"#445566"}}>
+                        {r.userInput||"(no answer)"}
+                      </div>
+                    </div>
+                    <div style={{background:"#001a10",border:"1px solid #00ffcc22",padding:"0.6rem"}}>
+                      <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.72rem",color:"#8899aa",marginBottom:"0.2rem"}}>EXPECTED</div>
+                      <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.95rem",color:"#00ffcc"}}>{expectedAns}</div>
+                      {r.a&&r.a.includes("|")&&(
+                        <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.72rem",color:"#445566",marginTop:"0.2rem"}}>
+                          Also accepted: {r.a.split("|").slice(1).join(", ")}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {/* Format note if wrong */}
+                  {!r.correct&&r.userInput&&r.userInput!=="(revealed)"&&(
+                    <div style={{marginTop:"0.5rem",fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#ff8800",background:"#1a0a00",border:"1px solid #ff880022",padding:"0.4rem 0.6rem"}}>
+                      💡 {getFormatTip(r.a)||"Check your format against the expected answer above"}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+          <button onClick={()=>onComplete(finalScore,finalWeak)} style={{...S.btnCyber,width:"100%",marginTop:"0.5rem",fontSize:"0.96rem",padding:"0.75rem",borderColor:profile.color,color:profile.color}}>
+            CONTINUE TO VANGUARD OS →
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return(
     <div style={{minHeight:"100vh",background:"#03080f",display:"flex",flexDirection:"column",fontFamily:"Rajdhani,sans-serif"}}>
@@ -2139,6 +2240,10 @@ function BiweeklyTest({profile,onComplete}){
   const [showWarning,setShowWarning]=useState(false);
   const [tabCount,setTabCount]=useState(0);
   const [revealed,setRevealed]=useState(false);
+  const [showReview,setShowReview]=useState(false);
+  const [finalResults,setFinalResults]=useState([]);
+  const [finalScore,setFinalScore]=useState(0);
+  const [finalWeak,setFinalWeak]=useState([]);
   const inputRef=useRef(null);
   const timerRef=useRef(null);
 
@@ -2175,7 +2280,13 @@ function BiweeklyTest({profile,onComplete}){
     setTimeout(()=>advance(ok),ok?400:900);
   }
 
-  if(!questions.length) return<div style={{minHeight:"100vh",background:"#03080f",display:"flex",alignItems:"center",justifyContent:"center",color:"#00ffcc",fontFamily:"Orbitron,sans-serif"}}>No questions available yet — complete some sections first!</div>;
+  if(!questions.length) return(
+    <div style={{minHeight:"100vh",background:"#03080f",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:"1rem",padding:"2rem",textAlign:"center"}}>
+      <div style={{fontFamily:"Orbitron,sans-serif",color:"#ff4444",fontSize:"1.2rem"}}>NOT ENOUGH DATA YET</div>
+      <div style={{fontFamily:"Share Tech Mono,monospace",color:"#8899aa",maxWidth:400}}>Complete at least 3 sections first so the test has material to draw from.</div>
+      <button onClick={onExit} style={S.btnCyber}>← BACK TO OS</button>
+    </div>
+  );
 
   const q=questions[qIdx];
   const color=profile.color;
@@ -2650,7 +2761,7 @@ function RedemptionCenter({profile,rewards,onClose,onRedeem}){
         <div style={{padding:"1rem 1.25rem"}}>
           <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",letterSpacing:"0.1em",marginBottom:"0.75rem"}}>AVAILABLE REWARDS</div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:"0.90rem"}}>
-            {(rewards||DEFAULT_REWARDS).map(r=>{
+            {(Array.isArray(rewards)&&rewards.length>0?rewards:DEFAULT_REWARDS).map(r=>{
               const canAfford=flux>=r.flux;
               const alreadyPending=pending.some(p=>p.rewardId===r.id);
               return(
@@ -2983,7 +3094,7 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
         {tab==="rewards"&&(
           <div style={{padding:"1.25rem"}}>
             <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",marginBottom:"0.75rem"}}>MANAGE REWARDS</div>
-            {(rewards||DEFAULT_REWARDS).map(r=>(
+            {(Array.isArray(rewards)&&rewards.length>0?rewards:DEFAULT_REWARDS).map(r=>(
               <div key={r.id} style={{display:"flex",alignItems:"center",gap:"0.75rem",padding:"0.5rem 0",borderBottom:"1px solid #1a2a3a"}}>
                 <span style={{fontSize:"1.3rem"}}>{r.emoji}</span>
                 <span style={{fontFamily:"Rajdhani,sans-serif",fontSize:"0.95rem",color:"#c8d8e8",flex:1}}>{r.label}</span>
@@ -3125,7 +3236,7 @@ function ChapterView({chapter,book,profile,sectionsLeft,onSectionProof,onBack,sh
                   onClick={()=>onSectionProof(sec)}
                   disabled={!done&&sectionsLeft<=0}
                   style={{width:"100%",padding:"0.45rem",background:done?"#001510":"#001a10",border:`1px solid ${done?book.color+"66":sectionsLeft>0?book.color:"#8899aa"}`,color:done?`${book.color}88`:sectionsLeft>0?book.color:"#aabbcc",fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",letterSpacing:"0.05em",cursor:done||sectionsLeft>0?"pointer":"not-allowed",opacity:!done&&sectionsLeft<=0?0.4:1,transition:"all 0.2s"}}>
-                  {done?"REVIEW / REDO PROOFS":sectionsLeft<=0?"THROTTLED — COME BACK TOMORROW":"SYNC SECTION + PROOF"}
+                  {done?"REVIEW / REDO PROOFS ✓":sectionsLeft<=0?"DAILY LIMIT REACHED — COME BACK TOMORROW":"▶ START — SYNC + PROVE THIS SECTION"}
                 </button>
               </div>
             );
@@ -3224,10 +3335,13 @@ export default function VanguardMathOS(){
 
   useEffect(()=>{saveState(appState);},[appState]);
   useEffect(()=>{
-    function onTriggerTest(){setActiveGame("BIWEEKLY");}
+    function onTriggerTest(){
+      if(!activeUser){notify("Please log in as a student first","warn");return;}
+      setActiveGame("BIWEEKLY");
+    }
     window.addEventListener("triggerTest",onTriggerTest);
     return()=>window.removeEventListener("triggerTest",onTriggerTest);
-  },[]);
+  },[activeUser]);
 
   function notify(msg,type="info"){setNotification({msg,type});setTimeout(()=>setNotification(null),3500);}
   function updateProfile(name,fn){setProfiles(prev=>({...prev,[name]:fn(prev[name])}));}
@@ -3398,7 +3512,7 @@ export default function VanguardMathOS(){
                 <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:prof.color,opacity:0.6}}/>
                 <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:rank.color,letterSpacing:"0.2em",marginBottom:"0.4rem"}}>{rank.name}</div>
                 <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.7rem",fontWeight:900,color:prof.color,marginBottom:"0.4rem"}}>{name}</div>
-                <div style={{fontSize:"1.2rem",fontWeight:700,color:"#c8d8e8",marginBottom:"0.2rem"}}>{prof.xp} XP</div>
+                <div style={{fontSize:"1.2rem",fontWeight:700,color:"#c8d8e8",marginBottom:"0.2rem"}}>{prof.xp} XP · ⚡{prof.flux||0} Flux</div>
                 <div style={{fontSize:"0.92rem",color:"#ff8800",marginBottom:"0.94rem"}}>PULSE {prof.pulse||0} 🔥</div>
                 <div style={{height:3,background:"#1a2a3a",marginBottom:"0.90rem"}}><div style={{height:"100%",background:prof.color,width:`${Math.min(100,(prof.xp%500)/5)}%`}}/></div>
                 <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#8899aa",marginBottom:"0.2rem"}}>{doneSecs}/{totalSecs} SECTIONS</div>
@@ -3534,9 +3648,9 @@ export default function VanguardMathOS(){
       <Scanlines/>
       {notification&&<Toast n={notification}/>}
       {showCoach&&<ApexCoach profile={p} onClose={()=>setShowCoach(false)} onDeductCredits={deductCredits}/>}
-      {showParent&&<ParentMode profiles={profiles} rewards={appState.rewards||DEFAULT_REWARDS} onClose={()=>setShowParent(false)} onUpdateProfiles={updateProfile} onUpdateRewards={(r)=>setAppState(prev=>({...prev,rewards:r}))} onStartRival={()=>setRivalPending(true)}/>}
+      {showParent&&<ParentMode profiles={profiles} rewards={Array.isArray(appState.rewards)&&appState.rewards.length>0?appState.rewards:DEFAULT_REWARDS} onClose={()=>setShowParent(false)} onUpdateProfiles={updateProfile} onUpdateRewards={(r)=>setAppState(prev=>({...prev,rewards:r}))} onStartRival={()=>setRivalPending(true)}/>}
       {showBounty&&<BountyBoard profile={p} onClose={()=>setShowBounty(false)} onCorrect={handleBountyCorrect} onSpendLC={(amt)=>updateProfile(activeUser,prev=>({...prev,lc:Math.max(0,prev.lc-amt)}))}/>}
-      {showRedemption&&<RedemptionCenter profile={p} rewards={appState.rewards||DEFAULT_REWARDS} onClose={()=>setShowRedemption(false)} onRedeem={handleRedeem}/>}
+      {showRedemption&&<RedemptionCenter profile={p} rewards={Array.isArray(appState.rewards)&&appState.rewards.length>0?appState.rewards:DEFAULT_REWARDS} onClose={()=>setShowRedemption(false)} onRedeem={handleRedeem}/>}
 
       <div style={{maxWidth:1000,margin:"0 auto",padding:"1.25rem 1rem"}}>
 
