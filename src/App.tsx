@@ -1307,7 +1307,6 @@ function fmtTime(ms){const m=Math.floor(ms/60000),s=Math.floor((ms%60000)/1000);
 // Question templates by topic — generated dynamically
 function generateBountyQuestions(profile, count=8){
   if(!profile||!profile.sectionsDone) return [];
-  try{
   const done=Object.keys(profile.sectionsDone||{});
   const allSections=CURRICULUM.flatMap(b=>b.chapters).flatMap(c=>c.sections);
   const unlockedIds=new Set(done);
@@ -1420,7 +1419,7 @@ function getEarnedGameMins(profile){
   const sectionMins=(profile.lastSyncDate===t?(profile.sectionsToday||0):0)*MINS_PER_SECTION;
   const bountyMins=(profile.lastBountyDate===t?(profile.bountyCorrectToday||0):0)*MINS_PER_BOUNTY_CORRECT;
     return Math.min(MAX_GAME_MINS, sectionMins+bountyMins);
-}  }catch(e){console.error('Bounty gen error:',e);return [];}
+}
 
 
 // ═══════════════════════════════════════════════════════════
