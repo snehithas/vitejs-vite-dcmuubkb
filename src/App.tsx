@@ -1430,7 +1430,7 @@ function BountyBoard({profile,onClose,onCorrect,onSpendLC}){
   const isToday=profile.lastBountyDate===t;
   const usedToday=isToday?(profile.bountyCountToday||0):0;
   const correctToday=isToday?(profile.bountyCorrectToday||0):0;
-  const earnedMins=Math.min(MAX_GAME_MINS, sectionMins+bountyMins);
+  const earnedMins=getEarnedGameMins(profile);
   const remaining=BOUNTY_DAILY_CAP-usedToday;
 
   const [questions,setQuestions]=useState(()=>generateBountyQuestions(profile,8));
@@ -3999,6 +3999,34 @@ export default function VanguardMathOS(){
 
   useEffect(()=>{saveState(appState);},[appState]);
 
+  // Force daily reset check on every page load
+  useEffect(()=>{
+    if(!activeUser) return;
+    const p=profiles[activeUser];
+    if(!p||!("xp" in p)) return;
+    const t=today();
+    const needsReset=(p.lastSyncDate||"")!==t||(p.lastBountyDate||"")!==t||(p.lastWarmupDate||"")!==t;
+    if(needsReset){
+      const yestD=new Date();yestD.setDate(yestD.getDate()-1);
+      const ys=`${yestD.getFullYear()}-${String(yestD.getMonth()+1).padStart(2,'0')}-${String(yestD.getDate()).padStart(2,'0')}`;
+      updateProfile(activeUser,prev=>({
+        ...prev,
+        sectionsToday:(prev.lastSyncDate||"")===t?(prev.sectionsToday||0):0,
+        lastSyncDate:t,
+        pulse:prev.lastActive===ys?(prev.pulse||0)+1:prev.lastActive===t?(prev.pulse||0):0,
+        gameTimeUsedMs:(prev.lastGameDate||"")===t?(prev.gameTimeUsedMs||0):0,
+        lastGameDate:t,
+        bountyCorrectToday:(prev.lastBountyDate||"")===t?(prev.bountyCorrectToday||0):0,
+        bountyCountToday:(prev.lastBountyDate||"")===t?(prev.bountyCountToday||0):0,
+        lastBountyDate:t,
+        warmupDoneToday:(prev.lastWarmupDate||"")===t?(prev.warmupDoneToday||false):false,
+        liveFluxToday:(prev.lastLiveDate||"")===t?(prev.liveFluxToday||0):0,
+        lastLiveDate:t,
+      }));
+    }
+  // eslint-disable-next-line
+  },[]);
+
 
   useEffect(()=>{
     function onTriggerTest(){
@@ -4426,6 +4454,7 @@ export default function VanguardMathOS(){
             <div>
               <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.5rem",fontWeight:900,color:rank.color,lineHeight:1}}>{activeUser}</div>
               <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:rank.color,marginTop:"0.15rem",letterSpacing:"0.1em"}}>{rank.name}{p.pulse>0?` · ${p.pulse}🔥`:""}</div>
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#445566",marginTop:"0.1rem"}}>📅 {today()} · syncs: {p.sectionsToday||0}/{DAILY_SECTION_LIMIT}</div>
             </div>
             {nextRank&&(
               <div style={{paddingLeft:"1rem",borderLeft:"1px solid #1a2a3a"}}>
@@ -4533,10 +4562,10 @@ export default function VanguardMathOS(){
         {/* ── COMPACT STATS ── */}
         <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"0.5rem",marginBottom:"1rem"}}>
           {[
-            {label:"WARM-UP",val:warmupNeeded()?"⚡ DUE":"✓ DONE",color:warmupNeeded()?"#ffdd00":"#00ffcc",sub:warmupNeeded()?"required first":"unlocks bounty"},
-            {label:"SECTIONS",val:`${doneSections}/${totalSections}`,color:"#00ffcc",sub:"done"},
-            {label:"BOUNTIES",val:`${bountyCorrect}/${BOUNTY_DAILY_CAP}`,color:"#ffdd00",sub:"correct today"},
-            {label:"STREAK",val:`${p.pulse||0}🔥`,color:"#ff8800",sub:"days"},
+            {label:"WARM-UP",val:warmupNeeded()?"⚡ DUE":"✓ DONE",color:warmupNeeded()?"#ffdd00":"#00ffcc",sub:warmupNeeded()?"do this first":"bounty unlocked"},
+            {label:"PROGRESS",val:`${doneSections}/${totalSections}`,color:"#00ffcc",sub:"sections done"},
+            {label:"TODAY",val:`${p.sectionsToday||0}/${DAILY_SECTION_LIMIT} syncs`,color:sectionsLeft>0?"#00aaff":"#ff4444",sub:`${bountyCorrect} bounties ✓`},
+            {label:"FLUX",val:`⚡${p.flux||0}`,color:"#ffdd00",sub:`${p.lc||0} LC`},
           ].map(s=>(
             <div key={s.label} style={{background:"#060d18",border:"1px solid #1a2a3a",padding:"0.65rem 0.75rem"}}>
               <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#99aabb",marginBottom:"0.2rem"}}>{s.label}</div>
