@@ -4012,26 +4012,28 @@ export default function VanguardMathOS(){
   function notify(msg,type="info"){setNotification({msg,type});setTimeout(()=>setNotification(null),3500);}
   function updateProfile(name,fn){setProfiles(prev=>({...prev,[name]:fn(prev[name])}));}
 
-  // Daily reset effect — runs when user logs in, safe place for state updates
+  // Daily reset effect — runs on login AND on every render tick to catch new day
+  // Runs whenever activeUser changes OR appState changes (catches page refresh)
   useEffect(()=>{
     if(!activeUser) return;
     const p=profiles[activeUser];
     if(!p||typeof p!=="object"||!("xp" in p)) return;
-    const t=today();
-    const yest=new Date();yest.setDate(yest.getDate()-1);
-    const ys=yest.toISOString().slice(0,10);
+    const t=today(); // local date, not UTC
+    // Compute yesterday using same local logic
+    const yestD=new Date();yestD.setDate(yestD.getDate()-1);
+    const ys=`${yestD.getFullYear()}-${String(yestD.getMonth()+1).padStart(2,'0')}-${String(yestD.getDate()).padStart(2,'0')}`;
     let updated={...p};
     let changed=false;
-    if(p.lastSyncDate!==t){
+    if((p.lastSyncDate||"")!==t){
       updated={...updated,sectionsToday:0,lastSyncDate:t,
         pulse:p.lastActive===ys?(p.pulse||0)+1:p.lastActive===t?(p.pulse||0):0};
       changed=true;
     }
-    if(p.lastGameDate!==t){
+    if((p.lastGameDate||"")!==t){
       updated={...updated,gameTimeUsedMs:0,lastGameDate:t};
       changed=true;
     }
-    if(p.lastBountyDate!==t){
+    if((p.lastBountyDate||"")!==t){
       updated={...updated,bountyCorrectToday:0,bountyCountToday:0,lastBountyDate:t};
       changed=true;
     }
@@ -4039,8 +4041,12 @@ export default function VanguardMathOS(){
       updated={...updated,warmupDoneToday:false};
       changed=true;
     }
+    if((p.liveFluxToday||0)>0&&(p.lastLiveDate||"")!==t){
+      updated={...updated,liveFluxToday:0,lastLiveDate:t};
+      changed=true;
+    }
     if(changed) updateProfile(activeUser,()=>updated);
-  },[activeUser]);
+  },[activeUser,appState.CIPHER?.lastSyncDate,appState.NOVA?.lastSyncDate]);
 
 
   function getProfile(name){
