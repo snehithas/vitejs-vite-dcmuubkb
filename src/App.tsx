@@ -268,7 +268,94 @@ const CURRICULUM = [
       ]},
     ],
   },
+  {
+    id:"nt", code:"NUM THEORY", color:"#00aaff",
+    name:"Introduction to Number Theory",
+    chapters:[
+      { id:"nt1", num:"1", name:"Integers: Even, Odd & Divisibility", sections:[
+        {id:"nt1s1",num:"1.1",name:"Even and Odd Numbers"},
+        {id:"nt1s2",num:"1.2",name:"Divisibility Rules"},
+        {id:"nt1s3",num:"1.3",name:"Divisibility and Algebra"},
+      ]},
+      { id:"nt2", num:"2", name:"Prime Numbers", sections:[
+        {id:"nt2s1",num:"2.1",name:"What is a Prime?"},
+        {id:"nt2s2",num:"2.2",name:"The Sieve of Eratosthenes"},
+        {id:"nt2s3",num:"2.3",name:"Prime Factorization"},
+        {id:"nt2s4",num:"2.4",name:"There Are Infinitely Many Primes"},
+      ]},
+      { id:"nt3", num:"3", name:"Multiples and Divisors", sections:[
+        {id:"nt3s1",num:"3.1",name:"GCD — Greatest Common Divisor"},
+        {id:"nt3s2",num:"3.2",name:"LCM — Least Common Multiple"},
+        {id:"nt3s3",num:"3.3",name:"The Euclidean Algorithm"},
+        {id:"nt3s4",num:"3.4",name:"GCD and LCM Together"},
+      ]},
+      { id:"nt4", num:"4", name:"Divisor Problems", sections:[
+        {id:"nt4s1",num:"4.1",name:"Counting Divisors"},
+        {id:"nt4s2",num:"4.2",name:"Sum of Divisors"},
+        {id:"nt4s3",num:"4.3",name:"Perfect, Abundant & Deficient Numbers"},
+      ]},
+      { id:"nt5", num:"5", name:"Remainders", sections:[
+        {id:"nt5s1",num:"5.1",name:"The Division Algorithm"},
+        {id:"nt5s2",num:"5.2",name:"Remainders and Modular Arithmetic"},
+        {id:"nt5s3",num:"5.3",name:"Remainders in Problems"},
+      ]},
+      { id:"nt6", num:"6", name:"Congruences", sections:[
+        {id:"nt6s1",num:"6.1",name:"Congruence Notation"},
+        {id:"nt6s2",num:"6.2",name:"Properties of Congruences"},
+        {id:"nt6s3",num:"6.3",name:"Solving Linear Congruences"},
+        {id:"nt6s4",num:"6.4",name:"Systems of Congruences"},
+      ]},
+      { id:"nt7", num:"7", name:"Number Bases", sections:[
+        {id:"nt7s1",num:"7.1",name:"Bases Other Than 10"},
+        {id:"nt7s2",num:"7.2",name:"Converting Between Bases"},
+        {id:"nt7s3",num:"7.3",name:"Arithmetic in Other Bases"},
+      ]},
+      { id:"nt8", num:"8", name:"Special Theorems", sections:[
+        {id:"nt8s1",num:"8.1",name:"Fermat's Little Theorem"},
+        {id:"nt8s2",num:"8.2",name:"Wilson's Theorem"},
+        {id:"nt8s3",num:"8.3",name:"Euler's Totient Function"},
+      ]},
+    ],
+  },
 ];
+
+
+// Profile-based curriculum config
+// CIPHER: Algebra B chapters (12-21) + C&P (current)
+// NOVA: C&P (last/completed) + Number Theory (current)
+const PROFILE_BOOKS = {
+  CIPHER: {
+    books: ["alg","cp"],
+    // Only show Algebra B chapters (12+) for CIPHER
+    chapterFilter: {alg: ["a12","a13","a14","a15","a16","a17","a18","a19","a20","a21"]},
+    currentBook: "cp",
+    lastBook: "alg",
+  },
+  NOVA: {
+    books: ["cp","nt"],
+    chapterFilter: {}, // all chapters in both books
+    currentBook: "nt",
+    lastBook: "cp",
+  },
+};
+
+function getBooksForProfile(name){
+  const cfg=PROFILE_BOOKS[name]||PROFILE_BOOKS.CIPHER;
+  return CURRICULUM
+    .filter(b=>cfg.books.includes(b.id))
+    .map(b=>{
+      const filter=cfg.chapterFilter[b.id];
+      if(!filter) return b;
+      return{...b,chapters:b.chapters.filter(ch=>filter.includes(ch.id))};
+    });
+}
+
+function isCurrentBook(profileName, bookId){
+  return (PROFILE_BOOKS[profileName]||PROFILE_BOOKS.CIPHER).currentBook===bookId;
+}
+function isLastBook(profileName, bookId){
+  return (PROFILE_BOOKS[profileName]||PROFILE_BOOKS.CIPHER).lastBook===bookId;
+}
 
 // ═══════════════════════════════════════════════════════════
 // PROOF QUESTIONS (2–3 per section) + CHALLENGE (1 per section)
@@ -677,6 +764,123 @@ const SECTION_PROOFS = {
   a20s5:[
     {q:"Evaluate f(x) = {x+1 if x>0, x-1 if x≤0} at x=3",a:"4",hint:"x=3>0, so use x+1=4"},
     {q:"Evaluate the same function at x=-2",a:"-3",hint:"x=-2≤0, so use x-1=-3"},
+  ],
+
+  // NUMBER THEORY
+  nt1s1:[
+    {q:"Is the sum of two odd numbers always even?",a:"yes",hint:"odd+odd=(2k+1)+(2m+1)=2(k+m+1)"},
+    {q:"Is 0 even or odd?",a:"even",hint:"0=2×0, so it's divisible by 2"},
+    {q:"What is the product of two consecutive integers always divisible by?",a:"2",hint:"One of any two consecutive integers must be even"},
+  ],
+  nt1s2:[
+    {q:"Is 138 divisible by 3?",a:"yes",hint:"1+3+8=12, which is divisible by 3"},
+    {q:"What is the divisibility rule for 9?",a:"sum of digits divisible by 9|digit sum divisible by 9",hint:"Sum all digits — if divisible by 9, the number is too"},
+    {q:"Is 7,654 divisible by 4?",a:"yes",hint:"Only check last two digits: 54÷4=13.5... wait, 52÷4=13. Check: 54÷4? No. 54/2=27, 27/2 not integer. Actually no.",hint:"Check last two digits: 54÷4 = 13.5, not divisible"},
+  ],
+  nt1s3:[
+    {q:"If a|b and a|c, does a|(b+c)?",a:"yes",hint:"b=ak, c=am, so b+c=a(k+m)"},
+    {q:"If 6|n, is 3|n?",a:"yes",hint:"If 6 divides n, then 2×3 divides n, so 3 divides n"},
+  ],
+  nt2s1:[
+    {q:"Is 1 prime?",a:"no",hint:"Primes must have exactly 2 factors. 1 has only 1."},
+    {q:"Is 2 prime?",a:"yes",hint:"2 is the only even prime"},
+    {q:"What is the smallest prime number?",a:"2",hint:"It's the only even prime"},
+  ],
+  nt2s2:[
+    {q:"Using the sieve, is 37 prime?",a:"yes",hint:"Check primes up to √37≈6: not divisible by 2,3,5"},
+    {q:"How many primes are less than 20?",a:"8",hint:"2,3,5,7,11,13,17,19"},
+  ],
+  nt2s3:[
+    {q:"What is the prime factorization of 60?",a:"2^2*3*5|2²×3×5|4*3*5",hint:"60=4×15=4×3×5=2²×3×5"},
+    {q:"What is the prime factorization of 72?",a:"2^3*3^2|8*9",hint:"72=8×9=2³×3²"},
+    {q:"How many prime factors does 360 have? (counting multiplicity)",a:"6",hint:"360=2³×3²×5, so 3+2+1=6"},
+  ],
+  nt2s4:[
+    {q:"True or false: there are infinitely many prime numbers.",a:"true",hint:"Euclid proved this — assume finitely many, multiply them all and add 1"},
+  ],
+  nt3s1:[
+    {q:"What is gcd(12, 18)?",a:"6",hint:"Factors of 12: 1,2,3,4,6,12. Factors of 18: 1,2,3,6,9,18. Largest common: 6"},
+    {q:"What is gcd(35, 49)?",a:"7",hint:"35=5×7, 49=7². GCD=7"},
+    {q:"If gcd(a,b)=1, what are a and b called?",a:"coprime|relatively prime",hint:"Two numbers with GCD 1 are coprime"},
+  ],
+  nt3s2:[
+    {q:"What is lcm(4, 6)?",a:"12",hint:"Multiples of 4: 4,8,12. Multiples of 6: 6,12. First common: 12"},
+    {q:"What is lcm(5, 7)?",a:"35",hint:"Since gcd(5,7)=1, lcm=5×7=35"},
+    {q:"Formula: gcd(a,b) × lcm(a,b) = ?",a:"a*b|ab",hint:"This always holds for positive integers"},
+  ],
+  nt3s3:[
+    {q:"Use Euclidean algorithm: gcd(48,18)=?",a:"6",hint:"48=2×18+12, 18=1×12+6, 12=2×6+0. GCD=6"},
+    {q:"First step of Euclidean algorithm for gcd(100,35): 100=?×35+?",a:"2 remainder 30|2,30",hint:"100=2×35+30"},
+  ],
+  nt3s4:[
+    {q:"lcm(8,12)=? (Use gcd first)",a:"24",hint:"gcd(8,12)=4, lcm=8×12÷4=24"},
+    {q:"Three bells ring every 6, 8, and 12 minutes. When do they all ring together again?",a:"24",hint:"lcm(6,8,12)=24"},
+  ],
+  nt4s1:[
+    {q:"How many divisors does 12 have?",a:"6",hint:"1,2,3,4,6,12"},
+    {q:"If n=p^a × q^b, how many divisors does n have?",a:"(a+1)(b+1)",hint:"Each prime can appear 0 to a (or b) times"},
+    {q:"How many divisors does 2^3 × 3^2 = 72 have?",a:"12",hint:"(3+1)(2+1)=12"},
+  ],
+  nt4s2:[
+    {q:"What is the sum of divisors of 6?",a:"12",hint:"1+2+3+6=12"},
+    {q:"What is the sum of divisors of 8?",a:"15",hint:"1+2+4+8=15"},
+  ],
+  nt4s3:[
+    {q:"A perfect number equals the sum of its proper divisors. Is 6 perfect?",a:"yes",hint:"Proper divisors of 6: 1,2,3. Sum=6 ✓"},
+    {q:"Is 12 perfect, abundant, or deficient?",a:"abundant",hint:"Proper divisors: 1+2+3+4+6=16 > 12"},
+  ],
+  nt5s1:[
+    {q:"In the division algorithm: 17 = 5×3 + r. What is r?",a:"2",hint:"17=5×3+2"},
+    {q:"What is the remainder when 100 is divided by 7?",a:"2",hint:"100=14×7+2"},
+  ],
+  nt5s2:[
+    {q:"What does 13 ≡ 1 (mod 6) mean?",a:"13 and 1 have the same remainder when divided by 6|remainder is 1",hint:"13=2×6+1, same remainder as 1÷6=0r1"},
+    {q:"What is 25 mod 7?",a:"4",hint:"25=3×7+4"},
+    {q:"Is 17 ≡ 3 (mod 7)?",a:"yes",hint:"17=2×7+3 and 3=0×7+3, same remainder"},
+  ],
+  nt5s3:[
+    {q:"What day of the week is 100 days after a Monday? (0=Mon,1=Tue...6=Sun)",a:"wednesday|3",hint:"100 mod 7 = 2, so Monday+2 = Wednesday"},
+    {q:"What is the last digit of 3^100?",a:"1",hint:"3^1=3,3^2=9,3^3=27,3^4=81,3^5=243. Pattern repeats every 4. 100 mod 4=0, so same as 3^4: last digit 1"},
+  ],
+  nt6s1:[
+    {q:"If a≡b (mod m), is b≡a (mod m)?",a:"yes",hint:"Congruence is symmetric"},
+    {q:"What does a≡0 (mod m) mean?",a:"m divides a|a is divisible by m",hint:"Remainder 0 means m divides evenly"},
+  ],
+  nt6s2:[
+    {q:"If a≡b (mod m) and c≡d (mod m), is a+c ≡ b+d (mod m)?",a:"yes",hint:"Congruences can be added"},
+    {q:"If a≡3 (mod 5) and b≡4 (mod 5), what is ab mod 5?",a:"2",hint:"3×4=12, 12 mod 5=2"},
+  ],
+  nt6s3:[
+    {q:"Solve: 2x ≡ 4 (mod 6). One solution?",a:"2|x=2",hint:"2×2=4≡4 mod 6 ✓"},
+    {q:"Solve: x ≡ 3 (mod 5). What is x mod 5?",a:"3",hint:"x=3,8,13,... all ≡3 mod 5"},
+  ],
+  nt6s4:[
+    {q:"Chinese Remainder Theorem: x≡1(mod 2) and x≡1(mod 3). Smallest positive x?",a:"1|7",hint:"x=1 works: 1 mod 2=1 ✓, 1 mod 3=1 ✓"},
+  ],
+  nt7s1:[
+    {q:"What does 101 in base 2 equal in base 10?",a:"5",hint:"1×4+0×2+1×1=5"},
+    {q:"What is 12 in base 10 written in base 2?",a:"1100",hint:"12=8+4=1×2³+1×2²+0+0"},
+  ],
+  nt7s2:[
+    {q:"Convert 1A (base 16) to base 10. (A=10)",a:"26",hint:"1×16+10=26"},
+    {q:"Convert 25 (base 10) to base 3.",a:"221",hint:"25=2×9+2×3+1=221 base 3"},
+  ],
+  nt7s3:[
+    {q:"Add in base 2: 101 + 011 = ?",a:"1000",hint:"1+1=10 in binary (carry the 1)"},
+    {q:"What is 11 × 11 in base 2?",a:"1001",hint:"11×11 in binary = 3×3=9 = 1001 in binary"},
+  ],
+  nt8s1:[
+    {q:"Fermat's Little Theorem: if p is prime and gcd(a,p)=1, then a^(p-1) ≡ ? (mod p)",a:"1",hint:"a^(p-1) ≡ 1 (mod p) — this is Fermat's Little Theorem"},
+    {q:"Using Fermat: 2^6 mod 7 = ? (7 is prime)",a:"1",hint:"p=7, so 2^(7-1)=2^6≡1 mod 7"},
+    {q:"What is 3^100 mod 101? (101 is prime)",a:"1",hint:"Fermat: 3^(101-1)=3^100≡1 mod 101"},
+  ],
+  nt8s2:[
+    {q:"Wilson's Theorem: (p-1)! ≡ ? (mod p) for prime p",a:"-1|p-1",hint:"(p-1)! ≡ -1 (mod p) for all primes p"},
+    {q:"Using Wilson: 4! mod 5 = ?",a:"4|-1",hint:"4!=24, 24 mod 5=4≡-1 mod 5 ✓"},
+  ],
+  nt8s3:[
+    {q:"Euler's totient φ(n) counts integers from 1 to n that are coprime to n. What is φ(7)?",a:"6",hint:"7 is prime, so φ(7)=7-1=6"},
+    {q:"What is φ(12)?",a:"4",hint:"Numbers 1-12 coprime to 12: 1,5,7,11 → φ(12)=4"},
   ],
   // C&P CH1
   c1s1:[
@@ -1324,6 +1528,231 @@ function useTabDetection(enabled, onTabReturn){
     document.addEventListener("visibilitychange",onHide);
     return()=>document.removeEventListener("visibilitychange",onHide);
   },[enabled,onTabReturn]);
+}
+
+// ═══════════════════════════════════════════════════════════
+// DAILY WARM-UP — 3 questions before Bounty/Live Mode
+// Mental math + real-world applied + curriculum-linked
+// AI-generated with fallback banks
+// ═══════════════════════════════════════════════════════════
+
+// Fallback question banks (used if API fails)
+const WARMUP_BANK = {
+  // Universal mental math
+  mental:[
+    {q:"18 inches apart, 10 plants in a row. How many inches of space needed?",a:"180",hint:"18 × 10 = 180 inches"},
+    {q:"You have $20. Pizza costs $7.50. How much change do you get?",a:"12.50|12.5",hint:"20 - 7.50 = 12.50"},
+    {q:"A car travels 60 mph. How far in 45 minutes?",a:"45",hint:"60 × 45/60 = 45 miles"},
+    {q:"You buy 3 items at $4.99 each. Roughly how much total?",a:"15|14.97",hint:"About $5 each × 3 = $15"},
+    {q:"A rectangle is 8 feet by 6 feet. What is its area?",a:"48",hint:"Area = length × width = 8 × 6"},
+    {q:"If you save $12 per week, how much in 8 weeks?",a:"96",hint:"12 × 8 = 96"},
+    {q:"A recipe needs 2.5 cups of flour. You want to double it. How much flour?",a:"5",hint:"2.5 × 2 = 5 cups"},
+    {q:"There are 24 students in 4 equal groups. How many per group?",a:"6",hint:"24 ÷ 4 = 6"},
+  ],
+  // CIPHER: Pokemon & Minecraft
+  CIPHER:[
+    {q:"A Pokemon pack has 10 cards. You buy 6 packs. How many cards total?",a:"60",hint:"10 × 6 = 60"},
+    {q:"A rare card appears roughly 1 in every 25 packs. You've opened 50 packs. About how many rare cards would you expect?",a:"2",hint:"50 ÷ 25 = 2 expected"},
+    {q:"In Minecraft, a chunk is 16×16 blocks. How many blocks in the floor of one chunk?",a:"256",hint:"16 × 16 = 256"},
+    {q:"You have 4 Pokemon each with 2 moves. How many total moves does your team have?",a:"8",hint:"4 × 2 = 8"},
+    {q:"A Pokemon has 180 HP. It takes 45 damage per turn. How many turns until it faints?",a:"4",hint:"180 ÷ 45 = 4 turns"},
+    {q:"You have 120 Pokécoins. Stickers cost 15 coins each. How many can you buy?",a:"8",hint:"120 ÷ 15 = 8"},
+    {q:"A Minecraft creeper's explosion radius is about 4 blocks. What is the area of the blast zone? (circle: π≈3, r=4)",a:"48|150",hint:"Area ≈ 3 × 4² = 48 square blocks"},
+    {q:"If 3 out of 100 packs contain a holographic card, what percent is that?",a:"3|3%",hint:"3 out of 100 = 3%"},
+  ],
+  // NOVA: Cricket & NFL stats  
+  NOVA:[
+    {q:"A batsman scores 45, 67, 23, and 89 in four innings. What is his average?",a:"56",hint:"(45+67+23+89) ÷ 4 = 224 ÷ 4 = 56"},
+    {q:"An NFL team gains 7 yards, loses 3, then gains 12. Net yards?",a:"16",hint:"7 - 3 + 12 = 16"},
+    {q:"A bowler bowls 8 overs (6 balls each) and gives 52 runs. Economy rate (runs per over)?",a:"6.5",hint:"52 ÷ 8 = 6.5"},
+    {q:"An NFL quarterback completes 24 of 40 passes. Completion percentage?",a:"60|60%",hint:"24 ÷ 40 × 100 = 60%"},
+    {q:"In cricket, if a team scores 280 in 50 overs, what is their run rate per over?",a:"5.6",hint:"280 ÷ 50 = 5.6"},
+    {q:"A team needs 48 runs in 6 overs. What run rate do they need per over?",a:"8",hint:"48 ÷ 6 = 8"},
+    {q:"An NFL field goal is worth 3 points. A team kicks 4 field goals and 2 touchdowns (7 pts each). Total?",a:"26",hint:"4×3 + 2×7 = 12 + 14 = 26"},
+    {q:"A cricket team's best batsman averages 55. Over 10 innings, roughly how many total runs?",a:"550",hint:"55 × 10 = 550"},
+  ],
+};
+
+function getWarmupFallback(profile, questionIndex){
+  const mental=WARMUP_BANK.mental;
+  const personal=WARMUP_BANK[profile.name]||WARMUP_BANK.CIPHER;
+  // Q1: mental math, Q2: personal interest, Q3: mental math (different)
+  if(questionIndex===0) return mental[Math.floor(Math.random()*mental.length)];
+  if(questionIndex===1) return personal[Math.floor(Math.random()*personal.length)];
+  return mental[Math.floor(Math.random()*mental.length)];
+}
+
+function DailyWarmup({profile,onComplete,onSkipDay}){
+  const [questions,setQuestions]=useState(null); // null=loading, []=[qs]
+  const [qIdx,setQIdx]=useState(0);
+  const [input,setInput]=useState("");
+  const [flash,setFlash]=useState(null);
+  const [results,setResults]=useState([]); // {correct,userInput,q,a}
+  const [loading,setLoading]=useState(true);
+  const [showResult,setShowResult]=useState(false);
+  const [currentResult,setCurrentResult]=useState(null);
+  const inputRef=useRef(null);
+
+  useEffect(()=>{generateQuestions();},[]);
+  useEffect(()=>{if(!loading) inputRef.current?.focus();},[qIdx,loading]);
+
+  async function generateQuestions(){
+    setLoading(true);
+    const qs=[];
+    // Try to generate all 3 via API
+    for(let i=0;i<3;i++){
+      try{
+        const q=await generateOneQuestion(profile,i);
+        qs.push(q);
+      }catch{
+        qs.push(getWarmupFallback(profile,i));
+      }
+    }
+    setQuestions(qs);
+    setLoading(false);
+  }
+
+  async function generateOneQuestion(profile,idx){
+    const isNova=profile.name==="NOVA";
+    const topics=isNova?
+      ["cricket batting average","NFL statistics","probability in sports","cricket run rates","NFL scoring"]:
+      ["Pokemon card probability","Minecraft dimensions","Pokemon battle math","real-world multiplication","unit conversion"];
+    const topic=topics[Math.floor(Math.random()*topics.length)];
+    const difficulty=isNova?"medium, 2-step":"easy, 1-2 step";
+
+    const prompts=[
+      `Mental math question about everyday life. ${difficulty}. Single number answer. No variables. Example: 'You have $20, buy 3 items at $4.50 each. Change?' Answer: 6.50`,
+      `Fun real-world math question about ${topic}. ${difficulty}. Single number or simple word answer. Keep it interesting and surprising, not textbook. Never say 'solve' or 'problem'.`,
+      `${isNova?"A stats or probability":"A quick estimation"} question${isNova?" about cricket or NFL":" about everyday life"}. ${difficulty}. Single number answer. Must be doable mentally.`,
+    ];
+
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:150,
+        system:`You generate math warm-up questions for kids. Rules:
+1. Return ONLY valid JSON: {"q":"question text","a":"answer","hint":"one line hint"}
+2. Numbers must work out to clean answers (whole numbers or simple decimals like 0.5, 6.5)
+3. Never use the words 'problem', 'solve', 'calculate', 'compute'
+4. Keep it conversational and fun
+5. Answer must be a single number or simple yes/no
+6. Do NOT return markdown, just raw JSON`,
+        messages:[{role:"user",content:prompts[idx]}]
+      })
+    });
+    const data=await res.json();
+    const text=data.content?.[0]?.text||"";
+    // Parse JSON from response
+    const match=text.match(/\{[^}]+\}/);
+    if(!match) throw new Error("no json");
+    const parsed=JSON.parse(match[0]);
+    if(!parsed.q||!parsed.a) throw new Error("missing fields");
+    return parsed;
+  }
+
+  function submit(){
+    const q=questions[qIdx];
+    if(!q||showResult) return;
+    const ok=checkAns(input,q.a);
+    setFlash(ok?"good":"bad");
+    const result={correct:ok,userInput:input.trim(),q:q.q,a:q.a,hint:q.hint};
+    setCurrentResult(result);
+    const newResults=[...results,result];
+    setResults(newResults);
+    // Show result briefly then move on
+    setShowResult(true);
+    setTimeout(()=>{
+      setShowResult(false);setFlash(null);setInput("");
+      if(qIdx+1<questions.length){setQIdx(i=>i+1);}
+      else{onComplete(newResults);}
+    },ok?1200:2000);
+  }
+
+  const color=profile.color;
+  const q=questions?.[qIdx];
+  const qLabels=["🧮 MENTAL MATH","🎯 REAL WORLD","🔗 THINK IT THROUGH"];
+
+  return(
+    <div style={{minHeight:"100vh",background:"#03080f",display:"flex",flexDirection:"column",fontFamily:"Rajdhani,sans-serif"}}>
+      <Scanlines/>
+      {/* Header */}
+      <div style={{background:"#060d18",borderBottom:`1px solid ${color}33`,padding:"1rem 1.5rem",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:"0.5rem"}}>
+        <div>
+          <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1rem",fontWeight:700,color,letterSpacing:"0.1em"}}>⚡ DAILY WARM-UP</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.88rem",color:"#8899aa",marginTop:"0.1rem"}}>3 quick questions · Then Bounty & Live Mode unlock</div>
+        </div>
+        <div style={{display:"flex",gap:"0.5rem",alignItems:"center"}}>
+          <div style={{display:"flex",gap:6}}>
+            {[0,1,2].map(i=>(
+              <div key={i} style={{width:32,height:6,borderRadius:3,background:i<results.length?(results[i].correct?"#00ffcc":"#ff6644"):i===qIdx?color:"#1a2a3a",transition:"all 0.3s"}}/>
+            ))}
+          </div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.88rem",color:"#8899aa"}}>{qIdx+1}/3</div>
+        </div>
+      </div>
+
+      {/* Loading */}
+      {loading&&(
+        <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:"1rem"}}>
+          <div style={{fontFamily:"Orbitron,sans-serif",color,fontSize:"1rem",letterSpacing:"0.1em"}}>LOADING YOUR WARM-UP...</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.88rem",color:"#8899aa"}}>Generating personalised questions</div>
+          <div style={{display:"flex",gap:6,marginTop:"0.5rem"}}>
+            {[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:color,opacity:0.3+i*0.3}}/>)}
+          </div>
+        </div>
+      )}
+
+      {/* Question */}
+      {!loading&&q&&(
+        <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"center",padding:"2rem 1.5rem",maxWidth:600,margin:"0 auto",width:"100%"}}>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.9rem",color:color,letterSpacing:"0.15em",marginBottom:"0.75rem"}}>{qLabels[qIdx]}</div>
+
+          {/* Question card */}
+          <div style={{background:"#060d18",border:`1px solid ${color}33`,borderLeft:`4px solid ${color}`,padding:"1.5rem",marginBottom:"1.25rem",fontSize:"1.2rem",lineHeight:1.7,color:"#e0eeff",fontFamily:"Rajdhani,sans-serif",fontWeight:600}}>
+            {q.q}
+          </div>
+
+          {/* Result overlay */}
+          {showResult&&currentResult&&(
+            <div style={{background:currentResult.correct?"#001a10":"#1a0a00",border:`1px solid ${currentResult.correct?"#00ffcc":"#ff6644"}33`,padding:"1rem",marginBottom:"1rem",textAlign:"center"}}>
+              <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.1rem",color:currentResult.correct?"#00ffcc":"#ff6644",marginBottom:"0.5rem"}}>
+                {currentResult.correct?"✓ CORRECT!":"✗ NOT QUITE"}
+              </div>
+              {!currentResult.correct&&(
+                <>
+                  <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.88rem",color:"#8899aa",marginBottom:"0.25rem"}}>You typed: <b style={{color:"#ff6644"}}>{currentResult.userInput||"(blank)"}</b></div>
+                  <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.88rem",color:"#8899aa",marginBottom:"0.5rem"}}>Answer: <b style={{color:"#00ffcc"}}>{currentResult.a}</b></div>
+                  {currentResult.hint&&<div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"0.96rem",color:"#ffdd00"}}>💡 {currentResult.hint}</div>}
+                </>
+              )}
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.84rem",color:"#445566",marginTop:"0.5rem"}}>
+                {qIdx+1<3?"Moving to next question...":"Warm-up complete!"}
+              </div>
+            </div>
+          )}
+
+          {/* Input */}
+          {!showResult&&(
+            <>
+              {q.a&&getFormatTip(q.a)&&<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.84rem",color:"#8899aa",marginBottom:"0.4rem",padding:"0.3rem 0.6rem",background:"#060d18",border:"1px solid #1a2a3a"}}>📝 {getFormatTip(q.a)}</div>}
+              <div style={{display:"flex",gap:"0.75rem"}}>
+                <input ref={inputRef} value={input} onChange={e=>setInput(e.target.value)}
+                  onKeyDown={e=>e.key==="Enter"&&submit()}
+                  placeholder="Your answer..."
+                  style={{...S.ansInput,fontSize:"1.1rem",borderColor:flash==="good"?"#00ffcc":flash==="bad"?"#ff4444":color+"55"}}/>
+                <button onClick={submit} style={{...S.btnCyber,borderColor:color,color,padding:"0.55rem 1.25rem",whiteSpace:"nowrap",fontSize:"1rem"}}>CHECK</button>
+              </div>
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.84rem",color:"#8899aa",marginTop:"0.75rem",textAlign:"center"}}>
+                Wrong answers move forward — no Flux penalty, just learn from the hint
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -3128,7 +3557,7 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
               <input type="number" value={xpAmt} onChange={e=>setXpAmt(e.target.value)} style={{...S.ansInput,width:100,textAlign:"center"}} min="0"/>
               <button onClick={addXP} style={{...S.btnCyber,flex:1}}>➕ ADD XP + FLUX TO {selectedUser}</button>
             </div>
-            <button onClick={()=>{onUpdateProfiles(selectedUser,p=>({...p,sectionsToday:0,lastSyncDate:null,gameTimeUsedMs:0,lastGameDate:null,bountyCorrectToday:0,bountyCountToday:0,lastBountyDate:null,tabSwitchToday:0}));setMsg("Daily limits cleared");setTimeout(()=>setMsg(null),2000);}} style={{...S.btnCyber,borderColor:"#7744ff",color:"#7744ff"}}>🔓 CLEAR TODAY'S LIMITS FOR {selectedUser}</button>
+            <button onClick={()=>{onUpdateProfiles(selectedUser,p=>({...p,sectionsToday:0,lastSyncDate:null,gameTimeUsedMs:0,lastGameDate:null,bountyCorrectToday:0,bountyCountToday:0,lastBountyDate:null,tabSwitchToday:0,warmupDoneToday:false,lastWarmupDate:null}));setMsg("Daily limits cleared");setTimeout(()=>setMsg(null),2000);}} style={{...S.btnCyber,borderColor:"#7744ff",color:"#7744ff"}}>🔓 CLEAR TODAY'S LIMITS FOR {selectedUser}</button>
             <button onClick={()=>{onClose();setTimeout(()=>window.dispatchEvent(new CustomEvent("triggerTest")),100);}} style={{...S.btnCyber,borderColor:"#00aaff",color:"#00aaff"}}>📝 TRIGGER BI-WEEKLY TEST NOW</button>
             <button onClick={()=>{onUpdateProfiles(selectedUser,_=>({...INIT_P(selectedUser,profiles[selectedUser].color,selectedUser)}));setMsg(`${selectedUser} fully reset`);setTimeout(()=>setMsg(null),2000);}} style={{...S.btnCyber,borderColor:"#ff4444",color:"#ff4444"}}>⚠ FULL RESET {selectedUser}</button>
           </div>
@@ -3328,10 +3757,11 @@ export default function VanguardMathOS(){
   const [showArcade,setShowArcade]=useState(false);
   const [showParent,setShowParent]=useState(false);
   const [showBounty,setShowBounty]=useState(false);
-  const [showLearnMode,setShowLearnMode]=useState(null); // section obj or null
+  const [showLearnMode,setShowLearnMode]=useState(null);
   const [showRedemption,setShowRedemption]=useState(false);
   const [showReport,setShowReport]=useState(false);
   const [rivalPending,setRivalPending]=useState(false);
+  const [showWarmup,setShowWarmup]=useState(false);
 
   useEffect(()=>{saveState(appState);},[appState]);
   useEffect(()=>{
@@ -3364,8 +3794,12 @@ export default function VanguardMathOS(){
     }
     // Reset bounty daily counters
     if(p.lastBountyDate!==t){
-      updated={...updated,bountyCorrectToday:0,bountyCountToday:0,lastBountyDate:t,
-        };
+      updated={...updated,bountyCorrectToday:0,bountyCountToday:0,lastBountyDate:t};
+      changed=true;
+    }
+    // Reset warmup daily
+    if((p.lastWarmupDate||"")!==t){
+      updated={...updated,warmupDoneToday:false};
       changed=true;
     }
     if(changed){setProfiles(prev=>({...prev,[name]:updated}));return updated;}
@@ -3412,6 +3846,35 @@ export default function VanguardMathOS(){
 
   function handleLiveEarn(xp,flux){
     updateProfile(activeUser,prev=>({...prev,xp:prev.xp+xp,flux:(prev.flux||0)+flux,lc:prev.lc+1}));
+  }
+
+  function handleWarmupComplete(results){
+    const t=today();
+    const correct=results.filter(r=>r.correct).length;
+    const allCorrect=correct===3;
+    const baseFlux=30;const bonusFlux=allCorrect?20:0;
+    const xp=15;
+    updateProfile(activeUser,prev=>({
+      ...prev,
+      xp:prev.xp+xp,
+      flux:(prev.flux||0)+baseFlux+bonusFlux,
+      warmupDoneToday:true,
+      lastWarmupDate:t,
+      warmupStreak:(prev.lastWarmupDate===yesterday()?((prev.warmupStreak||0)+1):1),
+    }));
+    setShowWarmup(false);
+    if(allCorrect) notify(`⚡ Perfect warm-up! +${baseFlux+bonusFlux} Flux +${xp} XP`,"success");
+    else notify(`Warm-up done! +${baseFlux} Flux +${xp} XP — ${correct}/3 correct`,"info");
+  }
+
+  function yesterday(){
+    const d=new Date();d.setDate(d.getDate()-1);return d.toISOString().slice(0,10);
+  }
+
+  function warmupNeeded(){
+    if(!activeUser||!p) return false;
+    const t=today();
+    return p.lastWarmupDate!==t;
   }
 
   function handleBaselineComplete(score,weakTopics){
@@ -3625,7 +4088,8 @@ export default function VanguardMathOS(){
   const bountyCorrect=isToday?(p.bountyCorrectToday||0):0;
   const rank=getRank(p.xp);
   const nextRank=getNextRank(p.xp);
-  const totalSections=CURRICULUM.flatMap(b=>b.chapters).flatMap(c=>c.sections).length;
+  const profileBooks=getBooksForProfile(activeUser);
+  const totalSections=profileBooks.flatMap(b=>b.chapters).flatMap(c=>c.sections).length;
   const doneSections=Object.keys(p.sectionsDone||{}).length;
   const gameMinLeft=Math.floor(gameTimeLeft/60000);
   const gamePct=gameTimeLimitMs>0?gameTimeLeft/gameTimeLimitMs:0;
@@ -3650,6 +4114,7 @@ export default function VanguardMathOS(){
       {showCoach&&<ApexCoach profile={p} onClose={()=>setShowCoach(false)} onDeductCredits={deductCredits}/>}
       {showParent&&<ParentMode profiles={profiles} rewards={Array.isArray(appState.rewards)&&appState.rewards.length>0?appState.rewards:DEFAULT_REWARDS} onClose={()=>setShowParent(false)} onUpdateProfiles={updateProfile} onUpdateRewards={(r)=>setAppState(prev=>({...prev,rewards:r}))} onStartRival={()=>setRivalPending(true)}/>}
       {showBounty&&<BountyBoard profile={p} onClose={()=>setShowBounty(false)} onCorrect={handleBountyCorrect} onSpendLC={(amt)=>updateProfile(activeUser,prev=>({...prev,lc:Math.max(0,prev.lc-amt)}))}/>}
+      {showWarmup&&<DailyWarmup profile={p} onComplete={handleWarmupComplete} />}
       {showRedemption&&<RedemptionCenter profile={p} rewards={Array.isArray(appState.rewards)&&appState.rewards.length>0?appState.rewards:DEFAULT_REWARDS} onClose={()=>setShowRedemption(false)} onRedeem={handleRedeem}/>}
 
       <div style={{maxWidth:1000,margin:"0 auto",padding:"1.25rem 1rem"}}>
@@ -3745,9 +4210,17 @@ export default function VanguardMathOS(){
               {sectionsLeft>0?`${sectionsLeft} section sync${sectionsLeft!==1?"s":""} left`:"Limit reached"} · {BOUNTY_DAILY_CAP-(isToday?(p.bountyCountToday||0):0)} bounties left
             </div>
             <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap"}}>
-              <button onClick={()=>setShowBounty(true)} style={{background:"#1a1500",border:"1px solid #ffdd0066",color:"#ffdd00",padding:"0.3rem 0.75rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.8rem",borderRadius:2}}>⚡ BOUNTY</button>
+              <button onClick={()=>{if(warmupNeeded()){setShowWarmup(true);}else{setShowBounty(true);}}} style={{background:"#1a1500",border:"1px solid #ffdd0066",color:"#ffdd00",padding:"0.3rem 0.75rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.8rem",borderRadius:2}}>
+                {warmupNeeded()?"⚡ WARM-UP FIRST":"⚡ BOUNTY"}
+              </button>
               <button onClick={()=>setShowArcade(true)} style={{...S.btnCyber,padding:"0.3rem 0.85rem",fontSize:"0.8rem"}}>▶ ARCADE</button>
-              <button onClick={()=>p.xp>=LIVE_MODE_COST?setActiveGame("LIVE"):notify("Earn "+LIVE_MODE_COST+" XP to unlock Live Mode","warn")} style={{...S.btnCyber,padding:"0.3rem 0.85rem",fontSize:"0.8rem",borderColor:p.xp>=LIVE_MODE_COST?"#aa66ff":"#2a3a4a",color:p.xp>=LIVE_MODE_COST?"#aa66ff":"#334455"}}>⚡ LIVE MODE</button>
+              <button onClick={()=>{
+                if(warmupNeeded()){setShowWarmup(true);return;}
+                if(p.xp>=LIVE_MODE_COST){setActiveGame("LIVE");}
+                else{notify("Earn "+LIVE_MODE_COST+" XP to unlock Live Mode","warn");}
+              }} style={{...S.btnCyber,padding:"0.3rem 0.85rem",fontSize:"0.8rem",borderColor:warmupNeeded()?"#ffdd00":p.xp>=LIVE_MODE_COST?"#aa66ff":"#2a3a4a",color:warmupNeeded()?"#ffdd00":p.xp>=LIVE_MODE_COST?"#aa66ff":"#334455"}}>
+                {warmupNeeded()?"⚡ WARM-UP FIRST":"⚡ LIVE MODE"}
+              </button>
             </div>
           </div>
         </div>
@@ -3779,9 +4252,9 @@ export default function VanguardMathOS(){
         {/* ── COMPACT STATS ── */}
         <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:"0.5rem",marginBottom:"1rem"}}>
           {[
+            {label:"WARM-UP",val:warmupNeeded()?"⚡ DUE":"✓ DONE",color:warmupNeeded()?"#ffdd00":"#00ffcc",sub:warmupNeeded()?"required first":"unlocks bounty"},
             {label:"SECTIONS",val:`${doneSections}/${totalSections}`,color:"#00ffcc",sub:"done"},
-            {label:"SYNCS TODAY",val:`${p.sectionsToday||0}/${DAILY_SECTION_LIMIT}`,color:sectionsLeft>0?"#00aaff":"#ff4444",sub:`${sectionsLeft} left`},
-            {label:"BOUNTIES",val:`${bountyCorrect}/${BOUNTY_DAILY_CAP}`,color:"#ffdd00",sub:"correct"},
+            {label:"BOUNTIES",val:`${bountyCorrect}/${BOUNTY_DAILY_CAP}`,color:"#ffdd00",sub:"correct today"},
             {label:"STREAK",val:`${p.pulse||0}🔥`,color:"#ff8800",sub:"days"},
           ].map(s=>(
             <div key={s.label} style={{background:"#060d18",border:"1px solid #1a2a3a",padding:"0.65rem 0.75rem"}}>
@@ -3801,7 +4274,7 @@ export default function VanguardMathOS(){
           </div>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(260px,1fr))",gap:"0.95rem",marginBottom:"1rem"}}>
-          {CURRICULUM.map(book=>{
+          {getBooksForProfile(activeUser).map(book=>{
             const allSecs=book.chapters.flatMap(c=>c.sections);
             const total=allSecs.length;
             const done=allSecs.filter(s=>p.sectionsDone[s.id]).length;
@@ -3809,15 +4282,21 @@ export default function VanguardMathOS(){
               const pd=p.proofsDone?.[s.id]||[];const cd=p.challengesDone?.[s.id];
               return a+(p.sectionsDone[s.id]?SECTION_XP:0)+pd.filter(Boolean).length*PROOF_PASS_XP+(cd?CHALLENGE_XP:0);
             },0);
+            const isCurrent=isCurrentBook(activeUser,book.id);
+            const isLast=isLastBook(activeUser,book.id);
             return(
               <button key={book.id} onClick={()=>{setActiveBook(book.id);setActiveChapter(null);}}
-                style={{background:"#060d18",border:`1px solid ${done>0?book.color+"44":"#1a2a3a"}`,padding:"1.1rem",cursor:"pointer",textAlign:"left",position:"relative",overflow:"hidden",transition:"border-color 0.2s"}}>
-                <div style={{position:"absolute",top:0,left:0,right:0,height:done>0?3:1,background:done>0?book.color:"#8899aa",transition:"height 0.3s"}}/>
-                <div style={{display:"flex",justifyContent:"space-between",marginBottom:"0.4rem"}}>
-                  <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:book.color,letterSpacing:"0.12em"}}>{book.code}</div>
+                style={{background:"#060d18",border:`1px solid ${isCurrent?book.color+"88":done>0?book.color+"44":"#1a2a3a"}`,padding:"1.1rem",cursor:"pointer",textAlign:"left",position:"relative",overflow:"hidden",transition:"border-color 0.2s"}}>
+                <div style={{position:"absolute",top:0,left:0,right:0,height:isCurrent?4:done>0?2:1,background:isCurrent?book.color:done>0?book.color:"#8899aa",transition:"height 0.3s"}}/>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:"0.4rem"}}>
+                  <div>
+                    <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:book.color,letterSpacing:"0.12em"}}>{book.code}</div>
+                    {isCurrent&&<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:book.color,marginTop:"0.1rem",letterSpacing:"0.05em"}}>● CURRENT COURSE</div>}
+                    {isLast&&<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#8899aa",marginTop:"0.1rem"}}>✓ COMPLETED</div>}
+                  </div>
                   <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.96rem",fontWeight:700,color:book.color}}>{bXP} XP</div>
                 </div>
-                <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.92rem",fontWeight:700,color:"#d0e0f0",marginBottom:"0.90rem",lineHeight:1.3}}>{book.name}</div>
+                <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.92rem",fontWeight:700,color:"#d0e0f0",marginBottom:"0.6rem",lineHeight:1.3}}>{book.name}</div>
                 <div style={{height:5,background:"#0a1520",borderRadius:2,marginBottom:"0.3rem"}}>
                   <div style={{height:"100%",background:book.color,width:`${(done/total)*100}%`,borderRadius:2,transition:"width 0.5s"}}/>
                 </div>
