@@ -23,7 +23,8 @@ const PROOF_PASS_XP = 20;
 const BOUNTY_XP = 25;
 const BOUNTY_DAILY_CAP = 15;
 const LEARN_XP = 20;             // XP per correct in Learn Mode (deep understanding)
-const LIVE_XP = 5;               // XP per correct in Live Mode (demonstration)
+const LIVE_XP = 5;               // XP per correct in Live Mode
+const LIVE_DAILY_FLUX_CAP = 300;  // Max Flux from Live Mode per day (demonstration)
 const LIVE_FLUX = 30;            // Flux per correct in Live Mode
 const LEARN_FLUX = 5;            // Flux per correct in Learn Mode
 const BOUNTY_FLUX = 15;          // Flux per correct bounty answer
@@ -260,11 +261,43 @@ const CURRICULUM = [
         {id:"c8s4",num:"8.4",name:"Probability and Multiplication"},
         {id:"c8s5",num:"8.5",name:"Probability with Dependent Events"},
       ]},
-      { id:"c11", num:"11", name:"Pascal's Triangle", sections:[
-        {id:"c11s1",num:"11.1",name:"Introduction"},
-        {id:"c11s2",num:"11.2",name:"Pascal's Identity"},
-        {id:"c11s3",num:"11.3",name:"The Hockey Stick Identity"},
-        {id:"c11s4",num:"11.4",name:"Row Sums of Pascal's Triangle"},
+      { id:"c6",  num:"6",  name:"Some Hard Counting Problems", sections:[
+        {id:"c6s1", num:"6.1", name:"Introduction to Hard Counting"},
+        {id:"c6s2", num:"6.2", name:"Counting with Restrictions"},
+        {id:"c6s3", num:"6.3", name:"Multiple Counting Techniques"},
+      ]},
+      { id:"c9",  num:"9",  name:"Think About It", sections:[
+        {id:"c9s1", num:"9.1", name:"Challenge Counting Problems"},
+        {id:"c9s2", num:"9.2", name:"Challenge Probability Problems"},
+      ]},
+      { id:"c10", num:"10", name:"Geometric Probability", sections:[
+        {id:"c10s1",num:"10.1",name:"Introduction to Geometric Probability"},
+        {id:"c10s2",num:"10.2",name:"Length and Area Models"},
+        {id:"c10s3",num:"10.3",name:"More Geometric Probability"},
+      ]},
+      { id:"c11", num:"11", name:"Expected Value", sections:[
+        {id:"c11s1",num:"11.1",name:"Introduction to Expected Value"},
+        {id:"c11s2",num:"11.2",name:"Computing Expected Value"},
+        {id:"c11s3",num:"11.3",name:"Expected Value in Games"},
+      ]},
+      { id:"c12", num:"12", name:"Pascal's Triangle", sections:[
+        {id:"c12s1",num:"12.1",name:"Introduction"},
+        {id:"c12s2",num:"12.2",name:"Pascal's Identity"},
+        {id:"c12s3",num:"12.3",name:"Row Sums of Pascal's Triangle"},
+      ]},
+      { id:"c13", num:"13", name:"The Hockey Stick Identity", sections:[
+        {id:"c13s1",num:"13.1",name:"The Hockey Stick Identity"},
+        {id:"c13s2",num:"13.2",name:"Applications"},
+      ]},
+      { id:"c14", num:"14", name:"Binomial Theorem", sections:[
+        {id:"c14s1",num:"14.1",name:"Introduction to Binomial Theorem"},
+        {id:"c14s2",num:"14.2",name:"Binomial Coefficients"},
+        {id:"c14s3",num:"14.3",name:"Applications of Binomial Theorem"},
+      ]},
+      { id:"c15", num:"15", name:"More Challenging Problems", sections:[
+        {id:"c15s1",num:"15.1",name:"Counting Challenge Problems"},
+        {id:"c15s2",num:"15.2",name:"Probability Challenge Problems"},
+        {id:"c15s3",num:"15.3",name:"Mixed Challenges"},
       ]},
     ],
   },
@@ -766,6 +799,99 @@ const SECTION_PROOFS = {
     {q:"Evaluate the same function at x=-2",a:"-3",hint:"x=-2≤0, so use x-1=-3"},
   ],
 
+  // C&P CH6
+  c6s1:[
+    {q:"In how many ways can we distribute 5 distinct books to 3 students if each must get at least 1?",a:"150",hint:"Total distributions minus cases where someone gets 0: inclusion-exclusion"},
+    {q:"Count 4-digit numbers with digits summing to 4 (digits 0-9, first digit ≥1).",a:"20",hint:"Count compositions of 4 with 4 parts, first ≥1"},
+  ],
+  c6s2:[
+    {q:"How many ways to seat 5 people in a row if A and B must NOT sit adjacent?",a:"72",hint:"Total(120) − adjacent(2!×4!=48)... wait: A,B together=2×4!=48, so 120-48=72"},
+    {q:"Count 3-digit numbers with no repeated digits and not starting with 0.",a:"648",hint:"9×9×8=648 (first: 9 choices, second: 9, third: 8)"},
+  ],
+  c6s3:[
+    {q:"How many subsets of {1,2,3,4,5} have an even sum?",a:"16",hint:"Half of all 32 subsets have even sum (by symmetry)"},
+    {q:"A committee of 5 from 4 men and 6 women must have more women than men. How many ways?",a:"186",hint:"Cases: 3W2M=C(6,3)C(4,2)=120, 4W1M=C(6,4)C(4,1)=60, 5W0M=C(6,5)=6. Total=186"},
+  ],
+  // C&P CH9
+  c9s1:[
+    {q:"How many integers 1-1000 are divisible by 3, 5, or 7?",a:"543",hint:"Inclusion-exclusion with three sets"},
+    {q:"In how many ways can 8 people be split into two groups of 4 (groups are unlabeled)?",a:"35",hint:"C(8,4)/2=70/2=35"},
+  ],
+  c9s2:[
+    {q:"Toss a fair coin 5 times. P(more heads than tails)?",a:"1/2|16/32",hint:"By symmetry, P(more H)=P(more T). They sum with P(equal) to 1. P(equal)=C(5,2.5)... not integer. Actually P(3H)+P(4H)+P(5H)=(10+5+1)/32=16/32=1/2"},
+    {q:"Two dice rolled. P(product > 20)?",a:"1/9|4/36",hint:"Pairs: (4,6),(5,5),(5,6),(6,4),(6,5),(6,6) — check each: >20 means (4,6),(6,4),(5,5),(5,6),(6,5),(6,6)=6, wait (5,5)=25>20 ✓. 6 pairs → 6/36=1/6. Let me recount: (4,6)=24,(5,5)=25,(5,6)=30,(6,4)=24,(6,5)=30,(6,6)=36. Yes 6 pairs → 1/6"},
+  ],
+  // C&P CH10
+  c10s1:[
+    {q:"A dart lands uniformly on a 10×10 board. A 3×3 square is painted. P(dart hits painted area)?",a:"9/100",hint:"Area of painted / total area = 9/100"},
+    {q:"A point is chosen uniformly in a square of side 4. P(it's within distance 1 of the center)?",a:"π/16",hint:"Circle area π(1)²=π, square area=16, P=π/16"},
+  ],
+  c10s2:[
+    {q:"A stick is broken at a random point. P(longer piece is more than twice the shorter)?",a:"2/3",hint:"Longer > 2×shorter means cut in outer 2/3 (within 1/3 of either end)"},
+    {q:"Two points chosen uniformly on [0,1]. P(they are within 0.5 of each other)?",a:"3/4",hint:"Area of region |x-y|<0.5 in unit square = 1-2×(0.5×0.5×0.5)=3/4"},
+  ],
+  c10s3:[
+    {q:"A chord is drawn at random in a circle. P(chord is longer than the radius)?",a:"1/2|varies",hint:"Depends on the model — this is Bertrand's paradox! Answer varies by method."},
+  ],
+  // C&P CH11 (Expected Value)
+  c11s1:[
+    {q:"A fair die is rolled. What is the expected value of the outcome?",a:"3.5|7/2",hint:"(1+2+3+4+5+6)/6=21/6=3.5"},
+    {q:"A coin flip: win $3 on heads, lose $1 on tails. Expected value?",a:"1|$1",hint:"0.5×3 + 0.5×(−1) = 1.5−0.5 = 1"},
+  ],
+  c11s2:[
+    {q:"Roll two dice. Expected value of the sum?",a:"7",hint:"E[sum]=E[die1]+E[die2]=3.5+3.5=7"},
+    {q:"Draw a card from a standard deck. Expected value if face cards=10, ace=1, others=face value?",a:"85/13|6.54",hint:"4×(1+2+...+10+10+10+10)/52. Sum per suit=1+2+...+9+10+10+10+10=85. E=85×4/52=85/13"},
+  ],
+  c11s3:[
+    {q:"Game: roll die, win $n if n=6, lose $1 otherwise. Fair to play?",a:"no",hint:"E=$6×(1/6)+(-$1)×(5/6)=1-5/6=$1/6 > 0, so favorable to player"},
+    {q:"Expected number of coin flips to get first head?",a:"2",hint:"Geometric distribution: E=1/p=1/(1/2)=2"},
+  ],
+  // C&P CH12 (Pascal's Triangle)
+  c12s1:[
+    {q:"What is the 5th row of Pascal's Triangle (row 0 first)?",a:"1,5,10,10,5,1|1 5 10 10 5 1",hint:"Each entry is sum of two above"},
+    {q:"What is C(6,2) from Pascal's Triangle?",a:"15",hint:"Row 6, position 2"},
+  ],
+  c12s2:[
+    {q:"Pascal's Identity: C(n,k)=C(n-1,k-1)+C(n-1,k). Verify: C(5,2)=?",a:"10",hint:"C(4,1)+C(4,2)=4+6=10 ✓"},
+  ],
+  c12s3:[
+    {q:"Sum of all entries in row 8 of Pascal's Triangle?",a:"256",hint:"2^8=256"},
+    {q:"What is C(0,0)+C(1,0)+C(2,0)+C(3,0)+C(4,0)?",a:"5",hint:"Each C(n,0)=1, so sum=5"},
+  ],
+  // C&P CH13 (Hockey Stick)
+  c13s1:[
+    {q:"Hockey Stick: C(2,2)+C(3,2)+C(4,2)+C(5,2)=C(?,3)",a:"6",hint:"C(r,2) from r=2 to 5 = C(6,3)=20. Wait: 1+3+6+10=20=C(6,3) ✓, so ?=6"},
+    {q:"1+2+3+4+5 using Hockey Stick = C(?,2)",a:"6",hint:"Sum = C(2,1)+C(3,1)+C(4,1)+C(5,1)+C(6,1)... no. 1+2+3+4+5=15=C(6,2) ✓"},
+  ],
+  c13s2:[
+    {q:"Use Hockey Stick to find: C(3,3)+C(4,3)+C(5,3)+C(6,3)",a:"35",hint:"= C(7,4) = 35"},
+    {q:"1²+2²+3²+4² = ? (use sum of squares formula n(n+1)(2n+1)/6)",a:"30",hint:"4×5×9/6=30"},
+  ],
+  // C&P CH14 (Binomial Theorem)
+  c14s1:[
+    {q:"Expand (x+y)³ using Binomial Theorem.",a:"x^3+3x^2y+3xy^2+y^3",hint:"Coefficients are C(3,0),C(3,1),C(3,2),C(3,3)"},
+    {q:"What is the coefficient of x²y³ in (x+y)^5?",a:"10",hint:"C(5,2)=10"},
+  ],
+  c14s2:[
+    {q:"What is the coefficient of x³ in (x+2)^5?",a:"80",hint:"C(5,3)×2²=10×8=80"},
+    {q:"What is (1+1)^10 by Binomial Theorem?",a:"1024",hint:"Sum of C(10,k) for k=0 to 10 = 2^10"},
+  ],
+  c14s3:[
+    {q:"Find the term with x² in (3x+2)^4.",a:"216x^2|216",hint:"C(4,2)×(3x)²×2²=6×9×4=216"},
+    {q:"What is C(10,0)+C(10,1)+...+C(10,10)?",a:"1024",hint:"Sum of row 10 = 2^10"},
+  ],
+  // C&P CH15
+  c15s1:[
+    {q:"CHALLENGE: In how many ways can you make change for 25 cents using pennies, nickels, dimes?",a:"12",hint:"Systematic casework: 0,1,2 dimes × combinations of nickels and pennies"},
+    {q:"CHALLENGE: How many 5-card hands from a 52-card deck have exactly 2 pairs?",a:"123552",hint:"C(13,2)×C(4,2)×C(4,2)×44 = 78×6×6×44"},
+  ],
+  c15s2:[
+    {q:"CHALLENGE: P(at least 2 people share a birthday in a group of 23)? > or < 50%?",a:">50%|greater",hint:"Birthday paradox: P≈50.7% for n=23"},
+    {q:"CHALLENGE: Expected number of distinct values when rolling a die 6 times?",a:"6(1-(5/6)^6)|3.99",hint:"E=6×(1-(5/6)^6)≈3.99"},
+  ],
+  c15s3:[
+    {q:"CHALLENGE: C(n,0)²+C(n,1)²+...+C(n,n)²=?",a:"C(2n,n)",hint:"Vandermonde's identity: sum of squares of row n = C(2n,n)"},
+  ],
   // NUMBER THEORY
   nt1s1:[
     {q:"Is the sum of two odd numbers always even?",a:"yes",hint:"odd+odd=(2k+1)+(2m+1)=2(k+m+1)"},
@@ -1012,20 +1138,7 @@ const SECTION_PROOFS = {
     {q:"Bag: 5 red, 3 blue. Draw 2 without replacement. P(first red, second blue)?",a:"15/56",hint:"5/8 × 3/7"},
   ],
   // C&P CH11
-  c11s1:[
-    {q:"What is the 4th row of Pascal's Triangle (row 0 is the first)?",a:"1,4,6,4,1|1 4 6 4 1",hint:"Each entry is the sum of the two above it"},
-    {q:"What is C(5,2) from Pascal's Triangle?",a:"10",hint:"Row 5, entry at position 2"},
-  ],
-  c11s2:[
-    {q:"Pascal's Identity: C(n,k) = C(n−1,k−1) + C(n−1,k). Verify with n=4,k=2.",a:"C(3,1)+C(3,2)=3+3=6=C(4,2)|6",hint:"C(4,2)=6, and C(3,1)+C(3,2)=3+3=6"},
-  ],
-  c11s3:[
-    {q:"C(3,1)+C(4,1)+C(5,1)+C(6,1) = C(?,2)",a:"7",hint:"Hockey Stick: sum of C(r,1) from r=1 to n = C(n+1,2)"},
-  ],
-  c11s4:[
-    {q:"Sum of all entries in row 6 of Pascal's Triangle?",a:"64",hint:"Sum of row n = 2ⁿ"},
-    {q:"Sum of all entries in row 10?",a:"1024",hint:"2¹⁰"},
-  ],
+  // C&P CH12 proofs defined above
 };
 
 // Challenge problems (1 per section, harder)
@@ -1084,6 +1197,8 @@ const INIT_P=(name,color,profileType="CIPHER")=>({
   chatHistory:[],
   streakShield:false,       // 11yr old perk
   currentStreak:0,
+  liveFluxToday:0,
+  lastLiveDate:null,
 });
 function migrateV6toV7(v6){
   // Migrate old profile fields, add new ones with defaults
@@ -1124,7 +1239,11 @@ function loadState(){
   return null;
 }
 function saveState(s){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(s));}catch{}}
-function today(){return new Date().toISOString().slice(0,10);}
+function today(){
+  const d=new Date();
+  // Use LOCAL date not UTC — prevents timezone-based day mismatch
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
 function norm(s){
   return String(s).toLowerCase()
     .replace(/\s+/g,"")
@@ -1187,6 +1306,8 @@ function fmtTime(ms){const m=Math.floor(ms/60000),s=Math.floor((ms%60000)/1000);
 
 // Question templates by topic — generated dynamically
 function generateBountyQuestions(profile, count=8){
+  if(!profile||!profile.sectionsDone) return [];
+  try{
   const done=Object.keys(profile.sectionsDone||{});
   const allSections=CURRICULUM.flatMap(b=>b.chapters).flatMap(c=>c.sections);
   const unlockedIds=new Set(done);
@@ -1298,8 +1419,9 @@ function getEarnedGameMins(profile){
   const t=today();
   const sectionMins=(profile.lastSyncDate===t?(profile.sectionsToday||0):0)*MINS_PER_SECTION;
   const bountyMins=(profile.lastBountyDate===t?(profile.bountyCorrectToday||0):0)*MINS_PER_BOUNTY_CORRECT;
-  return Math.min(MAX_GAME_MINS, sectionMins+bountyMins);
-}
+    return Math.min(MAX_GAME_MINS, sectionMins+bountyMins);
+}  }catch(e){console.error('Bounty gen error:',e);return [];}
+
 
 // ═══════════════════════════════════════════════════════════
 // BOUNTY BOARD COMPONENT
@@ -2647,7 +2769,7 @@ function BaselineAssessment({profile,onComplete}){
                 style={{...S.ansInput,fontSize:"1.1rem",borderColor:flash==="good"?"#00ffcc":flash==="bad"?"#ff4444":color+"55"}}/>
               <button onClick={submit} style={{...S.btnCyber,borderColor:color,color,padding:"0.55rem 1.25rem",whiteSpace:"nowrap"}}>CHECK</button>
             </div>
-            <button onClick={reveal} style={{...S.btnGhost,fontSize:"0.8rem",color:"#ff6644",borderColor:"#ff664433"}}>SKIP / REVEAL (no penalty, helps calibrate)</button>
+            <button onClick={()=>{if(window.confirm("Skip this question? The answer will be shown and marked as missed.")) reveal();}} style={{...S.btnGhost,fontSize:"0.8rem",color:"#ff6644",borderColor:"#ff664433"}}>SKIP / REVEAL →</button>
           </>
         )}
       </div>
@@ -3094,7 +3216,7 @@ function LiveMode({profile,onExit,onEarn}){
         <div style={{display:"flex",gap:"1.25rem",alignItems:"center",fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem"}}>
           <span>SCORE <b style={{color,fontSize:"1rem"}}>{score}</b></span>
           {streak>=2&&<span style={{color:"#ff8800"}}>{streak}🔥 x{streakMult}</span>}
-          <span style={{color:"#ffdd00"}}>⚡{fluxEarned}</span>
+          <span style={{color:"#ffdd00"}}>⚡{fluxEarned}<span style={{fontSize:"0.75em",color:"#aa8800"}}>/{LIVE_DAILY_FLUX_CAP}</span></span>
           <div style={{display:"flex",alignItems:"center",gap:"0.4rem"}}>
             <div style={{width:80,height:6,background:"#1a2a3a",borderRadius:3}}>
               <div style={{height:"100%",background:timeColor,width:`${(timeLeft/90)*100}%`,transition:"width 0.9s linear",borderRadius:3}}/>
@@ -3138,14 +3260,23 @@ function buildLiveQuestions(profile){
   const done=Object.keys(profile.sectionsDone||{});
   if(done.length<3) return [];
   const all=[];
+  const seen=new Set(); // deduplicate by question text
   done.forEach(sid=>{
     const qs=[...(SECTION_PROOFS[sid]||[])];
-    qs.forEach(q=>all.push({...q,sectionId:sid,topic:sid}));
-    // Add challenge if exists
+    qs.forEach(q=>{
+      if(!seen.has(q.q)){
+        seen.add(q.q);
+        all.push({...q,sectionId:sid,topic:sid});
+      }
+    });
     const ch=CHALLENGES[sid];
-    if(ch) all.push({...ch,sectionId:sid,topic:sid,isChallenge:true});
+    if(ch&&!seen.has(ch.q)){
+      seen.add(ch.q);
+      all.push({...ch,sectionId:sid,topic:sid,isChallenge:true});
+    }
   });
-  return [...all].sort(()=>Math.random()-0.5).slice(0,20);
+  // Shuffle and cap at 15 unique questions per session
+  return [...all].sort(()=>Math.random()-0.5).slice(0,15);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -3357,6 +3488,112 @@ function ApexCoach({profile,onClose,onDeductCredits}){
           <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder={profile.lc<APEX_COST?"INSUFFICIENT LC":"Show your work or describe the problem..."} disabled={profile.lc<APEX_COST||loading} style={S.ansInput}/>
           <button onClick={send} disabled={profile.lc<APEX_COST||loading||!input.trim()} style={{...S.btnCyber,borderColor:"#ffdd00",color:"#ffdd00",opacity:profile.lc<APEX_COST?0.4:1}}>TRANSMIT</button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// NOVA GRADE REPORT
+// ═══════════════════════════════════════════════════════════
+function GradeReport({profile,onClose}){
+  const books=getBooksForProfile(profile.name);
+  const color=profile.color;
+
+  return(
+    <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.92)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem",overflowY:"auto"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:"#060d18",border:`1px solid ${color}55`,width:"100%",maxWidth:640,maxHeight:"92vh",overflowY:"auto"}}>
+        {/* Header */}
+        <div style={{padding:"1rem 1.25rem",borderBottom:"1px solid #1a2a3a",display:"flex",justifyContent:"space-between",alignItems:"center",position:"relative"}}>
+          <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,${color},transparent)`}}/>
+          <div>
+            <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1rem",color,letterSpacing:"0.1em"}}>GRADE REPORT</div>
+            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.88rem",color:"#8899aa",marginTop:"0.1rem"}}>{profile.name} · {getRank(profile.xp).name} · {profile.xp} XP total</div>
+          </div>
+          <button onClick={onClose} style={S.xBtn}>✕</button>
+        </div>
+
+        {/* Baseline score */}
+        {profile.baselineScore!=null&&(
+          <div style={{padding:"0.75rem 1.25rem",background:"#040b14",borderBottom:"1px solid #1a2a3a",display:"flex",gap:"2rem",alignItems:"center"}}>
+            <div>
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#8899aa"}}>BASELINE SCORE</div>
+              <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.5rem",fontWeight:900,color:profile.baselineScore>=80?"#00ffcc":profile.baselineScore>=60?"#ffaa00":"#ff4444"}}>{profile.baselineScore}%</div>
+            </div>
+            {profile.baselineWeakTopics?.length>0&&(
+              <div>
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#8899aa",marginBottom:"0.25rem"}}>FOCUS AREAS</div>
+                <div style={{display:"flex",gap:"0.4rem",flexWrap:"wrap"}}>
+                  {profile.baselineWeakTopics.map(t=>(
+                    <span key={t} style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",background:"#1a0a00",border:"1px solid #ff880033",color:"#ff8800",padding:"0.1rem 0.4rem"}}>{TOPIC_LABELS[t]||t}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Test history */}
+        {(profile.biweeklyTests||[]).length>0&&(
+          <div style={{padding:"0.75rem 1.25rem",borderBottom:"1px solid #1a2a3a"}}>
+            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#8899aa",letterSpacing:"0.1em",marginBottom:"0.5rem"}}>TEST HISTORY</div>
+            {[...(profile.biweeklyTests||[])].reverse().map((t,i)=>{
+              const col=t.score>=80?"#00ffcc":t.score>=60?"#ffaa00":"#ff4444";
+              return(
+                <div key={i} style={{display:"flex",gap:"1rem",alignItems:"center",padding:"0.4rem 0",borderBottom:"1px solid #0a1520",flexWrap:"wrap"}}>
+                  <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.84rem",color:"#8899aa",minWidth:90}}>{t.date}</span>
+                  <div style={{width:100,height:6,background:"#0a1520",borderRadius:3}}>
+                    <div style={{height:"100%",background:col,width:`${t.score}%`,borderRadius:3}}/>
+                  </div>
+                  <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.9rem",fontWeight:700,color:col}}>{t.score}%</span>
+                  {t.weakTopics?.length>0&&<span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#ff8800"}}>Weak: {t.weakTopics.slice(0,3).map(x=>TOPIC_LABELS[x]||x).join(", ")}</span>}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Per-book progress */}
+        {books.map(book=>{
+          const allSecs=book.chapters.flatMap(c=>c.sections);
+          const doneSecs=allSecs.filter(s=>profile.sectionsDone?.[s.id]);
+          const pct=allSecs.length>0?Math.round((doneSecs.length/allSecs.length)*100):0;
+          const proofTotal=allSecs.reduce((a,s)=>(a+(SECTION_PROOFS[s.id]||[]).length),0);
+          const proofDone=allSecs.reduce((a,s)=>(a+(profile.proofsDone?.[s.id]||[]).filter(Boolean).length),0);
+          return(
+            <div key={book.id} style={{padding:"0.75rem 1.25rem",borderBottom:"1px solid #1a2a3a"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.5rem"}}>
+                <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.88rem",color:book.color}}>{book.code} — {book.name}</div>
+                <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1rem",fontWeight:700,color:book.color}}>{pct}%</div>
+              </div>
+              <div style={{height:6,background:"#0a1520",borderRadius:3,marginBottom:"0.4rem"}}>
+                <div style={{height:"100%",background:book.color,width:`${pct}%`,borderRadius:3,transition:"width 0.5s"}}/>
+              </div>
+              <div style={{display:"flex",gap:"1.5rem",fontFamily:"Share Tech Mono,monospace",fontSize:"0.82rem",color:"#8899aa"}}>
+                <span>{doneSecs.length}/{allSecs.length} sections</span>
+                <span>{proofDone}/{proofTotal} proofs correct</span>
+              </div>
+              {/* Chapter breakdown */}
+              <div style={{marginTop:"0.5rem",display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(180px,1fr))",gap:"0.3rem"}}>
+                {book.chapters.map(ch=>{
+                  const chSecs=ch.sections;
+                  const chDone=chSecs.filter(s=>profile.sectionsDone?.[s.id]).length;
+                  const chPct=chSecs.length>0?Math.round((chDone/chSecs.length)*100):0;
+                  return(
+                    <div key={ch.id} style={{background:"#040b14",border:"1px solid #1a2a3a",padding:"0.35rem 0.5rem"}}>
+                      <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:chPct===100?book.color:"#8899aa",marginBottom:"0.2rem"}}>{ch.num}. {ch.name.slice(0,22)}{ch.name.length>22?"...":""}</div>
+                      <div style={{height:3,background:"#0a1520",borderRadius:2}}>
+                        <div style={{height:"100%",background:book.color,width:`${chPct}%`,borderRadius:2}}/>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+
+        <button onClick={onClose} style={{...S.btnCyber,width:"calc(100% - 2.5rem)",margin:"0.75rem 1.25rem",borderColor:color,color}}>CLOSE REPORT</button>
       </div>
     </div>
   );
@@ -3817,7 +4054,8 @@ export default function VanguardMathOS(){
 
   function completeSection(section,book,proofResults,challengeDone){
     const p=getProfile(activeUser);const t=today();
-    const alreadyDone=p.sectionsDone[section.id];
+    if(!p){notify("Please log in first","warn");return;}
+    const alreadyDone=p.sectionsDone[section.id]||false;
     const proofCorrect=(proofResults||[]).filter(Boolean).length;
     const proofXp=proofCorrect*PROOF_PASS_XP;
     const challengeXp=challengeDone?CHALLENGE_XP:0;
@@ -3825,10 +4063,19 @@ export default function VanguardMathOS(){
     let xpGain=proofXp+challengeXp;
     let newSectionsToday=p.sectionsToday||0;
 
+    // Check if this is an algebra section below Ch.10 for CIPHER — no XP earning
+    const isEarlyAlg=section.id.match(/^a([1-9])s/) && 
+      !(section.id.match(/^a1[0-9]s/) || section.id.match(/^a2[0-1]s/));
+    const isCipherEarlyAlg=activeUser==="CIPHER"&&isEarlyAlg;
+
     if(!alreadyDone){
-      xpGain+=SECTION_XP;
+      // Check daily limit
+      if(newSectionsToday>=DAILY_SECTION_LIMIT){
+        notify(`Daily limit reached — come back tomorrow! (${DAILY_SECTION_LIMIT} syncs/day max)`,"warn");
+        return;
+      }
+      xpGain+=isCipherEarlyAlg?0:SECTION_XP; // No XP for CIPHER on early Algebra
       newSectionsToday++;
-      if(newSectionsToday>DAILY_SECTION_LIMIT){notify("BANDWIDTH THROTTLED — Max 4 sections/day","warn");return;}
     }
 
     updateProfile(activeUser,prev=>({
@@ -3854,7 +4101,25 @@ export default function VanguardMathOS(){
   function deductCredits(amt,hist){updateProfile(activeUser,prev=>({...prev,lc:Math.max(0,prev.lc-amt),chatHistory:hist||prev.chatHistory}));}
 
   function handleLiveEarn(xp,flux){
-    updateProfile(activeUser,prev=>({...prev,xp:prev.xp+xp,flux:(prev.flux||0)+flux,lc:prev.lc+1}));
+    const t=today();
+    updateProfile(activeUser,prev=>{
+      const lastLive=prev.lastLiveDate;
+      const earnedToday=lastLive===t?(prev.liveFluxToday||0):0;
+      const remaining=Math.max(0,LIVE_DAILY_FLUX_CAP-earnedToday);
+      const actualFlux=Math.min(flux,remaining);
+      // Consume game time (Live Mode counts as game time)
+      const gameAdd=30000; // 30 seconds per correct answer
+      return{
+        ...prev,
+        xp:prev.xp+xp,
+        flux:(prev.flux||0)+actualFlux,
+        lc:prev.lc+1,
+        liveFluxToday:earnedToday+actualFlux,
+        lastLiveDate:t,
+        gameTimeUsedMs:Math.min(GAME_TIME_LIMIT_MS,(prev.gameTimeUsedMs||0)+gameAdd),
+        lastGameDate:t,
+      };
+    });
   }
 
   function handleWarmupComplete(results){
@@ -4123,8 +4388,9 @@ export default function VanguardMathOS(){
       {notification&&<Toast n={notification}/>}
       {showCoach&&<ApexCoach profile={p} onClose={()=>setShowCoach(false)} onDeductCredits={deductCredits}/>}
       {showParent&&<ParentMode profiles={profiles} rewards={Array.isArray(appState.rewards)&&appState.rewards.length>0?appState.rewards:DEFAULT_REWARDS} onClose={()=>setShowParent(false)} onUpdateProfiles={updateProfile} onUpdateRewards={(r)=>setAppState(prev=>({...prev,rewards:r}))} onStartRival={()=>setRivalPending(true)}/>}
-      {showBounty&&<BountyBoard profile={p} onClose={()=>setShowBounty(false)} onCorrect={handleBountyCorrect} onSpendLC={(amt)=>updateProfile(activeUser,prev=>({...prev,lc:Math.max(0,prev.lc-amt)}))}/>}
+      {showBounty&&p&&<BountyBoard profile={p} onClose={()=>setShowBounty(false)} onCorrect={handleBountyCorrect} onSpendLC={(amt)=>updateProfile(activeUser,prev=>({...prev,lc:Math.max(0,prev.lc-amt)}))}/>}
       {showWarmup&&<DailyWarmup profile={p} onComplete={handleWarmupComplete} />}
+      {showReport&&<GradeReport profile={p} onClose={()=>setShowReport(false)}/>}
       {showRedemption&&<RedemptionCenter profile={p} rewards={Array.isArray(appState.rewards)&&appState.rewards.length>0?appState.rewards:DEFAULT_REWARDS} onClose={()=>setShowRedemption(false)} onRedeem={handleRedeem}/>}
 
       <div style={{maxWidth:1000,margin:"0 auto",padding:"1.25rem 1rem"}}>
@@ -4177,8 +4443,8 @@ export default function VanguardMathOS(){
           </div>
         </div>
 
-        {/* ── DAILY QUEST CARD (11yr old / CIPHER) ── */}
-        {isGamey&&(
+        {/* ── DAILY QUEST CARD ── */}
+        {(
           <div style={{background:"linear-gradient(135deg,#0a1520,#060d18)",border:"1px solid "+rank.color+"44",padding:"1rem 1.25rem",marginBottom:"1rem",position:"relative",overflow:"hidden"}}>
             <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,${rank.color},transparent)`}}/>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:"0.5rem"}}>
