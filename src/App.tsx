@@ -2834,9 +2834,7 @@ function LearnMode({section,book,profile,onComplete,onClose,onSpendLC}){
   const [streak,setStreak]=useState(0);
   const [xpEarned,setXpEarned]=useState(0);
   const [fluxEarned,setFluxEarned]=useState(0);
-  const [showGuide,setShowGuide]=useState(()=>{
-    try{return!localStorage.getItem("vanguard_guide_seen");}catch{return true;}
-  });
+  const [showGuide,setShowGuide]=useState(true); // reset on each Learn Mode open
   const inputRef=useRef(null);
   const isShield=profile.name==="CIPHER"; // streak shield for 11yr old
 
@@ -3764,6 +3762,8 @@ export default function VanguardMathOS(){
   const [showWarmup,setShowWarmup]=useState(false);
 
   useEffect(()=>{saveState(appState);},[appState]);
+
+
   useEffect(()=>{
     function onTriggerTest(){
       if(!activeUser){notify("Please log in as a student first","warn");return;}
@@ -3776,33 +3776,42 @@ export default function VanguardMathOS(){
   function notify(msg,type="info"){setNotification({msg,type});setTimeout(()=>setNotification(null),3500);}
   function updateProfile(name,fn){setProfiles(prev=>({...prev,[name]:fn(prev[name])}));}
 
-  function getProfile(name){
-    const p=profiles[name];const t=today();
+  // Daily reset effect — runs when user logs in, safe place for state updates
+  useEffect(()=>{
+    if(!activeUser) return;
+    const p=profiles[activeUser];
+    if(!p||typeof p!=="object"||!("xp" in p)) return;
+    const t=today();
+    const yest=new Date();yest.setDate(yest.getDate()-1);
+    const ys=yest.toISOString().slice(0,10);
     let updated={...p};
     let changed=false;
-    // Reset daily section limit
     if(p.lastSyncDate!==t){
-      const yest=new Date();yest.setDate(yest.getDate()-1);const ys=yest.toISOString().slice(0,10);
       updated={...updated,sectionsToday:0,lastSyncDate:t,
-        pulse:p.lastActive===ys?(p.pulse||0)+1:p.lastActive===t?p.pulse:0};
+        pulse:p.lastActive===ys?(p.pulse||0)+1:p.lastActive===t?(p.pulse||0):0};
       changed=true;
     }
-    // Reset game time used daily
     if(p.lastGameDate!==t){
       updated={...updated,gameTimeUsedMs:0,lastGameDate:t};
       changed=true;
     }
-    // Reset bounty daily counters
     if(p.lastBountyDate!==t){
       updated={...updated,bountyCorrectToday:0,bountyCountToday:0,lastBountyDate:t};
       changed=true;
     }
-    // Reset warmup daily
     if((p.lastWarmupDate||"")!==t){
       updated={...updated,warmupDoneToday:false};
       changed=true;
     }
-    if(changed){setProfiles(prev=>({...prev,[name]:updated}));return updated;}
+    if(changed) updateProfile(activeUser,()=>updated);
+  },[activeUser]);
+
+
+  function getProfile(name){
+    // READ ONLY — no state updates here (that causes React error #301)
+    // Daily resets are handled by the useEffect below
+    const p=profiles[name];
+    if(!p||typeof p!=="object"||!("xp" in p)) return null;
     return p;
   }
 
@@ -3872,9 +3881,10 @@ export default function VanguardMathOS(){
   }
 
   function warmupNeeded(){
-    if(!activeUser||!p) return false;
-    const t=today();
-    return p.lastWarmupDate!==t;
+    try{
+      if(!activeUser||!p||typeof p!=="object"||!("xp" in p)) return false;
+      return p.lastWarmupDate!==today();
+    }catch{return false;}
   }
 
   function handleBaselineComplete(score,weakTopics){
