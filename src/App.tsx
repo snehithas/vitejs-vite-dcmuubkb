@@ -4701,7 +4701,7 @@ export default function VanguardMathOS(){
         <div style={{textAlign:"center"}}>
           <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"clamp(2rem,8vw,4rem)",fontWeight:900,color:"#00ffcc",letterSpacing:"0.2em",textShadow:"0 0 40px #00ffcc33"}}>VANGUARD</div>
           <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"clamp(0.7rem,3vw,1.2rem)",color:"#aabbcc",letterSpacing:"0.4em",marginTop:"0.25rem"}}>MATH OS</div>
-          <div style={{fontFamily:"Share Tech Mono,monospace",color:"#8899aa",fontSize:"0.90rem",letterSpacing:"0.25em",marginTop:"0.4rem"}}>AoPS TACTICAL INTERFACE · v6.0</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",color:"#8899aa",fontSize:"0.90rem",letterSpacing:"0.25em",marginTop:"0.4rem"}}>{APP_VERSION}</div>
         </div>
         <div style={{display:"flex",gap:"2rem",flexWrap:"wrap",justifyContent:"center"}}>
           {Object.entries(profiles).filter(([name,prof])=>prof&&typeof prof==="object"&&"xp" in prof).map(([name,prof])=>{
@@ -4842,7 +4842,7 @@ export default function VanguardMathOS(){
   const questFlux=200; // 15min TV target
   const questProgress=Math.min(flux,questFlux); // simplified: today's flux
 
-  if(showGlobalTabWarning&&activeUser&&!activeGame&&!showBounty&&!showLearnMode&&!showWarmup&&!showBaseline)
+  if(showGlobalTabWarning&&activeUser&&!activeGame&&!showBounty&&!showLearnMode&&!showWarmup&&activeGame!=="BASELINE")
     return(
       <div style={{position:"fixed",inset:0,zIndex:9999,background:"rgba(0,0,0,0.9)",display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem"}}>
         <div style={{background:"#1a0000",border:"2px solid #ff4444",padding:"2rem",maxWidth:400,textAlign:"center"}}>
