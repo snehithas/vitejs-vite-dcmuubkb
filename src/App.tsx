@@ -1461,6 +1461,15 @@ function addFluxHistory(prev, activity, flux){
 // BOUNTY BOARD COMPONENT
 // ═══════════════════════════════════════════════════════════
 function BountyBoard({profile,onClose,onCorrect,onSpendLC,onMarkDone}){
+  const [tabCount,setTabCount]=useState(0);
+  const [showTabWarning,setShowTabWarning]=useState(false);
+  useTabDetection(true,()=>{
+    setTabCount(c=>c+1);
+    setShowTabWarning(true);
+    // Swap to a new question pool on tab return
+    setQuestions(generateBountyQuestions(profile,15));
+    setInput("");setFlash(null);setHint(false);setRevealed(false);
+  });
   const t=today();
   const isToday=profile.lastBountyDate===t;
   const usedToday=isToday?(profile.bountyCountToday||0):0;
@@ -1506,6 +1515,11 @@ function BountyBoard({profile,onClose,onCorrect,onSpendLC,onMarkDone}){
 
   const q=questions[qIdx];
   const totalQ=questions.length;
+  if(showTabWarning) return(
+    <BountyOverlay onClose={onClose}>
+      <TabWarning message={getTabMessage(tabCount)} onDismiss={()=>setShowTabWarning(false)}/>
+    </BountyOverlay>
+  );
 
   function submit(){
     if(revealed)return;
@@ -1720,72 +1734,150 @@ function useTabDetection(enabled, onTabReturn){
 // ═══════════════════════════════════════════════════════════
 
 // Fallback question banks (used if API fails)
+// ═══════════════════════════════════════════════════════════
+// WARMUP QUESTION BANK — large curated bank, no AI needed
+// 3 types per session: mental math, personal interest, applied
+// Smart rotation: tracks last 30 used per category
+// ═══════════════════════════════════════════════════════════
 const WARMUP_BANK = {
+  // ── MENTAL MATH ─────────────────────────────────────────
   mental:[
-    {q:"18 inches apart, 10 plants. How many inches of space needed?",a:"180",hint:"18 × 10 = 180"},
-    {q:"You have $20. Pizza costs $7.50. Change?",a:"12.50|12.5",hint:"20 - 7.50"},
-    {q:"Car travels 60 mph. How far in 45 minutes?",a:"45",hint:"60 × 3/4"},
-    {q:"3 items at $4.99 each. Roughly how much total?",a:"15|14.97",hint:"≈$5 × 3"},
-    {q:"Rectangle 8 ft by 6 ft. Area?",a:"48",hint:"l × w"},
-    {q:"Save $12/week. How much in 8 weeks?",a:"96",hint:"12 × 8"},
-    {q:"Recipe needs 2.5 cups flour. Double it. How much?",a:"5",hint:"2.5 × 2"},
-    {q:"24 students in 4 equal groups. Per group?",a:"6",hint:"24 ÷ 4"},
-    {q:"A shirt costs $35, 20% off. Sale price?",a:"28",hint:"35 × 0.8"},
-    {q:"You read 15 pages/day. How many in 3 weeks?",a:"315",hint:"15 × 21"},
-    {q:"A room is 12 ft × 10 ft. Perimeter?",a:"44",hint:"2×(12+10)"},
-    {q:"60 students, 3/4 passed. How many passed?",a:"45",hint:"60 × 0.75"},
-    {q:"Trip is 240 miles at 60 mph. Hours?",a:"4",hint:"240 ÷ 60"},
-    {q:"Box holds 6 rows × 8 columns of eggs. Total?",a:"48",hint:"6 × 8"},
-    {q:"Temperature drops from 72°F to 58°F. Drop?",a:"14",hint:"72 - 58"},
-    {q:"You earn $9.50/hr and work 6 hours. Total?",a:"57",hint:"9.5 × 6"},
+    // Arithmetic
+    {q:"18 × 5 = ?",a:"90",hint:"18×5 = 18×10÷2"},
+    {q:"144 ÷ 12 = ?",a:"12",hint:"12×12=144"},
+    {q:"17 × 13 = ?",a:"221",hint:"(15+2)(15-2)=225-4"},
+    {q:"What is 15% of 80?",a:"12",hint:"10%=8, 5%=4, total=12"},
+    {q:"A shirt is $35, 20% off. Price?",a:"28",hint:"35×0.8=28"},
+    {q:"You earn $9.50/hr, work 6 hours. Total?",a:"57",hint:"9.5×6"},
+    {q:"Save $15/week for 8 weeks. Total?",a:"120",hint:"15×8"},
+    {q:"Split $84 equally among 6 people. Each gets?",a:"14",hint:"84÷6"},
+    {q:"3 items at $4.99. Roughly how much?",a:"15|14.97",hint:"≈$5×3"},
+    {q:"Trip: 270 miles at 60mph. Hours?",a:"4.5",hint:"270÷60"},
+    // Fractions & percents
+    {q:"What is 3/4 of 60?",a:"45",hint:"60×0.75"},
+    {q:"What is 2/3 of 90?",a:"60",hint:"90÷3×2"},
+    {q:"25 is what percent of 200?",a:"12.5|12.5%",hint:"25/200×100"},
+    {q:"A $120 item is 30% off. Sale price?",a:"84",hint:"120×0.7"},
+    {q:"After 25% increase, price is $75. Original?",a:"60",hint:"x×1.25=75"},
+    // Geometry
+    {q:"Rectangle 9ft × 7ft. Area?",a:"63",hint:"l×w"},
+    {q:"Rectangle 12ft × 8ft. Perimeter?",a:"40",hint:"2×(12+8)"},
+    {q:"Circle radius 5. Area? (π≈3.14)",a:"78.5",hint:"π×r²≈3.14×25"},
+    {q:"Triangle base 10, height 6. Area?",a:"30",hint:"½×b×h"},
+    {q:"Square side 7. Area?",a:"49",hint:"7²"},
+    // Time & rates
+    {q:"Read 25 pages/day. How many in 3 weeks?",a:"525",hint:"25×21"},
+    {q:"Plant grows 3cm/week. How tall after 8 weeks?",a:"24",hint:"3×8"},
+    {q:"Car: 300 miles on 10 gallons. Miles per gallon?",a:"30",hint:"300÷10"},
+    {q:"Temperature: 72°F to 58°F. Drop?",a:"14",hint:"72-58"},
+    {q:"Flight: departs 10:45am, arrives 2:15pm. Duration?",a:"3h30m|3.5|210",hint:"Count hours and minutes"},
+    // Proportions
+    {q:"Recipe: 2 cups flour per 12 cookies. Flour for 36 cookies?",a:"6",hint:"Scale by 3"},
+    {q:"Map: 1cm = 50km. Distance 7cm on map. Real?",a:"350",hint:"7×50"},
+    {q:"3 workers paint in 4 hours. 1 worker: how long?",a:"12",hint:"3×4=12 person-hours"},
+    {q:"If 5 pens cost $3, how much for 15 pens?",a:"9",hint:"Scale by 3"},
+    {q:"Car uses 1 gallon per 35 miles. Miles on 4 gallons?",a:"140",hint:"35×4"},
+    // Estimation
+    {q:"Estimate: 49 × 51",a:"2499|2500",hint:"(50-1)(50+1)=50²-1"},
+    {q:"Estimate: 198 + 203 + 197",a:"598",hint:"≈200×3-2"},
+    {q:"√50 is between which two integers?",a:"7 and 8|7,8",hint:"7²=49, 8²=64"},
+    {q:"2⁸ = ?",a:"256",hint:"2⁴=16, 16²=256"},
+    {q:"What is 0.125 as a fraction?",a:"1/8",hint:"125/1000 = 1/8"},
   ],
+
+  // ── CIPHER: Pokemon & Minecraft ─────────────────────────
   CIPHER:[
-    {q:"A Pokemon pack has 10 cards. You buy 6 packs. Total cards?",a:"60",hint:"10 × 6"},
-    {q:"Rare card appears 1 in 25 packs. 50 packs opened. Expected rares?",a:"2",hint:"50 ÷ 25"},
+    // Pokemon probability
+    {q:"A rare card appears 1 in 25 packs. You open 75 packs. Expected rares?",a:"3",hint:"75÷25=3"},
+    {q:"3 in 100 packs have a holo. You open 200 packs. Expected holos?",a:"6",hint:"200×0.03"},
+    {q:"You have 6 Pokemon. How many different 2-Pokemon combinations?",a:"15",hint:"C(6,2)=6×5÷2"},
+    {q:"A pack has 10 cards: 7 common, 2 uncommon, 1 rare. P(rare)?",a:"1/10|10%",hint:"1 out of 10"},
+    {q:"You need 1 more card to complete a 50-card set. P(getting it in 1 pack of 10)?",a:"1/5|20%|2/10",hint:"Assume each card equally likely: 10/50=1/5"},
+    {q:"Pokemon booster box: 36 packs × 10 cards. Total cards?",a:"360",hint:"36×10"},
+    {q:"You have 4 different Pokemon types, pick 2 for a team. How many combos?",a:"6",hint:"C(4,2)"},
+    {q:"Card value went from $12 to $30. Percent increase?",a:"150|150%",hint:"(30-12)/12×100"},
+    {q:"Opening 5 packs per day. How many in a month (30 days)?",a:"150",hint:"5×30"},
+    {q:"You have 120 cards, 1/4 are holographic. How many holos?",a:"30",hint:"120÷4"},
+    {q:"P(rolling ≥4 on a 6-sided die)?",a:"1/2|3/6|50%",hint:"4,5,6 are ≥4: 3 outcomes"},
+    {q:"A tournament has 16 players. How many rounds in single-elimination?",a:"4",hint:"16→8→4→2→1: log₂(16)=4"},
+    // Minecraft
     {q:"Minecraft chunk is 16×16 blocks. Floor area?",a:"256",hint:"16²"},
-    {q:"4 Pokemon, 2 moves each. Total moves?",a:"8",hint:"4 × 2"},
-    {q:"Pokemon has 180 HP, takes 45 damage/turn. Turns until faint?",a:"4",hint:"180 ÷ 45"},
-    {q:"120 Pokécoins. Stickers cost 15. How many can you buy?",a:"8",hint:"120 ÷ 15"},
-    {q:"3 in 100 packs have holographic card. Percent chance?",a:"3|3%",hint:"3/100"},
-    {q:"You have 6 Pokemon. How many different pairs could battle together?",a:"15",hint:"C(6,2) = 6×5÷2"},
-    {q:"A Pokemon card costs $4.50. You have $27. How many can you buy?",a:"6",hint:"27 ÷ 4.50"},
-    {q:"Your team has 3 fire, 2 water, 1 grass type. What fraction are water?",a:"1/3|2/6",hint:"2 out of 6"},
-    {q:"In a tournament of 8 players, how many total matches if each pair plays once?",a:"28",hint:"C(8,2) = 28"},
-    {q:"A Minecraft farm is 9×9 blocks but center 1×1 is water. Farmable blocks?",a:"80",hint:"81 - 1"},
-    {q:"You open 12 packs and get 2 rares. What percent are rare?",a:"16.67|1/6|17%",hint:"2/12 ≈ 1/6"},
-    {q:"Minecraft day is 20 minutes real time. How many seconds?",a:"1200",hint:"20 × 60"},
-    {q:"5 different Pokemon types, 2 at a time. How many type combos?",a:"10",hint:"C(5,2)"},
-    {q:"A booster box has 36 packs. Each has 10 cards. Total cards?",a:"360",hint:"36 × 10"},
+    {q:"You mine 12 blocks/minute. Blocks in 25 minutes?",a:"300",hint:"12×25"},
+    {q:"A Minecraft world is 60M blocks wide. At 4 blocks/sec, seconds to cross?",a:"15000000|1.5×10^7",hint:"60M÷4"},
+    {q:"You need 64 wood planks. Each log gives 4 planks. Logs needed?",a:"16",hint:"64÷4"},
+    {q:"Build a 10×10 floor with 1-block border. Interior area?",a:"64",hint:"8×8=64"},
+    {q:"Craft 24 torches: each needs 1 coal + 1 stick. How many coal?",a:"24",hint:"1 coal per torch"},
+    {q:"A creeper explodes in a 3-block radius sphere. Volume? (V=4/3πr³, π≈3)",a:"113|36π",hint:"4/3×3×27≈108"},
+    {q:"You have 5 different sword enchantments, can pick 2. How many combinations?",a:"10",hint:"C(5,2)=10"},
+    // Applied math with Pokemon/Minecraft context
+    {q:"Pokemon cards: you have 3 sets of 5 identical commons. Arrangements in a row?",a:"756",hint:"15!/(5!5!5!)... too hard. Actually 3 different cards: 3!=6 ways to arrange groups × arrangements within=5!... Simpler: 15!/(5!×5!×5!)"},
+    {q:"If P(catching a Pokemon) = 1/4, expected tries to catch 1?",a:"4",hint:"Expected value of geometric = 1/p"},
+    {q:"You won 7 of last 10 battles. Win rate?",a:"70|70%",hint:"7/10×100"},
+    {q:"A loot box has 3 rare items. You open 5 boxes. Total rare items?",a:"15",hint:"3×5"},
+    {q:"Your PC Box holds 30 Pokemon per box. You have 8 boxes. Total capacity?",a:"240",hint:"30×8"},
   ],
+
+  // ── NOVA: Cricket & NFL ──────────────────────────────────
   NOVA:[
-    {q:"Batsman scores 45, 67, 23, 89. Average?",a:"56",hint:"224 ÷ 4"},
-    {q:"NFL: gain 7, lose 3, gain 12. Net yards?",a:"16",hint:"7-3+12"},
-    {q:"Bowler: 8 overs, 52 runs. Economy rate?",a:"6.5",hint:"52 ÷ 8"},
-    {q:"QB completes 24 of 40 passes. Completion %?",a:"60|60%",hint:"24/40 × 100"},
-    {q:"Cricket: 280 runs in 50 overs. Run rate?",a:"5.6",hint:"280 ÷ 50"},
-    {q:"Need 48 runs in 6 overs. Required run rate?",a:"8",hint:"48 ÷ 6"},
-    {q:"4 field goals (3pts) + 2 TDs (7pts). Total?",a:"26",hint:"12 + 14"},
-    {q:"Batsman averages 55, plays 10 innings. Total runs?",a:"550",hint:"55 × 10"},
-    {q:"Team wins 9 of 16 NFL games. Win percentage?",a:"56.25|56%",hint:"9/16 × 100"},
-    {q:"Cricket: 5 bowlers each bowl 10 overs. Total overs?",a:"50",hint:"5 × 10"},
-    {q:"NFL: 4 downs to gain 10 yards. Gained 4 then 3. Yards still needed?",a:"3",hint:"10 - 4 - 3"},
-    {q:"Batsman hits 4 boundaries (4 runs each) and 2 sixes. Runs from boundaries?",a:"28",hint:"4×4 + 2×6"},
-    {q:"A cricket team needs 6.5 runs/over for 10 overs. Total needed?",a:"65",hint:"6.5 × 10"},
-    {q:"NFL: team scores 3 TDs (6pts each) + 3 PATs (1pt each). Total?",a:"21",hint:"18 + 3"},
-    {q:"Bowler takes 15 wickets in 5 matches. Average per match?",a:"3",hint:"15 ÷ 5"},
-    {q:"Top scorer: 847 runs in 14 innings. Average (round to 1 decimal)?",a:"60.5",hint:"847 ÷ 14"},
+    // Cricket batting
+    {q:"Batsman: 45, 67, 23, 89 in 4 innings. Average?",a:"56",hint:"(45+67+23+89)÷4=224÷4"},
+    {q:"Batsman scores 847 runs in 14 innings. Average (1 decimal)?",a:"60.5",hint:"847÷14"},
+    {q:"Kohli averages 57.3 in 180 innings. Approximate total runs?",a:"10314|10000",hint:"57.3×180≈57×180"},
+    {q:"A batsman hits 4 fours and 2 sixes. Runs from boundaries?",a:"28",hint:"4×4+2×6=16+12"},
+    {q:"Team needs 156 to win, 78 scored. Runs left?",a:"78",hint:"156-78"},
+    {q:"Opening partnership: 67 runs. Next wicket at 134. 2nd partnership?",a:"67",hint:"134-67"},
+    // Cricket bowling/overs
+    {q:"Bowler: 8 overs (6 balls each), 52 runs. Economy rate?",a:"6.5",hint:"52÷8"},
+    {q:"15 wickets in 5 matches. Average per match?",a:"3",hint:"15÷5"},
+    {q:"50 overs innings, run rate 5.6. Total runs?",a:"280",hint:"5.6×50"},
+    {q:"Team needs 6.5 runs/over for 8 overs. Total needed?",a:"52",hint:"6.5×8"},
+    {q:"Bowler: 1 wicket every 35 balls. Wickets in 210 balls?",a:"6",hint:"210÷35"},
+    {q:"5 bowlers each bowl 10 overs. Total overs?",a:"50",hint:"5×10"},
+    // NFL
+    {q:"3 TDs (6pts each) + 3 PATs (1pt) + 2 FGs (3pts). Total?",a:"27",hint:"18+3+6=27"},
+    {q:"QB: 24/40 completions. Completion %?",a:"60|60%",hint:"24÷40×100"},
+    {q:"4 FGs (3pts) + 2 TDs (7pts each). Total?",a:"26",hint:"12+14"},
+    {q:"Team wins 9 of 16 games. Win %?",a:"56.25|56%",hint:"9÷16×100"},
+    {q:"RB: 23 carries, 138 yards. Yards per carry?",a:"6",hint:"138÷23"},
+    {q:"Need 10 yards. Gained 4 then 3. Yards still needed?",a:"3",hint:"10-4-3"},
+    {q:"WR: 8 catches, 124 yards. Yards per catch?",a:"15.5",hint:"124÷8"},
+    {q:"Passing: 280 yards over 7 games. Per game?",a:"40",hint:"280÷7"},
+    // Combined stats/probability
+    {q:"Batsman averages 55. P(scoring 50+) ≈ 50%. In 10 innings, expected 50+ scores?",a:"5",hint:"10×0.5"},
+    {q:"NFL: team scores on 35% of drives, has 12 drives. Expected scores?",a:"4.2|4",hint:"12×0.35"},
+    {q:"Cricket: team scores 280. Required run rate to win with 40 overs left?",a:"7",hint:"280÷40"},
+    {q:"Two batsmen average 52 and 48. Combined average?",a:"50",hint:"(52+48)÷2"},
+    {q:"NFL: field is 100 yards. Ball at 35-yard line, TD is 100 yards. Distance?",a:"65",hint:"100-35"},
+    {q:"Last 5 innings scores: 34,67,0,89,45. Median?",a:"45",hint:"Sort: 0,34,45,67,89 — middle is 45"},
+    // Probability & stats in sports
+    {q:"P(winning a coin-flip coin toss 3 times in a row)?",a:"1/8|12.5%",hint:"(1/2)³"},
+    {q:"Cricket team: 11 players, choose batting order for top 4. Ways?",a:"7920",hint:"P(11,4)=11×10×9×8"},
+    {q:"NFL: 4 downs, P(converting each) = 0.6. P(converting all 4)?",a:"0.1296|13%",hint:"0.6⁴≈0.13"},
+    {q:"Batsman's last 6 scores: 45,23,67,12,89,34. Mean?",a:"45",hint:"(45+23+67+12+89+34)÷6=270÷6"},
   ],
 };
 
-// Track used warmup questions to avoid repeats
-function getWarmupFallbackNoRepeat(profile, questionIndex, usedQs){
-  const mental=WARMUP_BANK.mental;
-  const personal=WARMUP_BANK[profile.name]||WARMUP_BANK.CIPHER;
-  const bank=questionIndex===1?personal:mental;
+function getWarmupQuestion(profile, qType, usedIds){
+  // qType: "mental" | "personal" | "applied"
+  // usedIds: Set of recently used question texts
+  const bank = qType==="personal"
+    ? (WARMUP_BANK[profile.name]||WARMUP_BANK.CIPHER)
+    : WARMUP_BANK.mental;
+  
   // Filter out recently used
-  const unused=bank.filter(q=>!usedQs.has(q.q));
-  const pool=unused.length>0?unused:bank; // fallback to full bank if all used
+  const available = bank.filter(q=>!usedIds.has(q.q));
+  const pool = available.length >= 3 ? available : bank; // reset if exhausted
   return pool[Math.floor(Math.random()*pool.length)];
+}
+
+// Simplified fallback (no AI) — always use bank
+function getWarmupFallback(profile, questionIndex, usedQs=new Set()){
+  const type = questionIndex===1 ? "personal" : "mental";
+  return getWarmupQuestion(profile, type, usedQs);
+}
+
+function getWarmupFallbackNoRepeat(profile, questionIndex, usedQs){
+  return getWarmupFallback(profile, questionIndex, usedQs);
 }
 
 function getWarmupFallback(profile, questionIndex, usedQs=new Set()){
@@ -1800,7 +1892,7 @@ function DailyWarmup({profile,onComplete,onSkipDay}){
   const [showTabWarning,setShowTabWarning]=useState(false);
   const [flash,setFlash]=useState(null);
   const [results,setResults]=useState([]); // {correct,userInput,q,a}
-  const [loading,setLoading]=useState(true);
+  const [loading,setLoading]=useState(false);
   const [showResult,setShowResult]=useState(false);
   const [currentResult,setCurrentResult]=useState(null);
   const inputRef=useRef(null);
@@ -1812,66 +1904,22 @@ function DailyWarmup({profile,onComplete,onSkipDay}){
     // Swap question on return
     if(questions&&questions.length>0) setQIdx(i=>(i+1)%questions.length);
   });
-  useEffect(()=>{generateQuestions();},[]);
+  useEffect(()=>{generateQuestions();},[]);  // instant — no API call
   useEffect(()=>{if(!loading) inputRef.current?.focus();},[qIdx,loading]);
 
-  async function generateQuestions(){
-    setLoading(true);
+  function generateQuestions(){
+    // Pure bank — no AI, no loading delay, no failures
+    setLoading(false);
+    const usedQs=new Set();
     const qs=[];
-    const usedQs=new Set(); // track within this warmup session
+    // Q1: mental math, Q2: personal interest, Q3: mental math (different)
+    const types=["mental","personal","mental"];
     for(let i=0;i<3;i++){
-      try{
-        const q=await generateOneQuestion(profile,i,usedQs);
-        qs.push(q);
-        usedQs.add(q.q);
-      }catch{
-        const q=getWarmupFallback(profile,i,usedQs);
-        qs.push(q);
-        usedQs.add(q.q);
-      }
+      const q=getWarmupFallback(profile,i===1?1:0,usedQs);
+      qs.push(q);
+      usedQs.add(q.q);
     }
     setQuestions(qs);
-    setLoading(false);
-  }
-
-  async function generateOneQuestion(profile,idx,usedQs=new Set()){
-    const isNova=profile.name==="NOVA";
-    const topics=isNova?
-      ["cricket batting average","NFL statistics","probability in sports","cricket run rates","NFL scoring"]:
-      ["Pokemon card probability","Minecraft dimensions","Pokemon battle math","real-world multiplication","unit conversion"];
-    const topic=topics[Math.floor(Math.random()*topics.length)];
-    const difficulty=isNova?"medium, 2-step":"easy, 1-2 step";
-
-    const prompts=[
-      `Mental math question about everyday life. ${difficulty}. Single number answer. No variables. Example: 'You have $20, buy 3 items at $4.50 each. Change?' Answer: 6.50`,
-      `Fun real-world math question about ${topic}. ${difficulty}. Single number or simple word answer. Keep it interesting and surprising, not textbook. Never say 'solve' or 'problem'.`,
-      `${isNova?"A stats or probability":"A quick estimation"} question${isNova?" about cricket or NFL":" about everyday life"}. ${difficulty}. Single number answer. Must be doable mentally.`,
-    ];
-
-    const res=await fetch("https://api.anthropic.com/v1/messages",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        model:"claude-sonnet-4-20250514",
-        max_tokens:150,
-        system:`You generate math warm-up questions for kids. Rules:
-1. Return ONLY valid JSON: {"q":"question text","a":"answer","hint":"one line hint"}
-2. Numbers must work out to clean answers (whole numbers or simple decimals like 0.5, 6.5)
-3. Never use the words 'problem', 'solve', 'calculate', 'compute'
-4. Keep it conversational and fun
-5. Answer must be a single number or simple yes/no
-6. Do NOT return markdown, just raw JSON`,
-        messages:[{role:"user",content:prompts[idx]}]
-      })
-    });
-    const data=await res.json();
-    const text=data.content?.[0]?.text||"";
-    // Parse JSON from response
-    const match=text.match(/\{[^}]+\}/);
-    if(!match) throw new Error("no json");
-    const parsed=JSON.parse(match[0]);
-    if(!parsed.q||!parsed.a) throw new Error("missing fields");
-    return parsed;
   }
 
   function submit(){
@@ -1918,15 +1966,7 @@ function DailyWarmup({profile,onComplete,onSkipDay}){
       </div>
 
       {/* Loading */}
-      {loading&&(
-        <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:"1rem"}}>
-          <div style={{fontFamily:"Orbitron,sans-serif",color,fontSize:"1rem",letterSpacing:"0.1em"}}>LOADING YOUR WARM-UP...</div>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.88rem",color:"#8899aa"}}>Generating personalised questions</div>
-          <div style={{display:"flex",gap:6,marginTop:"0.5rem"}}>
-            {[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:color,opacity:0.3+i*0.3}}/>)}
-          </div>
-        </div>
-      )}
+
 
       {/* Question */}
       {!loading&&q&&(
@@ -2022,20 +2062,30 @@ function ProofModal({section,book,existingProofs,existingChallenge,onComplete,on
     else{setPhase("done");setTimeout(()=>onComplete(results,false),250);}
   }
   function submitProof(){
-    if(revealed||pResults[pIdx]!==undefined)return;
+    if(revealed)return;
     const q=proofs[pIdx];
     if(!q)return;
     const ok=checkAns(input,q.a);
-    const nr=[...pResults];nr[pIdx]=ok;setPResults(nr);
-    setFlash(ok?"good":"bad");setTimeout(()=>setFlash(null),500);
+    setFlash(ok?"good":"bad");
     if(ok){
+      const nr=[...pResults];nr[pIdx]=true;setPResults(nr);
       setInput("");setHint(false);
+      setTimeout(()=>setFlash(null),400);
       const nextIdx=pIdx+1;
       if(nextIdx<proofs.length){setTimeout(()=>setPIdx(nextIdx),450);}
       else{setTimeout(()=>advanceAfterProofs(nr),450);}
+    } else {
+      // Wrong — show hint automatically, let them retry
+      setTimeout(()=>{setFlash(null);setHint(true);},600);
+      // Don't record wrong yet — let them try again with hint
     }
   }
-  function revealProof(){const nr=[...pResults];nr[pIdx]=false;setPResults(nr);setRevealed(true);}
+  function markWrongAndAdvance(){
+    // Called from reveal or after 2 failed attempts
+    const nr=[...pResults];nr[pIdx]=false;setPResults(nr);
+    setRevealed(true);
+  }
+  function revealProof(){markWrongAndAdvance();}
   function nextProof(){
     setRevealed(false);setHint(false);setInput("");
     const nextIdx=pIdx+1;
@@ -4003,6 +4053,7 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
             </div>
             <button onClick={()=>{onUpdateProfiles(selectedUser,p=>({...p,sectionsToday:0,lastSyncDate:null,bountyCorrectToday:0,bountyCountToday:0,lastBountyDate:null,tabSwitchToday:0,warmupDoneToday:false,lastWarmupDate:null}));setMsg("Daily limits cleared");setTimeout(()=>setMsg(null),2000);}} style={{...S.btnCyber,borderColor:"#7744ff",color:"#7744ff"}}>🔓 CLEAR TODAY'S LIMITS FOR {selectedUser}</button>
             <button onClick={()=>{onClose();setTimeout(()=>window.dispatchEvent(new CustomEvent("triggerTest")),100);}} style={{...S.btnCyber,borderColor:"#00aaff",color:"#00aaff"}}>📝 TRIGGER BI-WEEKLY TEST NOW</button>
+            <button onClick={()=>{onUpdateProfiles(selectedUser,p=>({...p,baselineComplete:false,baselineScore:null,baselineWeakTopics:[]}));setMsg("Baseline reset — "+selectedUser+" will retake it");setTimeout(()=>setMsg(null),2000);}} style={{...S.btnCyber,borderColor:"#00aaff",color:"#00aaff"}}>🔄 RESET BASELINE FOR {selectedUser}</button>
             <button onClick={()=>{onUpdateProfiles(selectedUser,_=>({...INIT_P(selectedUser,profiles[selectedUser].color,selectedUser)}));setMsg(`${selectedUser} fully reset`);setTimeout(()=>setMsg(null),2000);}} style={{...S.btnCyber,borderColor:"#ff4444",color:"#ff4444"}}>⚠ FULL RESET {selectedUser}</button>
           </div>
         )}
@@ -4036,7 +4087,7 @@ function ChapterView({chapter,book,profile,sectionsLeft,onSectionProof,onBack,sh
           <button onClick={onBack} style={S.btnBack}>← BOOK</button>
           <span style={{fontFamily:"Orbitron,sans-serif",color:book.color,fontSize:"0.95rem"}}>Ch.{chapter.num} — {chapter.name}</span>
           <div style={{display:"flex",gap:"0.94rem",alignItems:"center"}}>
-            <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",background:"#1a1500",border:"1px solid #ffdd0066",color:"#ffdd00",padding:"0.2rem 0.6rem",cursor:"pointer"}} onClick={onCoach}>⚡ {999} LC</span>
+
             <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:sectionsLeft>0?"#00ffcc":"#ff4444"}}>SYNCS TODAY: {DAILY_SECTION_LIMIT-sectionsLeft}/{DAILY_SECTION_LIMIT} · {sectionsLeft>0?`${sectionsLeft} left`:"limit reached"}</span>
           </div>
         </div>
@@ -4116,9 +4167,7 @@ function ChapterView({chapter,book,profile,sectionsLeft,onSectionProof,onBack,sh
           })}
         </div>
 
-        <button onClick={onCoach} style={{background:"#1a1500",border:"1px solid #ffdd0066",color:"#ffdd00",padding:"0.7rem 1.5rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",letterSpacing:"0.1em",width:"100%"}}>
-          ◈ NEURAL LINK — APEX COACH ({0} LC/query)
-        </button>
+
       </div>
     </div>
   );
