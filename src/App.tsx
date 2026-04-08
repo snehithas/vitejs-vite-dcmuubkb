@@ -3962,10 +3962,6 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
       setAnalysisReport("Error: "+e.message);
     }
     setAnalysisLoading(false);
-  }catch(e){
-      setAnalysisReport("Error generating report: "+e.message);
-    }
-    setAnalysisLoading(false);
   }
   const [newReward,setNewReward]=useState({label:"",flux:200,emoji:"🎁",category:"custom"});
 
