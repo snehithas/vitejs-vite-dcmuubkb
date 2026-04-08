@@ -931,6 +931,8 @@ const SECTION_PROOFS = {
     {q:"What is gcd(12, 18)?",a:"6",hint:"Factors of 12: 1,2,3,4,6,12. Factors of 18: 1,2,3,6,9,18. Largest common: 6"},
     {q:"What is gcd(35, 49)?",a:"7",hint:"35=5×7, 49=7². GCD=7"},
     {q:"If gcd(a,b)=1, what are a and b called?",a:"coprime|relatively prime",hint:"Two numbers with GCD 1 are coprime"},
+    {q:"Are 14 and 15 coprime?",a:"yes",hint:"gcd(14,15)=1 since consecutive integers are always coprime"},
+    {q:"Find two numbers between 10 and 20 that are coprime to each other.",a:"11,13|11,15|13,15|11,17|any coprime pair",hint:"Two primes are always coprime — try 11 and 13"},
   ],
   nt3s2:[
     {q:"What is lcm(4, 6)?",a:"12",hint:"Multiples of 4: 4,8,12. Multiples of 6: 6,12. First common: 12"},
@@ -982,6 +984,8 @@ const SECTION_PROOFS = {
   nt6s3:[
     {q:"Solve: 2x ≡ 4 (mod 6). One solution?",a:"2|x=2",hint:"2×2=4≡4 mod 6 ✓"},
     {q:"Solve: x ≡ 3 (mod 5). What is x mod 5?",a:"3",hint:"x=3,8,13,... all ≡3 mod 5"},
+    {q:"Find the smallest positive x: 3x ≡ 1 (mod 7)",a:"5",hint:"Try x=1,2,3,4,5: 3×5=15≡1 mod 7 ✓"},
+    {q:"Solve: 5x ≡ 3 (mod 11). What is x?",a:"5",hint:"5×5=25≡3 mod 11 ✓"},
   ],
   nt6s4:[
     {q:"Chinese Remainder Theorem: x≡1(mod 2) and x≡1(mod 3). Smallest positive x?",a:"1|7",hint:"x=1 works: 1 mod 2=1 ✓, 1 mod 3=1 ✓"},
@@ -1659,27 +1663,54 @@ function TabWarning({message,onDismiss}){
 
 // Hook: call inside any question-based component
 function useTabDetection(enabled, onTabReturn){
-  // Use ref so callback is always fresh without re-registering the event
   const cbRef=useRef(onTabReturn);
   useEffect(()=>{cbRef.current=onTabReturn;},[onTabReturn]);
   
   useEffect(()=>{
     if(!enabled) return;
+    // Skip mobile
     const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     if(isMobile) return;
-    let lastHidden=0;
-    function onHide(){
+
+    let lastLeft=0;
+    let fired=false;
+
+    // Method 1: visibilitychange (standard)
+    function onVisibility(){
       if(document.hidden){
-        lastHidden=Date.now();
+        lastLeft=Date.now();
+        fired=false;
       } else {
-        // 1 second debounce — catches deliberate tab switches without false fires
-        if(lastHidden>0&&Date.now()-lastHidden>1000) cbRef.current();
-        lastHidden=0;
+        if(!fired&&lastLeft>0&&Date.now()-lastLeft>800){
+          fired=true;
+          cbRef.current();
+        }
+        lastLeft=0;
       }
     }
-    document.addEventListener("visibilitychange",onHide);
-    return()=>document.removeEventListener("visibilitychange",onHide);
-  },[enabled]); // only depends on enabled — callback is via ref
+
+    // Method 2: window blur/focus (works on Chromebooks when switching tabs)
+    function onBlur(){
+      lastLeft=Date.now();
+      fired=false;
+    }
+    function onFocus(){
+      if(!fired&&lastLeft>0&&Date.now()-lastLeft>800){
+        fired=true;
+        cbRef.current();
+      }
+      lastLeft=0;
+    }
+
+    document.addEventListener("visibilitychange",onVisibility);
+    window.addEventListener("blur",onBlur);
+    window.addEventListener("focus",onFocus);
+    return()=>{
+      document.removeEventListener("visibilitychange",onVisibility);
+      window.removeEventListener("blur",onBlur);
+      window.removeEventListener("focus",onFocus);
+    };
+  },[enabled]);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1690,54 +1721,83 @@ function useTabDetection(enabled, onTabReturn){
 
 // Fallback question banks (used if API fails)
 const WARMUP_BANK = {
-  // Universal mental math
   mental:[
-    {q:"18 inches apart, 10 plants in a row. How many inches of space needed?",a:"180",hint:"18 × 10 = 180 inches"},
-    {q:"You have $20. Pizza costs $7.50. How much change do you get?",a:"12.50|12.5",hint:"20 - 7.50 = 12.50"},
-    {q:"A car travels 60 mph. How far in 45 minutes?",a:"45",hint:"60 × 45/60 = 45 miles"},
-    {q:"You buy 3 items at $4.99 each. Roughly how much total?",a:"15|14.97",hint:"About $5 each × 3 = $15"},
-    {q:"A rectangle is 8 feet by 6 feet. What is its area?",a:"48",hint:"Area = length × width = 8 × 6"},
-    {q:"If you save $12 per week, how much in 8 weeks?",a:"96",hint:"12 × 8 = 96"},
-    {q:"A recipe needs 2.5 cups of flour. You want to double it. How much flour?",a:"5",hint:"2.5 × 2 = 5 cups"},
-    {q:"There are 24 students in 4 equal groups. How many per group?",a:"6",hint:"24 ÷ 4 = 6"},
+    {q:"18 inches apart, 10 plants. How many inches of space needed?",a:"180",hint:"18 × 10 = 180"},
+    {q:"You have $20. Pizza costs $7.50. Change?",a:"12.50|12.5",hint:"20 - 7.50"},
+    {q:"Car travels 60 mph. How far in 45 minutes?",a:"45",hint:"60 × 3/4"},
+    {q:"3 items at $4.99 each. Roughly how much total?",a:"15|14.97",hint:"≈$5 × 3"},
+    {q:"Rectangle 8 ft by 6 ft. Area?",a:"48",hint:"l × w"},
+    {q:"Save $12/week. How much in 8 weeks?",a:"96",hint:"12 × 8"},
+    {q:"Recipe needs 2.5 cups flour. Double it. How much?",a:"5",hint:"2.5 × 2"},
+    {q:"24 students in 4 equal groups. Per group?",a:"6",hint:"24 ÷ 4"},
+    {q:"A shirt costs $35, 20% off. Sale price?",a:"28",hint:"35 × 0.8"},
+    {q:"You read 15 pages/day. How many in 3 weeks?",a:"315",hint:"15 × 21"},
+    {q:"A room is 12 ft × 10 ft. Perimeter?",a:"44",hint:"2×(12+10)"},
+    {q:"60 students, 3/4 passed. How many passed?",a:"45",hint:"60 × 0.75"},
+    {q:"Trip is 240 miles at 60 mph. Hours?",a:"4",hint:"240 ÷ 60"},
+    {q:"Box holds 6 rows × 8 columns of eggs. Total?",a:"48",hint:"6 × 8"},
+    {q:"Temperature drops from 72°F to 58°F. Drop?",a:"14",hint:"72 - 58"},
+    {q:"You earn $9.50/hr and work 6 hours. Total?",a:"57",hint:"9.5 × 6"},
   ],
-  // CIPHER: Pokemon & Minecraft
   CIPHER:[
-    {q:"A Pokemon pack has 10 cards. You buy 6 packs. How many cards total?",a:"60",hint:"10 × 6 = 60"},
-    {q:"A rare card appears roughly 1 in every 25 packs. You've opened 50 packs. About how many rare cards would you expect?",a:"2",hint:"50 ÷ 25 = 2 expected"},
-    {q:"In Minecraft, a chunk is 16×16 blocks. How many blocks in the floor of one chunk?",a:"256",hint:"16 × 16 = 256"},
-    {q:"You have 4 Pokemon each with 2 moves. How many total moves does your team have?",a:"8",hint:"4 × 2 = 8"},
-    {q:"A Pokemon has 180 HP. It takes 45 damage per turn. How many turns until it faints?",a:"4",hint:"180 ÷ 45 = 4 turns"},
-    {q:"You have 120 Pokécoins. Stickers cost 15 coins each. How many can you buy?",a:"8",hint:"120 ÷ 15 = 8"},
-    {q:"A Minecraft creeper's explosion radius is about 4 blocks. What is the area of the blast zone? (circle: π≈3, r=4)",a:"48|150",hint:"Area ≈ 3 × 4² = 48 square blocks"},
-    {q:"If 3 out of 100 packs contain a holographic card, what percent is that?",a:"3|3%",hint:"3 out of 100 = 3%"},
+    {q:"A Pokemon pack has 10 cards. You buy 6 packs. Total cards?",a:"60",hint:"10 × 6"},
+    {q:"Rare card appears 1 in 25 packs. 50 packs opened. Expected rares?",a:"2",hint:"50 ÷ 25"},
+    {q:"Minecraft chunk is 16×16 blocks. Floor area?",a:"256",hint:"16²"},
+    {q:"4 Pokemon, 2 moves each. Total moves?",a:"8",hint:"4 × 2"},
+    {q:"Pokemon has 180 HP, takes 45 damage/turn. Turns until faint?",a:"4",hint:"180 ÷ 45"},
+    {q:"120 Pokécoins. Stickers cost 15. How many can you buy?",a:"8",hint:"120 ÷ 15"},
+    {q:"3 in 100 packs have holographic card. Percent chance?",a:"3|3%",hint:"3/100"},
+    {q:"You have 6 Pokemon. How many different pairs could battle together?",a:"15",hint:"C(6,2) = 6×5÷2"},
+    {q:"A Pokemon card costs $4.50. You have $27. How many can you buy?",a:"6",hint:"27 ÷ 4.50"},
+    {q:"Your team has 3 fire, 2 water, 1 grass type. What fraction are water?",a:"1/3|2/6",hint:"2 out of 6"},
+    {q:"In a tournament of 8 players, how many total matches if each pair plays once?",a:"28",hint:"C(8,2) = 28"},
+    {q:"A Minecraft farm is 9×9 blocks but center 1×1 is water. Farmable blocks?",a:"80",hint:"81 - 1"},
+    {q:"You open 12 packs and get 2 rares. What percent are rare?",a:"16.67|1/6|17%",hint:"2/12 ≈ 1/6"},
+    {q:"Minecraft day is 20 minutes real time. How many seconds?",a:"1200",hint:"20 × 60"},
+    {q:"5 different Pokemon types, 2 at a time. How many type combos?",a:"10",hint:"C(5,2)"},
+    {q:"A booster box has 36 packs. Each has 10 cards. Total cards?",a:"360",hint:"36 × 10"},
   ],
-  // NOVA: Cricket & NFL stats  
   NOVA:[
-    {q:"A batsman scores 45, 67, 23, and 89 in four innings. What is his average?",a:"56",hint:"(45+67+23+89) ÷ 4 = 224 ÷ 4 = 56"},
-    {q:"An NFL team gains 7 yards, loses 3, then gains 12. Net yards?",a:"16",hint:"7 - 3 + 12 = 16"},
-    {q:"A bowler bowls 8 overs (6 balls each) and gives 52 runs. Economy rate (runs per over)?",a:"6.5",hint:"52 ÷ 8 = 6.5"},
-    {q:"An NFL quarterback completes 24 of 40 passes. Completion percentage?",a:"60|60%",hint:"24 ÷ 40 × 100 = 60%"},
-    {q:"In cricket, if a team scores 280 in 50 overs, what is their run rate per over?",a:"5.6",hint:"280 ÷ 50 = 5.6"},
-    {q:"A team needs 48 runs in 6 overs. What run rate do they need per over?",a:"8",hint:"48 ÷ 6 = 8"},
-    {q:"An NFL field goal is worth 3 points. A team kicks 4 field goals and 2 touchdowns (7 pts each). Total?",a:"26",hint:"4×3 + 2×7 = 12 + 14 = 26"},
-    {q:"A cricket team's best batsman averages 55. Over 10 innings, roughly how many total runs?",a:"550",hint:"55 × 10 = 550"},
+    {q:"Batsman scores 45, 67, 23, 89. Average?",a:"56",hint:"224 ÷ 4"},
+    {q:"NFL: gain 7, lose 3, gain 12. Net yards?",a:"16",hint:"7-3+12"},
+    {q:"Bowler: 8 overs, 52 runs. Economy rate?",a:"6.5",hint:"52 ÷ 8"},
+    {q:"QB completes 24 of 40 passes. Completion %?",a:"60|60%",hint:"24/40 × 100"},
+    {q:"Cricket: 280 runs in 50 overs. Run rate?",a:"5.6",hint:"280 ÷ 50"},
+    {q:"Need 48 runs in 6 overs. Required run rate?",a:"8",hint:"48 ÷ 6"},
+    {q:"4 field goals (3pts) + 2 TDs (7pts). Total?",a:"26",hint:"12 + 14"},
+    {q:"Batsman averages 55, plays 10 innings. Total runs?",a:"550",hint:"55 × 10"},
+    {q:"Team wins 9 of 16 NFL games. Win percentage?",a:"56.25|56%",hint:"9/16 × 100"},
+    {q:"Cricket: 5 bowlers each bowl 10 overs. Total overs?",a:"50",hint:"5 × 10"},
+    {q:"NFL: 4 downs to gain 10 yards. Gained 4 then 3. Yards still needed?",a:"3",hint:"10 - 4 - 3"},
+    {q:"Batsman hits 4 boundaries (4 runs each) and 2 sixes. Runs from boundaries?",a:"28",hint:"4×4 + 2×6"},
+    {q:"A cricket team needs 6.5 runs/over for 10 overs. Total needed?",a:"65",hint:"6.5 × 10"},
+    {q:"NFL: team scores 3 TDs (6pts each) + 3 PATs (1pt each). Total?",a:"21",hint:"18 + 3"},
+    {q:"Bowler takes 15 wickets in 5 matches. Average per match?",a:"3",hint:"15 ÷ 5"},
+    {q:"Top scorer: 847 runs in 14 innings. Average (round to 1 decimal)?",a:"60.5",hint:"847 ÷ 14"},
   ],
 };
 
-function getWarmupFallback(profile, questionIndex){
+// Track used warmup questions to avoid repeats
+function getWarmupFallbackNoRepeat(profile, questionIndex, usedQs){
   const mental=WARMUP_BANK.mental;
   const personal=WARMUP_BANK[profile.name]||WARMUP_BANK.CIPHER;
-  // Q1: mental math, Q2: personal interest, Q3: mental math (different)
-  if(questionIndex===0) return mental[Math.floor(Math.random()*mental.length)];
-  if(questionIndex===1) return personal[Math.floor(Math.random()*personal.length)];
-  return mental[Math.floor(Math.random()*mental.length)];
+  const bank=questionIndex===1?personal:mental;
+  // Filter out recently used
+  const unused=bank.filter(q=>!usedQs.has(q.q));
+  const pool=unused.length>0?unused:bank; // fallback to full bank if all used
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function getWarmupFallback(profile, questionIndex, usedQs=new Set()){
+  return getWarmupFallbackNoRepeat(profile, questionIndex, usedQs);
 }
 
 function DailyWarmup({profile,onComplete,onSkipDay}){
-  const [questions,setQuestions]=useState(null); // null=loading, []=[qs]
+  const [questions,setQuestions]=useState(null);
   const [qIdx,setQIdx]=useState(0);
   const [input,setInput]=useState("");
+  const [tabCount,setTabCount]=useState(0);
+  const [showTabWarning,setShowTabWarning]=useState(false);
   const [flash,setFlash]=useState(null);
   const [results,setResults]=useState([]); // {correct,userInput,q,a}
   const [loading,setLoading]=useState(true);
@@ -1745,26 +1805,36 @@ function DailyWarmup({profile,onComplete,onSkipDay}){
   const [currentResult,setCurrentResult]=useState(null);
   const inputRef=useRef(null);
 
+  useTabDetection(true,()=>{
+    setTabCount(c=>c+1);
+    setShowTabWarning(true);
+    setInput("");
+    // Swap question on return
+    if(questions&&questions.length>0) setQIdx(i=>(i+1)%questions.length);
+  });
   useEffect(()=>{generateQuestions();},[]);
   useEffect(()=>{if(!loading) inputRef.current?.focus();},[qIdx,loading]);
 
   async function generateQuestions(){
     setLoading(true);
     const qs=[];
-    // Try to generate all 3 via API
+    const usedQs=new Set(); // track within this warmup session
     for(let i=0;i<3;i++){
       try{
-        const q=await generateOneQuestion(profile,i);
+        const q=await generateOneQuestion(profile,i,usedQs);
         qs.push(q);
+        usedQs.add(q.q);
       }catch{
-        qs.push(getWarmupFallback(profile,i));
+        const q=getWarmupFallback(profile,i,usedQs);
+        qs.push(q);
+        usedQs.add(q.q);
       }
     }
     setQuestions(qs);
     setLoading(false);
   }
 
-  async function generateOneQuestion(profile,idx){
+  async function generateOneQuestion(profile,idx,usedQs=new Set()){
     const isNova=profile.name==="NOVA";
     const topics=isNova?
       ["cricket batting average","NFL statistics","probability in sports","cricket run rates","NFL scoring"]:
@@ -1828,6 +1898,7 @@ function DailyWarmup({profile,onComplete,onSkipDay}){
 
   return(
     <div style={{minHeight:"100vh",background:"#03080f",display:"flex",flexDirection:"column",fontFamily:"Rajdhani,sans-serif"}}>
+      {showTabWarning&&<TabWarning message={getTabMessage(tabCount)} onDismiss={()=>setShowTabWarning(false)}/>}
       <Scanlines/>
       {/* Header */}
       <div style={{background:"#060d18",borderBottom:`1px solid ${color}33`,padding:"1rem 1.5rem",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:"0.5rem"}}>
@@ -2597,12 +2668,12 @@ function BaselineAssessment({profile,onComplete}){
   const color=profile.color;
 
   useTabDetection(true,()=>{
-    const newCount=tabCount+1;
-    setTabCount(newCount);
+    setTabCount(c=>c+1);
     setShowWarning(true);
-    // Swap question
     setInput("");setFlash(null);setRevealed(false);
     setTimeLeft(180);
+    // Swap to next question - functional update avoids stale closure
+    setQIdx(i=>Math.min(i+1, questions.length-1));
   });
 
   useEffect(()=>{
@@ -2993,7 +3064,8 @@ function LearnMode({section,book,profile,onComplete,onClose,onSpendLC=()=>{},onS
   const isShield=profile.name==="CIPHER"; // streak shield for 11yr old
 
   useTabDetection(true,()=>{
-    const n=tabCount+1;setTabCount(n);setShowWarning(true);
+    setTabCount(c=>c+1);
+    setShowWarning(true);
     setInput("");setFlash(null);setHelpLevel(0);setScaffoldText("");
   });
   useEffect(()=>{inputRef.current?.focus();},[qIdx]);
@@ -3163,10 +3235,11 @@ function LiveMode({profile,onExit,onEarn,onMarkUsed=()=>{}}){
   const inputRef=useRef(null);
 
   useTabDetection(true,()=>{
-    const n=tabCount+1;setTabCount(n);setShowWarning(true);
+    setTabCount(c=>c+1);
+    setShowWarning(true);
     setInput("");setFlash(null);setTimeLeft(90);
-    // Swap question
-    if(qIdx+1<questions.length) setQIdx(i=>i+1);
+    // Swap to next question - functional update
+    setQIdx(i=>Math.min(i+1, questions.length-1));
   });
 
   useEffect(()=>{
