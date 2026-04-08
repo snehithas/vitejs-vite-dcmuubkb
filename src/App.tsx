@@ -1207,6 +1207,7 @@ const INIT_P=(name,color,profileType="CIPHER")=>({
   usedLiveQuestions:[],  // question texts used today
   lastLiveDate:null,
   fluxHistory:[],  // [{date,activity,flux}]
+  lastBackupDate:null,
 });
 function migrateV6toV7(v6){
   // Migrate old profile fields, add new ones with defaults
@@ -3869,19 +3870,25 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
   const [xpAmt,setXpAmt]=useState("100");
   const [msg,setMsg]=useState(null);
   const [driveMsg,setDriveMsg]=useState(null);
+  const [analysisReport,setAnalysisReport]=useState(null);
+  const [analysisLoading,setAnalysisLoading]=useState(false);
   const allProfiles=profiles;
 
   async function backupToDrive(){
     setDriveMsg("Preparing backup...");
     try{
+      const t=today();
       const data={version:"vanguard_v7",timestamp:new Date().toISOString(),profiles,rewards};
       const json=JSON.stringify(data,null,2);
       const blob=new Blob([json],{type:"application/json"});
       const url=URL.createObjectURL(blob);
       const a=document.createElement("a");
-      a.href=url;a.download=`vanguard_backup_${new Date().toISOString().slice(0,10)}.json`;a.click();
+      a.href=url;a.download=`vanguard_backup_${t}.json`;a.click();
       URL.revokeObjectURL(url);
-      setDriveMsg("✓ Backup file downloaded! Upload to Google Drive manually.");
+      // Record backup date on both profiles
+      onUpdateProfiles("CIPHER",p=>({...p,lastBackupDate:t}));
+      onUpdateProfiles("NOVA",p=>({...p,lastBackupDate:t}));
+      setDriveMsg("✓ Backup downloaded! Upload to Google Drive.");
     }catch(e){
       setDriveMsg("✗ Backup failed: "+e.message);
     }
@@ -3911,6 +3918,67 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
       setTimeout(()=>setDriveMsg(null),5000);
     };
     input.click();
+  }
+
+  async function analyzeProgress(){
+    setAnalysisLoading(true);
+    setAnalysisReport(null);
+    try{
+      // Build rich context from both profiles
+      const buildSummary=(p)=>{
+        if(!p) return "No data";
+        const books=getBooksForProfile(p.name);
+        const sectionsDone=Object.keys(p.sectionsDone||{}).length;
+        const totalSections=books.flatMap(b=>b.chapters.flatMap(c=>c.sections)).length;
+        const proofResults=Object.entries(p.proofsDone||{});
+        const proofCorrect=proofResults.reduce((a,[,r])=>a+(r||[]).filter(Boolean).length,0);
+        const proofTotal=proofResults.reduce((a,[,r])=>a+(r||[]).length,0);
+        const weakTopics=p.baselineWeakTopics||[];
+        const testHistory=(p.biweeklyTests||[]).slice(-3).map(t=>`${t.date}: ${t.score}%${t.weakTopics?.length?` (weak: ${t.weakTopics.slice(0,3).join(', ')})`:''}}`).join('; ');
+        const bountyAcc=p.bountyCountToday>0?Math.round((p.bountyCorrectToday/p.bountyCountToday)*100):'N/A';
+        return \`Name: \${p.name} | Age: \${p.name==='CIPHER'?11:13} | Rank: \${getRank(p.xp).name} | XP: \${p.xp} | Flux: \${p.flux}
+Books: \${books.map(b=>b.code).join(', ')}
+Progress: \${sectionsDone}/\${totalSections} sections done
+Proof accuracy: \${proofTotal>0?Math.round((proofCorrect/proofTotal)*100)+'%':'no data'} (\${proofCorrect}/\${proofTotal} correct)
+Baseline score: \${p.baselineScore!=null?p.baselineScore+'%':'not taken'}
+Baseline weak topics: \${weakTopics.length?weakTopics.join(', '):'none identified'}
+Recent test history: \${testHistory||'no tests yet'}
+Tab switches today: \${p.tabSwitchToday||0}
+Warmup streak: \${p.warmupStreak||0} days\`;
+      };
+
+      const context=\`You are analyzing progress for two kids using Vanguard Math OS, an AoPS-based math learning app.
+
+CIPHER (11yr old) — studying AoPS Algebra B (Ch.10-21) + Counting & Probability:
+\${buildSummary(profiles.CIPHER)}
+
+NOVA (13yr old) — studying AoPS Counting & Probability + Number Theory:
+\${buildSummary(profiles.NOVA)}
+
+Please provide:
+1. CIPHER ANALYSIS: What topics need more work? What's going well? Is the difficulty right?
+2. NOVA ANALYSIS: Same.
+3. CURRICULUM SUGGESTIONS: Should we adjust what they're studying? Any gaps?
+4. APP SUGGESTIONS: What question types or features would help most right now?
+
+Be specific and actionable. Use the actual data above. Keep it concise — 3-4 sentences per kid.\`;
+
+      const res=await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          model:"claude-sonnet-4-20250514",
+          max_tokens:800,
+          messages:[{role:"user",content:context}]
+        })
+      });
+      const data=await res.json();
+      const report=data.content?.[0]?.text||"Could not generate report.";
+      setAnalysisReport(report);
+    }catch(e){
+      setAnalysisReport("Error generating report: "+e.message);
+    }
+    setAnalysisLoading(false);
   }
   const [newReward,setNewReward]=useState({label:"",flux:200,emoji:"🎁",category:"custom"});
 
@@ -4035,6 +4103,27 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
             )}
             {/* Rival session button */}
             <button onClick={()=>{onStartRival();onClose();}} style={{...S.btnCyber,width:"100%",marginTop:"1rem",borderColor:"#aa66ff",color:"#aa66ff"}}>⚔ START RIVAL SESSION (both kids)</button>
+
+            {/* AI PROGRESS ANALYSIS */}
+            <div style={{marginTop:"0.75rem",padding:"0.75rem",background:"#040b14",border:"1px solid #1a2a3a"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.5rem"}}>
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#8899aa",letterSpacing:"0.1em"}}>🤖 AI PROGRESS ANALYSIS</div>
+                <button onClick={analyzeProgress} disabled={analysisLoading} style={{...S.btnCyber,borderColor:"#aa66ff",color:"#aa66ff",fontSize:"0.78rem",padding:"0.2rem 0.75rem",opacity:analysisLoading?0.6:1}}>
+                  {analysisLoading?"ANALYZING...":"▶ ANALYZE NOW"}
+                </button>
+              </div>
+              {!analysisReport&&!analysisLoading&&(
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#445566"}}>Analyzes both kids progress, weak topics, next steps. Best used after biweekly test.</div>
+              )}
+              {analysisLoading&&(
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.82rem",color:"#aa66ff"}}>Generating report...</div>
+              )}
+              {analysisReport&&(
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.82rem",color:"#c8d8e8",lineHeight:1.6,whiteSpace:"pre-wrap",background:"#060d18",padding:"0.75rem",border:"1px solid #aa66ff33",maxHeight:300,overflowY:"auto",marginTop:"0.5rem"}}>
+                  {analysisReport}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -4103,7 +4192,15 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
             <button onClick={()=>{onUpdateProfiles(selectedUser,p=>({...p,baselineComplete:false,baselineScore:null,baselineWeakTopics:[]}));setMsg("Baseline reset — "+selectedUser+" will retake it");setTimeout(()=>setMsg(null),2000);}} style={{...S.btnCyber,borderColor:"#00aaff",color:"#00aaff"}}>🔄 RESET BASELINE FOR {selectedUser}</button>
             {/* Google Drive Backup */}
             <div style={{marginTop:"0.5rem",padding:"0.75rem",background:"#040b14",border:"1px solid #1a2a3a"}}>
-              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#8899aa",marginBottom:"0.5rem",letterSpacing:"0.1em"}}>☁ GOOGLE DRIVE BACKUP</div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.5rem"}}>
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#8899aa",letterSpacing:"0.1em"}}>☁ GOOGLE DRIVE BACKUP</div>
+                {(()=>{
+                  const lb=profiles?.CIPHER?.lastBackupDate||profiles?.NOVA?.lastBackupDate;
+                  if(!lb) return <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.72rem",color:"#ff8800"}}>⚠ Never backed up!</div>;
+                  const days=Math.floor((new Date(today())-new Date(lb))/(1000*60*60*24));
+                  return <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.72rem",color:days>7?"#ff8800":"#00ffcc"}}>{days===0?"Backed up today":`Last backup: ${days}d ago${days>7?" ⚠":""}`}</div>;
+                })()}
+              </div>
               <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap"}}>
                 <button onClick={()=>backupToDrive()} style={{...S.btnCyber,borderColor:"#00aaff",color:"#00aaff",fontSize:"0.82rem"}}>⬆ BACKUP TO DRIVE</button>
                 <button onClick={()=>restoreFromDrive()} style={{...S.btnCyber,borderColor:"#ffaa00",color:"#ffaa00",fontSize:"0.82rem"}}>⬇ RESTORE FROM DRIVE</button>
@@ -4115,7 +4212,7 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
         )}
 
         <div style={{padding:"0.75rem 1.25rem",fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#99aabb",borderTop:"1px solid #1a2a3a"}}>
-          PIN: {PARENT_PIN} · Change PARENT_PIN constant in code to update
+          Change PARENT_PIN constant in code to update PIN
         </div>
       </div>
     </div>
