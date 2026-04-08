@@ -1880,10 +1880,6 @@ function getWarmupFallbackNoRepeat(profile, questionIndex, usedQs){
   return getWarmupFallback(profile, questionIndex, usedQs);
 }
 
-function getWarmupFallback(profile, questionIndex, usedQs=new Set()){
-  return getWarmupFallbackNoRepeat(profile, questionIndex, usedQs);
-}
-
 function DailyWarmup({profile,onComplete,onSkipDay}){
   const [questions,setQuestions]=useState(null);
   const [qIdx,setQIdx]=useState(0);
