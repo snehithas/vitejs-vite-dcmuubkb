@@ -3924,58 +3924,58 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
     setAnalysisLoading(true);
     setAnalysisReport(null);
     try{
-      // Build rich context from both profiles
       const buildSummary=(p)=>{
         if(!p) return "No data";
-        const books=getBooksForProfile(p.name);
-        const sectionsDone=Object.keys(p.sectionsDone||{}).length;
-        const totalSections=books.flatMap(b=>b.chapters.flatMap(c=>c.sections)).length;
-        const proofResults=Object.entries(p.proofsDone||{});
-        const proofCorrect=proofResults.reduce((a,[,r])=>a+(r||[]).filter(Boolean).length,0);
-        const proofTotal=proofResults.reduce((a,[,r])=>a+(r||[]).length,0);
-        const weakTopics=p.baselineWeakTopics||[];
-        const testHistory=(p.biweeklyTests||[]).slice(-3).map(t=>`${t.date}: ${t.score}%${t.weakTopics?.length?` (weak: ${t.weakTopics.slice(0,3).join(', ')})`:''}}`).join('; ');
-        const bountyAcc=p.bountyCountToday>0?Math.round((p.bountyCorrectToday/p.bountyCountToday)*100):'N/A';
-        return \`Name: \${p.name} | Age: \${p.name==='CIPHER'?11:13} | Rank: \${getRank(p.xp).name} | XP: \${p.xp} | Flux: \${p.flux}
-Books: \${books.map(b=>b.code).join(', ')}
-Progress: \${sectionsDone}/\${totalSections} sections done
-Proof accuracy: \${proofTotal>0?Math.round((proofCorrect/proofTotal)*100)+'%':'no data'} (\${proofCorrect}/\${proofTotal} correct)
-Baseline score: \${p.baselineScore!=null?p.baselineScore+'%':'not taken'}
-Baseline weak topics: \${weakTopics.length?weakTopics.join(', '):'none identified'}
-Recent test history: \${testHistory||'no tests yet'}
-Tab switches today: \${p.tabSwitchToday||0}
-Warmup streak: \${p.warmupStreak||0} days\`;
+        const bks=getBooksForProfile(p.name);
+        const sdone=Object.keys(p.sectionsDone||{}).length;
+        const stotal=bks.flatMap(b=>b.chapters.flatMap(c=>c.sections)).length;
+        const pr=Object.entries(p.proofsDone||{});
+        const pc=pr.reduce((a,[,r])=>a+(r||[]).filter(Boolean).length,0);
+        const pt=pr.reduce((a,[,r])=>a+(r||[]).length,0);
+        const wt=(p.baselineWeakTopics||[]).join(", ")||"none";
+        const th=(p.biweeklyTests||[]).slice(-3).map(t=>t.date+": "+t.score+"%").join("; ")||"none";
+        return p.name+" | "+getRank(p.xp).name+" | XP:"+p.xp+" | "+sdone+"/"+stotal+" sections"
+          +"
+Proof accuracy: "+(pt>0?Math.round(pc/pt*100)+"%":"no data")+" ("+pc+"/"+pt+")"
+          +"
+Baseline: "+(p.baselineScore!=null?p.baselineScore+"%":"not taken")
+          +"
+Weak topics: "+wt
+          +"
+Recent tests: "+th
+          +"
+Warmup streak: "+(p.warmupStreak||0)+" days | Tab switches: "+(p.tabSwitchToday||0)+" today";
       };
+      const prompt="Analyze progress for two AoPS math students.
 
-      const context=\`You are analyzing progress for two kids using Vanguard Math OS, an AoPS-based math learning app.
+"
+        +"CIPHER (11yr, Algebra B Ch.10-21 + C&P):
+"+buildSummary(profiles.CIPHER)+"
 
-CIPHER (11yr old) — studying AoPS Algebra B (Ch.10-21) + Counting & Probability:
-\${buildSummary(profiles.CIPHER)}
+"
+        +"NOVA (13yr, C&P + Number Theory):
+"+buildSummary(profiles.NOVA)+"
 
-NOVA (13yr old) — studying AoPS Counting & Probability + Number Theory:
-\${buildSummary(profiles.NOVA)}
-
-Please provide:
-1. CIPHER ANALYSIS: What topics need more work? What's going well? Is the difficulty right?
-2. NOVA ANALYSIS: Same.
-3. CURRICULUM SUGGESTIONS: Should we adjust what they're studying? Any gaps?
-4. APP SUGGESTIONS: What question types or features would help most right now?
-
-Be specific and actionable. Use the actual data above. Keep it concise — 3-4 sentences per kid.\`;
-
+"
+        +"For each student: (1) What topics need more work? (2) What is going well? (3) Is difficulty appropriate? "
+        +"Then: (4) Any curriculum adjustments? (5) What question types would help most? "
+        +"Be specific and use the data. 3-4 sentences per student. Concise.";
       const res=await fetch("https://api.anthropic.com/v1/messages",{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
           model:"claude-sonnet-4-20250514",
           max_tokens:800,
-          messages:[{role:"user",content:context}]
+          messages:[{role:"user",content:prompt}]
         })
       });
       const data=await res.json();
-      const report=data.content?.[0]?.text||"Could not generate report.";
-      setAnalysisReport(report);
+      setAnalysisReport(data.content?.[0]?.text||"Could not generate report.");
     }catch(e){
+      setAnalysisReport("Error: "+e.message);
+    }
+    setAnalysisLoading(false);
+  }catch(e){
       setAnalysisReport("Error generating report: "+e.message);
     }
     setAnalysisLoading(false);
