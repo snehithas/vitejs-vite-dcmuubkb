@@ -62,7 +62,7 @@ const DEFAULT_REWARDS=[
 
 // Storage — v7 migrates from v6 automatically
 const STORAGE_KEY = "vanguard_v7";
-const APP_VERSION = "v7.4 · 2026-04-08";
+const APP_VERSION = "v7.5 · 2026-04-08";
 const STORAGE_KEY_V6 = "vanguard_v6";
 const PARENT_PIN = "1234";
 
@@ -1311,134 +1311,102 @@ function fmtTime(ms){const m=Math.floor(ms/60000),s=Math.floor((ms%60000)/1000);
 // ═══════════════════════════════════════════════════════════
 
 // Question templates by topic — generated dynamically
-function generateBountyQuestions(profile, count=8){
+function generateBountyQuestions(profile, count=15){
   if(!profile||!profile.sectionsDone) return [];
   const done=Object.keys(profile.sectionsDone||{});
-  const allSections=CURRICULUM.flatMap(b=>b.chapters).flatMap(c=>c.sections);
-  const unlockedIds=new Set(done);
-  // Include all sections from chapters that have at least one done section
-  const unlockedChapters=new Set(
-    CURRICULUM.flatMap(b=>b.chapters)
-      .filter(ch=>ch.sections.some(s=>unlockedIds.has(s.id)))
-      .map(ch=>ch.id)
-  );
-
+  const usedToday=new Set(profile.usedLiveQuestions||[]);
   const pool=[];
 
-  // ── Arithmetic / Numbers (always available) ─────────────────
-  pool.push(...[
-    {q:"What is 17 × 13?",a:"221",xp:BOUNTY_XP,tag:"arithmetic"},
-    {q:"Simplify: 144 ÷ 12 + 5 × 3",a:"27",xp:BOUNTY_XP,tag:"arithmetic",hint:"Order of operations"},
+  // ── Pull from SECTION_PROOFS for completed sections (most relevant) ─────────
+  // Weight recent sections higher
+  const recent=done.slice(-10);
+  const older=done.slice(0,-10);
+
+  recent.forEach(sid=>{
+    (SECTION_PROOFS[sid]||[]).forEach(q=>{
+      if(!usedToday.has(q.q)) pool.push({...q,xp:BOUNTY_XP+5,tag:"recent",sectionId:sid});
+    });
+  });
+  older.forEach(sid=>{
+    (SECTION_PROOFS[sid]||[]).forEach(q=>{
+      if(!usedToday.has(q.q)) pool.push({...q,xp:BOUNTY_XP,tag:"review",sectionId:sid});
+    });
+  });
+
+  // ── Supplement with hardcoded bank if pool too small ──────────────────────
+  const bank=[];
+
+  // Always available
+  bank.push(...[
+    {q:"Solve: 4x − 7 = 13",a:"5",xp:BOUNTY_XP,tag:"linear"},
+    {q:"Expand: (x+3)(x−3)",a:"x^2-9|x²-9",xp:BOUNTY_XP,tag:"algebra"},
     {q:"What is 2^10?",a:"1024",xp:BOUNTY_XP,tag:"exponents"},
-    {q:"What is √144?",a:"12",xp:BOUNTY_XP,tag:"radicals"},
-    {q:"What is 3^4?",a:"81",xp:BOUNTY_XP,tag:"exponents"},
-    {q:"Evaluate: 5! (five factorial)",a:"120",xp:BOUNTY_XP,tag:"arithmetic"},
+    {q:"Factor: x² − 9",a:"(x+3)(x-3)",xp:BOUNTY_XP,tag:"factoring"},
     {q:"What is 15% of 200?",a:"30",xp:BOUNTY_XP,tag:"percent"},
-    {q:"What is 7² + 8²?",a:"113",xp:BOUNTY_XP,tag:"arithmetic"},
-    {q:"A store raises price by 20%, then cuts it 20%. Net change?",a:"4% decrease|-4%",xp:BOUNTY_XP+5,tag:"percent",hint:"1.2 × 0.8 = 0.96"},
+    {q:"A price increases 20% then decreases 20%. Net change?",a:"-4%|4% decrease",xp:BOUNTY_XP+5,tag:"percent",hint:"1.2×0.8=0.96"},
+    {q:"Evaluate: 5!",a:"120",xp:BOUNTY_XP,tag:"counting"},
+    {q:"What is the sum 1+2+3+...+20?",a:"210",xp:BOUNTY_XP,tag:"sequences",hint:"n(n+1)/2"},
   ]);
 
-  // ── Algebra basics (a1–a5 unlocked) ─────────────────────────
-  if(done.some(id=>id.startsWith("a1")||id.startsWith("a2")||id.startsWith("a3"))){
-    pool.push(...[
-      {q:"Solve: 4x − 7 = 13",a:"5",xp:BOUNTY_XP,tag:"linear"},
-      {q:"Solve: 3(x+2) = 21",a:"5",xp:BOUNTY_XP,tag:"linear"},
-      {q:"Simplify: 5x + 3 − 2x + 7",a:"3x+10",xp:BOUNTY_XP,tag:"algebra"},
-      {q:"Expand: (x+3)(x−3)",a:"x^2-9",xp:BOUNTY_XP,tag:"algebra",hint:"Difference of squares"},
-      {q:"Factor: x² − 9",a:"(x+3)(x-3)",xp:BOUNTY_XP,tag:"factoring"},
-      {q:"If f(x) = 3x−1, find f(4)",a:"11",xp:BOUNTY_XP,tag:"functions"},
-      {q:"Solve: (x+1)/3 = 4",a:"11",xp:BOUNTY_XP,tag:"linear"},
-    ]);
-  }
-
-  // ── Systems & ratios (a5–a7 unlocked) ───────────────────────
-  if(done.some(id=>["a5s1","a5s2","a5s3","a6s1","a7s1"].includes(id))){
-    pool.push(...[
-      {q:"Solve: x+y=10 and x−y=4. Find x.",a:"7",xp:BOUNTY_XP,tag:"systems"},
-      {q:"Two numbers have ratio 3:5 and sum 40. Find the smaller.",a:"15",xp:BOUNTY_XP,tag:"ratio"},
-      {q:"If y varies directly with x and y=8 when x=2, find y when x=7.",a:"28",xp:BOUNTY_XP,tag:"proportion"},
-      {q:"Train A travels at 60mph, Train B at 90mph. They start 300mi apart heading toward each other. When do they meet? (hours)",a:"2",xp:BOUNTY_XP+5,tag:"word problem",hint:"60t+90t=300"},
-    ]);
-  }
-
-  // ── Quadratics (a10–a13 unlocked) ───────────────────────────
   if(done.some(id=>id.startsWith("a10")||id.startsWith("a11")||id.startsWith("a13"))){
-    pool.push(...[
-      {q:"Factor: x² − 7x + 12",a:"(x-3)(x-4)",xp:BOUNTY_XP,tag:"quadratic"},
-      {q:"Factor: x² + 5x + 6",a:"(x+2)(x+3)",xp:BOUNTY_XP,tag:"quadratic"},
-      {q:"Solve using quadratic formula: x²−6x+5=0",a:"x=1,x=5|x=5,x=1",xp:BOUNTY_XP+5,tag:"quadratic"},
-      {q:"What is the discriminant of 2x²−3x+1=0?",a:"1",xp:BOUNTY_XP,tag:"quadratic",hint:"b²−4ac = 9−8"},
-      {q:"Factor completely: 2x²+7x+3",a:"(2x+1)(x+3)",xp:BOUNTY_XP+5,tag:"quadratic"},
-      {q:"Expand: (x+5)²",a:"x^2+10x+25",xp:BOUNTY_XP,tag:"quadratic"},
-      {q:"Solve: x²=49",a:"x=7,x=-7|x=±7",xp:BOUNTY_XP,tag:"quadratic"},
+    bank.push(...[
+      {q:"Factor: x²+7x+12",a:"(x+3)(x+4)",xp:BOUNTY_XP,tag:"quadratic"},
+      {q:"Discriminant of x²+4x+5=0?",a:"-4",xp:BOUNTY_XP,tag:"quadratic"},
+      {q:"Solve: x²−5x+6=0",a:"x=2,x=3|2,3",xp:BOUNTY_XP,tag:"quadratic"},
+      {q:"Vertex of y=(x−3)²+5?",a:"(3,5)",xp:BOUNTY_XP,tag:"graphing"},
+      {q:"What is i²?",a:"-1",xp:BOUNTY_XP,tag:"complex"},
+      {q:"Multiply: (2+i)(2−i)",a:"5",xp:BOUNTY_XP+5,tag:"complex",hint:"a²−b²=4−(−1)=5"},
     ]);
   }
-
-  // ── Functions (a16) ──────────────────────────────────────────
-  if(done.some(id=>id.startsWith("a16"))){
-    pool.push(...[
-      {q:"If f(x)=x²+1 and g(x)=2x, find f(g(3)).",a:"37",xp:BOUNTY_XP+5,tag:"functions",hint:"g(3)=6, then f(6)=37"},
-      {q:"What is the inverse of f(x)=3x+6?",a:"(x-6)/3|x/3-2",xp:BOUNTY_XP+5,tag:"functions"},
-      {q:"If f(x)=√(x−2), what is the domain?",a:"x>=2|x≥2",xp:BOUNTY_XP,tag:"functions"},
+  if(done.some(id=>id.startsWith("a16")||id.startsWith("a17"))){
+    bank.push(...[
+      {q:"If f(x)=2x+1, find f(f(3))",a:"15",xp:BOUNTY_XP+5,tag:"functions",hint:"f(3)=7, f(7)=15"},
+      {q:"Inverse of f(x)=3x−6?",a:"(x+6)/3",xp:BOUNTY_XP+5,tag:"functions"},
+      {q:"If f(x)=x² and g(x)=x+2, find f(g(1))",a:"9",xp:BOUNTY_XP+5,tag:"functions"},
     ]);
   }
-
-  // ── Sequences (a21) ──────────────────────────────────────────
   if(done.some(id=>id.startsWith("a21"))){
-    pool.push(...[
-      {q:"Find the sum of the first 20 positive integers.",a:"210",xp:BOUNTY_XP,tag:"sequences",hint:"n(n+1)/2 = 20×21/2"},
-      {q:"Geometric sequence: 3,6,12,24,... What is the 7th term?",a:"192",xp:BOUNTY_XP,tag:"sequences",hint:"a₇=3×2⁶=192"},
-      {q:"Sum of geometric series: 1+2+4+8+...+128",a:"255",xp:BOUNTY_XP,tag:"sequences",hint:"a(rⁿ−1)/(r−1)=(2⁸−1)/1"},
+    bank.push(...[
+      {q:"Arithmetic: a₁=3, d=4. What is the 10th term?",a:"39",xp:BOUNTY_XP,tag:"sequences"},
+      {q:"Geometric: 2,6,18... 6th term?",a:"486",xp:BOUNTY_XP,tag:"sequences"},
+      {q:"Sum of infinite geometric: a=4, r=1/2?",a:"8",xp:BOUNTY_XP+5,tag:"sequences"},
     ]);
   }
-
-  // ── C&P (unlocked) ───────────────────────────────────────────
   if(done.some(id=>id.startsWith("c"))){
-    pool.push(...[
-      {q:"How many ways to arrange 5 different books on a shelf?",a:"120",xp:BOUNTY_XP,tag:"counting"},
-      {q:"C(8,3) = ?",a:"56",xp:BOUNTY_XP,tag:"combinations"},
-      {q:"How many diagonals does an octagon have?",a:"20",xp:BOUNTY_XP+5,tag:"counting",hint:"C(8,2)−8=28−8"},
-      {q:"Probability of rolling two sixes in a row?",a:"1/36",xp:BOUNTY_XP,tag:"probability"},
-      {q:"How many 3-digit even numbers exist?",a:"450",xp:BOUNTY_XP+5,tag:"counting",hint:"9×10×5=450"},
+    bank.push(...[
+      {q:"C(8,3)=?",a:"56",xp:BOUNTY_XP,tag:"combinations"},
+      {q:"How many 3-digit numbers use only digits 1,3,5,7,9?",a:"125",xp:BOUNTY_XP+5,tag:"counting"},
+      {q:"P(sum=7 with 2 dice)?",a:"1/6|6/36",xp:BOUNTY_XP,tag:"probability"},
+      {q:"How many diagonals does a hexagon have?",a:"9",xp:BOUNTY_XP+5,tag:"counting",hint:"C(6,2)−6=9"},
+      {q:"P(drawing 2 aces without replacement)?",a:"1/221|4/52×3/51",xp:BOUNTY_XP+5,tag:"probability"},
     ]);
   }
-
-  // ── Number Theory questions (for NOVA) ─────────────────────────────────────
   if(done.some(id=>id.startsWith("nt"))){
-    pool.push(...[
-      {q:"What is gcd(48, 36)?",a:"12",xp:BOUNTY_XP,tag:"number theory"},
-      {q:"What is lcm(6, 10)?",a:"30",xp:BOUNTY_XP,tag:"number theory"},
-      {q:"How many divisors does 24 have?",a:"8",xp:BOUNTY_XP,tag:"number theory",hint:"1,2,3,4,6,8,12,24"},
-      {q:"What is 17 mod 5?",a:"2",xp:BOUNTY_XP,tag:"modular"},
-      {q:"Is 91 prime? (91=7×13)",a:"no",xp:BOUNTY_XP,tag:"primes"},
-      {q:"Prime factorization of 36?",a:"2^2*3^2|4*9|2²×3²",xp:BOUNTY_XP,tag:"primes"},
-      {q:"What is the last digit of 7^4?",a:"1",xp:BOUNTY_XP,tag:"modular",hint:"7,49,343,2401"},
-      {q:"gcd(100,75)=?",a:"25",xp:BOUNTY_XP,tag:"number theory"},
-      {q:"Is 2^31 even or odd?",a:"even",xp:BOUNTY_XP,tag:"number theory"},
-      {q:"What is 100 mod 7?",a:"2",xp:BOUNTY_XP,tag:"modular",hint:"100=14×7+2"},
-      {q:"Sum of divisors of 15?",a:"24",xp:BOUNTY_XP,tag:"number theory",hint:"1+3+5+15=24"},
-      {q:"How many primes are less than 30?",a:"10",xp:BOUNTY_XP,tag:"primes",hint:"2,3,5,7,11,13,17,19,23,29"},
-      {q:"Convert 1011 (base 2) to base 10.",a:"11",xp:BOUNTY_XP,tag:"bases",hint:"8+0+2+1=11"},
-      {q:"Is 561 = 3×11×17 divisible by 11?",a:"yes",xp:BOUNTY_XP,tag:"divisibility"},
-      {q:"What is φ(10)? (Euler's totient)",a:"4",xp:BOUNTY_XP+5,tag:"number theory",hint:"coprime to 10: 1,3,7,9"},
+    bank.push(...[
+      {q:"gcd(48,36)=?",a:"12",xp:BOUNTY_XP,tag:"number theory"},
+      {q:"lcm(6,10)=?",a:"30",xp:BOUNTY_XP,tag:"number theory"},
+      {q:"17 mod 5=?",a:"2",xp:BOUNTY_XP,tag:"modular"},
+      {q:"Last digit of 7^20?",a:"1",xp:BOUNTY_XP+5,tag:"modular",hint:"7^4 ends in 1, 20=4×5"},
+      {q:"How many divisors does 72 have?",a:"12",xp:BOUNTY_XP+5,tag:"number theory",hint:"2³×3²→(3+1)(2+1)=12"},
+      {q:"φ(12)=? (Euler totient)",a:"4",xp:BOUNTY_XP+5,tag:"number theory",hint:"coprime to 12: 1,5,7,11"},
+      {q:"3x≡1 (mod 7). Find x.",a:"5",xp:BOUNTY_XP+5,tag:"modular",hint:"3×5=15≡1 mod 7"},
+    ]);
+  }
+  if(done.length>=15){
+    bank.push(...[
+      {q:"CHALLENGE: x+y=5 and xy=6. Find x²+y².",a:"13",xp:BOUNTY_XP*2,tag:"challenge",hint:"(x+y)²=x²+2xy+y²=25−12"},
+      {q:"CHALLENGE: How many integers 1–100 are divisible by 3 or 5?",a:"47",xp:BOUNTY_XP*2,tag:"challenge",hint:"33+20−6=47"},
+      {q:"CHALLENGE: If log₂(x)=5, what is x?",a:"32",xp:BOUNTY_XP*2,tag:"challenge"},
     ]);
   }
 
-  // ── Hard challenge questions (unlocked after a lot of progress) ─
-  if(done.length>=20){
-    pool.push(...[
-      {q:"HARD: If x+y=5 and xy=6, find x²+y².",a:"13",xp:BOUNTY_XP*2,tag:"challenge",hint:"(x+y)²=x²+2xy+y²"},
-      {q:"HARD: How many integers 1–200 are divisible by 3 or 5?",a:"93",xp:BOUNTY_XP*2,tag:"challenge",hint:"Inclusion-exclusion: 66+40−13"},
-      {q:"HARD: Solve x²−x−6=0 and x²+x−6=0. What is the common positive root?",a:"2",xp:BOUNTY_XP*2,tag:"challenge"},
-      {q:"HARD: If log₂(x)=5, what is x?",a:"32",xp:BOUNTY_XP*2,tag:"challenge"},
-      {q:"HARD: Arithmetic sequence has a₁=7, a₁₀=34. What is the common difference?",a:"3",xp:BOUNTY_XP*2,tag:"sequences",hint:"d=(34−7)/9"},
-    ]);
-  }
+  // Add bank questions not already in pool
+  const poolTexts=new Set(pool.map(q=>q.q));
+  bank.forEach(q=>{if(!poolTexts.has(q.q)&&!usedToday.has(q.q)) pool.push(q);});
 
-  // Shuffle and pick `count`
-  const shuffled=[...pool].sort(()=>Math.random()-0.5);
-  return shuffled.slice(0,count);
+  return [...pool].sort(()=>Math.random()-0.5).slice(0,count);
 }
+
 
 // Compute how many earned game minutes a profile has today
 
