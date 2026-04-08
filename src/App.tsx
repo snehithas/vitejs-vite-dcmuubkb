@@ -1637,20 +1637,10 @@ const TAB_MESSAGES = [
   {title:"CAUGHT.",          body:"Google can't help you here. We switched the question anyway."},
   {title:"SERIOUSLY?",       body:"3 seconds on another tab. Must've been super helpful. New question!"},
   {title:"BOLD STRATEGY.",   body:"Let's see if it pays off. Spoiler: it didn't. New question incoming."},
-  {title:"THE MATH IS WATCHING.", body:"It blinked. You moved. Now there's a new problem. Suspicious."},
-  {title:"AH HA!",           body:"Did you think we wouldn't notice? New question. Try actually thinking."},
-  {title:"TAB SWITCH #",     body:"You've done this before. The questions just get weirder. Good luck."},
 ];
 
 function getTabMessage(count){
-  if(count>=3) return{
-    title:`TAB SWITCH #${count} — BONUS ROUND`,
-    body:"You've unlocked the BONUS QUESTION. Answer it before continuing. This is your life now.",
-    bonus:true
-  };
-  const m=TAB_MESSAGES[Math.floor(Math.random()*TAB_MESSAGES.length)];
-  if(m.body.includes("#")) return{...m,body:m.body.replace("#",count)};
-  return{...m,bonus:false};
+  return `Tab switch #${count} detected — new question loaded. Stay focused.`;
 }
 
 function TabWarning({message,onDismiss}){
@@ -2629,30 +2619,53 @@ function SlitherGame({onExit,gameTimeLeft,onTimeUsed}){
 // ═══════════════════════════════════════════════════════════
 const BASELINE_QUESTIONS = {
   // CIPHER (11yr old): Algebra A/B + intro C&P
+  // CIPHER (11yr): Algebra B (Ch.10-21) + intro C&P
+  // 35 questions — thorough coverage of what he's studied
   CIPHER: [
-    // Algebra foundations
-    {id:"b1",q:"Solve: 3x + 7 = 22",a:"5",topic:"linear",difficulty:1},
-    {id:"b2",q:"Expand: (x+4)(x-3)",a:"x^2+x-12",topic:"quadratic",difficulty:2},
-    {id:"b3",q:"Factor: x² - 5x + 6",a:"(x-2)(x-3)",topic:"factoring",difficulty:2},
-    {id:"b4",q:"Solve: 2x² - 8 = 0",a:"x=2,x=-2|x=±2",topic:"quadratic",difficulty:2},
-    {id:"b5",q:"If f(x) = 2x + 1, find f(f(3)).",a:"15",topic:"functions",difficulty:3},
-    {id:"b6",q:"Solve the system: x + y = 10, x - y = 4",a:"x=7,y=3|x=7 y=3",topic:"systems",difficulty:2},
-    {id:"b7",q:"Simplify: (x²·x³)/x⁴",a:"x",topic:"exponents",difficulty:2},
-    {id:"b8",q:"A bag has 4 red and 6 blue marbles. P(red)?",a:"2/5|4/10",topic:"probability",difficulty:1},
-    {id:"b9",q:"How many ways to arrange 5 different books?",a:"120",topic:"counting",difficulty:2},
-    {id:"b10",q:"What is the sum of the first 10 positive integers?",a:"55",topic:"sequences",difficulty:2},
-    {id:"b11",q:"Factor: x² - 9",a:"(x+3)(x-3)",topic:"factoring",difficulty:1},
-    {id:"b12",q:"Solve: |x - 3| = 5",a:"x=8,x=-2|x=-2,x=8",topic:"absolute_value",difficulty:2},
-    {id:"b13",q:"C(6,2) = ?",a:"15",topic:"combinations",difficulty:2},
-    {id:"b14",q:"What is the slope of y = 3x - 7?",a:"3",topic:"graphing",difficulty:1},
-    {id:"b15",q:"HARD: If x + y = 5 and xy = 6, find x² + y².",a:"13",topic:"algebra_hard",difficulty:3},
-    {id:"b16",q:"How many 3-digit even numbers exist?",a:"450",topic:"counting",difficulty:3},
-    {id:"b17",q:"Find the quadratic with roots x=3 and x=-2.",a:"x^2-x-6|(x-3)(x+2)",topic:"quadratic",difficulty:3},
-    {id:"b18",q:"Geometric sequence: 2, 6, 18... What is the 5th term?",a:"162",topic:"sequences",difficulty:2},
-    {id:"b19",q:"P(rolling sum=8 with two dice)?",a:"5/36",topic:"probability",difficulty:3},
-    {id:"b20",q:"Solve: x² + 4x + 4 = 0",a:"x=-2",topic:"quadratic",difficulty:2},
+    // ── QUADRATICS (Ch.10,11,13) ─────────────────────────
+    {id:"b1", q:"Factor: x²+7x+12",a:"(x+3)(x+4)",topic:"factoring",difficulty:1},
+    {id:"b2", q:"Solve: x²−5x+6=0",a:"x=2,x=3|2,3",topic:"quadratic",difficulty:1},
+    {id:"b3", q:"What is the discriminant of x²+4x+5=0?",a:"-4",topic:"quadratic",difficulty:1},
+    {id:"b4", q:"Use quadratic formula: x²−6x+5=0",a:"x=1,x=5|1,5",topic:"quadratic",difficulty:2},
+    {id:"b5", q:"Complete the square: x²+8x+? = (x+4)²",a:"16",topic:"completing_square",difficulty:1},
+    {id:"b6", q:"Solve by completing the square: x²+6x−7=0",a:"x=1,x=-7|1,-7",topic:"completing_square",difficulty:2},
+    {id:"b7", q:"Factor: 4x²−9",a:"(2x+3)(2x-3)",topic:"factoring",difficulty:2},
+    {id:"b8", q:"Factor: x³−8",a:"(x-2)(x^2+2x+4)",topic:"factoring",difficulty:3},
+    {id:"b9", q:"Expand: (x−3)²",a:"x^2-6x+9|x²-6x+9",topic:"factoring",difficulty:1},
+    // ── COMPLEX NUMBERS (Ch.12) ───────────────────────────
+    {id:"b10",q:"What is i²?",a:"-1",topic:"complex",difficulty:1},
+    {id:"b11",q:"What is i³?",a:"-i",topic:"complex",difficulty:1},
+    {id:"b12",q:"Add: (3+2i)+(1−4i)",a:"4-2i",topic:"complex",difficulty:1},
+    {id:"b13",q:"Multiply: (2+i)(2−i)",a:"5",topic:"complex",difficulty:2},
+    {id:"b14",q:"What is the conjugate of 3−4i?",a:"3+4i",topic:"complex",difficulty:1},
+    // ── GRAPHING (Ch.14) ─────────────────────────────────
+    {id:"b15",q:"Vertex of y=(x−3)²+5?",a:"(3,5)",topic:"graphing",difficulty:1},
+    {id:"b16",q:"Axis of symmetry of y=x²−4x+1?",a:"x=2",topic:"graphing",difficulty:1},
+    {id:"b17",q:"Center of (x−2)²+(y+3)²=25?",a:"(2,-3)",topic:"graphing",difficulty:2},
+    {id:"b18",q:"Does the parabola y=−x²+4 open up or down?",a:"down",topic:"graphing",difficulty:1},
+    // ── FUNCTIONS (Ch.16,17) ──────────────────────────────
+    {id:"b19",q:"If f(x)=2x+1 and g(x)=x², find f(g(3)).",a:"19",hint:"g(3)=9, f(9)=19",topic:"functions",difficulty:2},
+    {id:"b20",q:"What is the inverse of f(x)=3x−6?",a:"(x+6)/3",topic:"functions",difficulty:2},
+    {id:"b21",q:"If f(f(x))=x and f(2)=5, what is f(5)?",a:"2",topic:"functions",difficulty:3},
+    {id:"b22",q:"How does y=f(x−2) relate to y=f(x)?",a:"shift right 2|right 2",topic:"functions",difficulty:2},
+    // ── POLYNOMIALS & LOGS (Ch.18,19) ────────────────────
+    {id:"b23",q:"Add: (3x²+2x+1)+(x²−x+4)",a:"4x^2+x+5",topic:"polynomials",difficulty:1},
+    {id:"b24",q:"log₂(32)=?",a:"5",topic:"logarithms",difficulty:1},
+    {id:"b25",q:"$100 at 10% annual compound interest. After 2 years?",a:"121",topic:"applications",difficulty:2},
+    // ── SEQUENCES & SERIES (Ch.21) ────────────────────────
+    {id:"b26",q:"Arithmetic: first=3, d=4. What is the 8th term?",a:"31",topic:"sequences",difficulty:1},
+    {id:"b27",q:"Sum of arithmetic: a₁=2, d=3, n=10.",a:"155",topic:"sequences",difficulty:2},
+    {id:"b28",q:"Geometric: 2,6,18... What is the 6th term?",a:"486",topic:"sequences",difficulty:2},
+    {id:"b29",q:"Sum of infinite geometric: a=4, r=1/2.",a:"8",topic:"sequences",difficulty:3},
+    // ── INEQUALITIES (Ch.15) ─────────────────────────────
+    {id:"b30",q:"Solve: x²−5x+6>0. Solution set?",a:"x<2 or x>3|x>3 or x<2",topic:"inequalities",difficulty:3},
+    {id:"b31",q:"Is x=3 a solution to |x−5|<3?",a:"yes",topic:"absolute_value",difficulty:2},
+    // ── COUNTING & PROBABILITY (C&P Ch.1-2) ──────────────
+    {id:"b32",q:"How many ways to arrange 4 books on a shelf?",a:"24",topic:"counting",difficulty:1},
+    {id:"b33",q:"C(6,2)=?",a:"15",topic:"combinations",difficulty:1},
+    {id:"b34",q:"P(rolling sum=7 with 2 dice)?",a:"1/6|6/36",topic:"probability",difficulty:2},
+    {id:"b35",q:"How many 3-digit numbers use only digits 1,3,5,7,9 (repeats allowed)?",a:"125",topic:"counting",difficulty:2},
   ],
-  // NOVA (13yr old): C&P mastery check + Number Theory intro
   NOVA: [
     {id:"n1",q:"C(8,3) = ?",a:"56",topic:"combinations",difficulty:1},
     {id:"n2",q:"How many ways to arrange letters in MATH?",a:"24",topic:"permutations",difficulty:1},
