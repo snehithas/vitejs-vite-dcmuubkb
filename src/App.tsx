@@ -1562,7 +1562,7 @@ function BountyBoard({profile,onClose,onCorrect,onSpendLC,onMarkDone}){
           </div>
         </div>
         <div style={{textAlign:"right"}}>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#00ffcc"}}>⏱ {Math.min(MAX_GAME_MINS,30+sessionCorrect*0)} min earned</div>
+          
           <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#aabbcc"}}>+{0}min per correct</div>
         </div>
       </div>
