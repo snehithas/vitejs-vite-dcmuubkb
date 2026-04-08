@@ -9,16 +9,11 @@ const PRIME_HUNTER_COST = 300;   // XP to unlock Prime Hunter (permanent)
 const SLITHER_COST = 600;        // XP to unlock Slither
 const LIVE_MODE_COST = 400;      // XP to unlock Live Mode
 
-// Game time (earned by math)
 // Help costs (Flux) — nudge free, scaffold/example cost Flux
 const SCAFFOLD_FLUX_COST = 5;    // Step-by-step scaffold
 const EXAMPLE_FLUX_COST = 15;    // Full worked example
 // Game time removed — simplified to XP + Flux only
-// Stub constants — kept for backward compat after simplification
-const MAX_GAME_MINS = 30;
-const MINS_PER_SECTION = 0;
-const MINS_PER_BOUNTY_CORRECT = 0;
-const GAME_TIME_LIMIT_MS = 99999999;
+// Game time fully removed — XP + Flux only
 
 
 // XP values
@@ -67,6 +62,7 @@ const DEFAULT_REWARDS=[
 
 // Storage — v7 migrates from v6 automatically
 const STORAGE_KEY = "vanguard_v7";
+const APP_VERSION = "v7.4 · 2026-04-08";
 const STORAGE_KEY_V6 = "vanguard_v6";
 const PARENT_PIN = "1234";
 
@@ -1444,9 +1440,6 @@ function generateBountyQuestions(profile, count=8){
 }
 
 // Compute how many earned game minutes a profile has today
-function getEarnedGameMins(profile){
-  return 30; // game time simplified — returns max always
-}
 
 
 
@@ -1505,7 +1498,7 @@ function BountyBoard({profile,onClose,onCorrect,onSpendLC,onMarkDone}){
             </div>
           )}
           <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",marginBottom:"1.5rem"}}>
-            {remaining<=0?"Come back tomorrow for more bounties. Solve more sections to unlock harder questions!":"Great work! Earn game time by answering more tomorrow."}
+            {remaining<=0?"Come back tomorrow for more bounties. Solve more sections to unlock harder questions!":"Great work! Come back tomorrow for more bounties."}
           </div>
           <button onClick={()=>{onMarkDone&&onMarkDone();onClose();}} style={S.btnCyber}>RETURN TO OS</button>
         </div>
@@ -1617,7 +1610,7 @@ function BountyBoard({profile,onClose,onCorrect,onSpendLC,onMarkDone}){
           <div style={{display:"flex",gap:"0.94rem",padding:"0 1.25rem 1.25rem",flexWrap:"wrap"}}>
             {!hint&&q.hint&&<button onClick={()=>setHint(true)} style={S.btnGhost}>💡 HINT (no penalty)</button>}
             <button onClick={revealAns} style={{...S.btnGhost,color:"#ff6644",borderColor:"#ff664433"}}>REVEAL ANSWER</button>
-            <div style={{flex:1,textAlign:"right",fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#99aabb",paddingTop:"0.4rem"}}>Correct = +{0}min game time</div>
+            <div style={{flex:1,textAlign:"right",fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#99aabb",paddingTop:"0.4rem"}}>+{BOUNTY_FLUX}⚡ Flux</div>
           </div>
         </>
       )}
@@ -1661,14 +1654,16 @@ function getTabMessage(count){
 }
 
 function TabWarning({message,onDismiss}){
+  // message can be a string or object — handle both
+  const txt=typeof message==="string"?message:(message?.body||"Tab switch detected.");
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.92)",zIndex:99999,display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem"}}>
-      <div style={{background:"#060d18",border:"2px solid #ff4444",padding:"2rem 2.5rem",maxWidth:480,textAlign:"center",boxShadow:"0 0 60px #ff444433"}}>
-        <div style={{fontSize:"3rem",marginBottom:"0.75rem"}}>👀</div>
-        <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.3rem",fontWeight:900,color:"#ff4444",marginBottom:"0.75rem",letterSpacing:"0.1em"}}>{message.title}</div>
-        <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"1rem",color:"#c8d8e8",lineHeight:1.6,marginBottom:"1.5rem"}}>{message.body}</div>
-        <button onClick={onDismiss} style={{background:"#ff4444",border:"none",color:"#fff",padding:"0.7rem 2rem",fontFamily:"Orbitron,sans-serif",fontSize:"0.9rem",fontWeight:700,cursor:"pointer",letterSpacing:"0.05em"}}>
-          {message.bonus?"ANSWER BONUS QUESTION →":"OK FINE, NEW QUESTION →"}
+      <div style={{background:"#1a0000",border:"2px solid #ff4444",padding:"2rem 2.5rem",maxWidth:400,textAlign:"center"}}>
+        <div style={{fontSize:"2rem",marginBottom:"0.5rem"}}>👀</div>
+        <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1rem",fontWeight:900,color:"#ff4444",marginBottom:"0.5rem",letterSpacing:"0.1em"}}>TAB SWITCH DETECTED</div>
+        <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.88rem",color:"#ff8888",marginBottom:"1.5rem"}}>{txt}</div>
+        <button onClick={onDismiss} style={{background:"#ff4444",border:"none",color:"#fff",padding:"0.6rem 1.5rem",fontFamily:"Orbitron,sans-serif",fontSize:"0.88rem",fontWeight:700,cursor:"pointer",letterSpacing:"0.05em"}}>
+          GOT IT — STAY FOCUSED
         </button>
       </div>
     </div>
@@ -2597,7 +2592,6 @@ function SlitherGame({onExit,gameTimeLeft,onTimeUsed}){
             <div style={{background:"#060d18",border:"1px solid #00ffcc44",padding:"2.5rem 3.5rem",borderRadius:12,textAlign:"center",maxWidth:400}}>
               <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"2.5rem",fontWeight:900,color:"#00ffcc",marginBottom:"0.5rem",letterSpacing:"0.15em"}}>SLITHER</div>
               <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",marginBottom:"0.5rem"}}>Grow by eating food · Avoid bots · You are the CYAN snake</div>
-              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:timeColor,marginBottom:"1.5rem"}}>⏱ {mins}:{String(secs).padStart(2,"0")} game time left today</div>
               <button onClick={startGame} style={{background:"#00ffcc",border:"none",color:"#000",padding:"0.8rem 2.5rem",borderRadius:8,fontFamily:"Orbitron,sans-serif",fontWeight:700,fontSize:"1rem",cursor:"pointer",letterSpacing:"0.05em"}}>PLAY</button>
             </div>
           </div>
@@ -3853,14 +3847,58 @@ function GradeReport({profile,onClose}){
 // ═══════════════════════════════════════════════════════════
 // PARENT MODE
 // ═══════════════════════════════════════════════════════════
-function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,onStartRival}){
+function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,onStartRival,onRestoreState}){
   const [pin,setPin]=useState("");
   const [auth,setAuth]=useState(false);
   const [pinErr,setPinErr]=useState(false);
-  const [tab,setTab]=useState("summary"); // summary|approvals|rewards|reset
+  const [tab,setTab]=useState("summary");
   const [selectedUser,setSelectedUser]=useState("CIPHER");
   const [xpAmt,setXpAmt]=useState("100");
   const [msg,setMsg]=useState(null);
+  const [driveMsg,setDriveMsg]=useState(null);
+  const allProfiles=profiles;
+
+  async function backupToDrive(){
+    setDriveMsg("Preparing backup...");
+    try{
+      const data={version:"vanguard_v7",timestamp:new Date().toISOString(),profiles,rewards};
+      const json=JSON.stringify(data,null,2);
+      const blob=new Blob([json],{type:"application/json"});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement("a");
+      a.href=url;a.download=`vanguard_backup_${new Date().toISOString().slice(0,10)}.json`;a.click();
+      URL.revokeObjectURL(url);
+      setDriveMsg("✓ Backup file downloaded! Upload to Google Drive manually.");
+    }catch(e){
+      setDriveMsg("✗ Backup failed: "+e.message);
+    }
+    setTimeout(()=>setDriveMsg(null),5000);
+  }
+
+  async function restoreFromDrive(){
+    setDriveMsg("Select your backup file...");
+    const input=document.createElement("input");
+    input.type="file";input.accept=".json";
+    input.onchange=async(e)=>{
+      const file=e.target.files?.[0];
+      if(!file){setDriveMsg(null);return;}
+      try{
+        const text=await file.text();
+        const data=JSON.parse(text);
+        if(data.version==="vanguard_v7"&&data.profiles){
+          onRestoreState&&onRestoreState(data);
+          setDriveMsg("✓ Progress restored from backup!");
+          setTimeout(()=>onClose(),2000);
+        } else {
+          setDriveMsg("✗ Invalid backup file — wrong format");
+        }
+      }catch{
+        setDriveMsg("✗ Could not read file");
+      }
+      setTimeout(()=>setDriveMsg(null),5000);
+    };
+    input.click();
+  }
   const [newReward,setNewReward]=useState({label:"",flux:200,emoji:"🎁",category:"custom"});
 
   function tryPin(){if(pin===PARENT_PIN){setAuth(true);}else{setPinErr(true);setTimeout(()=>setPinErr(false),800);}}
@@ -4050,6 +4088,15 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
             <button onClick={()=>{onUpdateProfiles(selectedUser,p=>({...p,sectionsToday:0,lastSyncDate:null,bountyCorrectToday:0,bountyCountToday:0,lastBountyDate:null,tabSwitchToday:0,warmupDoneToday:false,lastWarmupDate:null}));setMsg("Daily limits cleared");setTimeout(()=>setMsg(null),2000);}} style={{...S.btnCyber,borderColor:"#7744ff",color:"#7744ff"}}>🔓 CLEAR TODAY'S LIMITS FOR {selectedUser}</button>
             <button onClick={()=>{onClose();setTimeout(()=>window.dispatchEvent(new CustomEvent("triggerTest")),100);}} style={{...S.btnCyber,borderColor:"#00aaff",color:"#00aaff"}}>📝 TRIGGER BI-WEEKLY TEST NOW</button>
             <button onClick={()=>{onUpdateProfiles(selectedUser,p=>({...p,baselineComplete:false,baselineScore:null,baselineWeakTopics:[]}));setMsg("Baseline reset — "+selectedUser+" will retake it");setTimeout(()=>setMsg(null),2000);}} style={{...S.btnCyber,borderColor:"#00aaff",color:"#00aaff"}}>🔄 RESET BASELINE FOR {selectedUser}</button>
+            {/* Google Drive Backup */}
+            <div style={{marginTop:"0.5rem",padding:"0.75rem",background:"#040b14",border:"1px solid #1a2a3a"}}>
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#8899aa",marginBottom:"0.5rem",letterSpacing:"0.1em"}}>☁ GOOGLE DRIVE BACKUP</div>
+              <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap"}}>
+                <button onClick={()=>backupToDrive()} style={{...S.btnCyber,borderColor:"#00aaff",color:"#00aaff",fontSize:"0.82rem"}}>⬆ BACKUP TO DRIVE</button>
+                <button onClick={()=>restoreFromDrive()} style={{...S.btnCyber,borderColor:"#ffaa00",color:"#ffaa00",fontSize:"0.82rem"}}>⬇ RESTORE FROM DRIVE</button>
+              </div>
+              {driveMsg&&<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#00ffcc",marginTop:"0.4rem"}}>{driveMsg}</div>}
+            </div>
             <button onClick={()=>{onUpdateProfiles(selectedUser,_=>({...INIT_P(selectedUser,profiles[selectedUser].color,selectedUser)}));setMsg(`${selectedUser} fully reset`);setTimeout(()=>setMsg(null),2000);}} style={{...S.btnCyber,borderColor:"#ff4444",color:"#ff4444"}}>⚠ FULL RESET {selectedUser}</button>
           </div>
         )}
@@ -4237,6 +4284,8 @@ export default function VanguardMathOS(){
   const profiles=appState; // profiles is just appState for compat
   function setProfiles(fn){setAppState(prev=>({...prev,...(typeof fn==="function"?fn(prev):fn)}));}
   const [activeUser,setActiveUser]=useState(null);
+  const [globalTabCount,setGlobalTabCount]=useState(0);
+  const [showGlobalTabWarning,setShowGlobalTabWarning]=useState(false);
   const [activeGame,setActiveGame]=useState(null); // "SLITHER"|"PRIME"
   const [showCoach,setShowCoach]=useState(false);
   const [activeBook,setActiveBook]=useState(null);
@@ -4255,6 +4304,45 @@ export default function VanguardMathOS(){
 
   useEffect(()=>{saveState(appState);},[appState]);
 
+  // Global tab detection — active whenever Vanguard is open
+  const globalCbRef=useRef(null);
+  useEffect(()=>{
+    globalCbRef.current=()=>{
+      if(!activeUser) return; // only track when logged in
+      setGlobalTabCount(c=>c+1);
+      setShowGlobalTabWarning(true);
+      // Log to profile
+      updateProfile(activeUser,prev=>({
+        ...prev,
+        tabSwitchToday:(prev.tabSwitchToday||0)+1,
+        tabSwitchCount:(prev.tabSwitchCount||0)+1,
+      }));
+    };
+  });
+  useEffect(()=>{
+    const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if(isMobile) return;
+    let lastLeft=0;let fired=false;
+    function onVis(){
+      if(document.hidden){lastLeft=Date.now();fired=false;}
+      else if(!fired&&lastLeft>0&&Date.now()-lastLeft>800){fired=true;globalCbRef.current?.();}
+      else{lastLeft=0;}
+    }
+    function onBlur(){lastLeft=Date.now();fired=false;}
+    function onFocus(){
+      if(!fired&&lastLeft>0&&Date.now()-lastLeft>800){fired=true;globalCbRef.current?.();}
+      lastLeft=0;
+    }
+    document.addEventListener("visibilitychange",onVis);
+    window.addEventListener("blur",onBlur);
+    window.addEventListener("focus",onFocus);
+    return()=>{
+      document.removeEventListener("visibilitychange",onVis);
+      window.removeEventListener("blur",onBlur);
+      window.removeEventListener("focus",onFocus);
+    };
+  },[]);
+
   // Force daily reset check on every page load
   useEffect(()=>{
     if(!activeUser) return;
@@ -4270,8 +4358,6 @@ export default function VanguardMathOS(){
         sectionsToday:(prev.lastSyncDate||"")===t?(prev.sectionsToday||0):0,
         lastSyncDate:t,
         pulse:prev.lastActive===ys?(prev.pulse||0)+1:prev.lastActive===t?(prev.pulse||0):0,
-        gameTimeUsedMs:(prev.lastGameDate||"")===t?(prev.gameTimeUsedMs||0):0,
-        lastGameDate:t,
         bountyCorrectToday:(prev.lastBountyDate||"")===t?(prev.bountyCorrectToday||0):0,
         bountyCountToday:(prev.lastBountyDate||"")===t?(prev.bountyCountToday||0):0,
         bountySessionDone:(prev.lastBountyDate||"")===t?(prev.bountySessionDone||false):false,
@@ -4496,15 +4582,11 @@ export default function VanguardMathOS(){
   }
 
   function onGameTimeUsed(ms){
-    updateProfile(activeUser,prev=>({...prev,gameTimeUsedMs:(prev.gameTimeUsedMs||0)+ms,lastGameDate:today()}));
+    // game time tracking removed
   }
 
-  // Game time: base 5min + 2min per bounty correct, max 30min
+  
   const p=activeUser?getProfile(activeUser):null;
-  const gameTimeUsed=p?(p.lastGameDate===today()?p.gameTimeUsedMs||0:0):0;
-  const earnedGameMins=p?getEarnedGameMins(p):0;
-  const gameTimeLimitMs=30*60*1000;
-  const gameTimeLeft=Math.max(0,gameTimeLimitMs-gameTimeUsed);
 
   if(activeGame==="SLITHER") return<SlitherGame onExit={()=>setActiveGame(null)}/>;
   if(activeGame==="LIVE") return<LiveMode profile={p} profiles={profiles} onExit={()=>setActiveGame(null)} onEarn={handleLiveEarn} rivalSession={appState.rivalSession}
@@ -4613,7 +4695,7 @@ export default function VanguardMathOS(){
           </div>
           {99999999<=0&&(
             <div style={{background:"#1a1000",border:"1px solid #ffdd0033",padding:"0.75rem 1.25rem",marginBottom:"1rem",fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#ffdd00"}}>
-              ⚡ NO GAME TIME — Answer bounty questions to earn up to {MAX_GAME_MINS} min/day. Each correct = +{0} min.
+              ⚡ Complete warm-up first to unlock Bounty and Live Mode.
             </div>
           )}
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:"1.5rem"}}>
@@ -4633,7 +4715,7 @@ export default function VanguardMathOS(){
                   {unlocked
                     ?<button style={{...S.btnCyber,borderColor:c,color:c}} onClick={()=>{setShowArcade(false);if(g.key==="LIVE"){setActiveGame("LIVE");}else{setActiveGame(g.key);}}}>LAUNCH ▶</button>
                     :<div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#ff4444",padding:"0.45rem",border:"1px solid #ff444433",background:"#1a0000"}}>
-                      {xpLocked?`LOCKED — ${g.cost-p.xp} XP needed`:`NO GAME TIME — solve bounties to earn time`}
+                      {xpLocked?`LOCKED — ${g.cost-p.xp} XP needed`:`READY TO PLAY`}
                     </div>}
                 </div>
               );
@@ -4667,12 +4749,31 @@ export default function VanguardMathOS(){
   const questFlux=200; // 15min TV target
   const questProgress=Math.min(flux,questFlux); // simplified: today's flux
 
+  if(showGlobalTabWarning&&activeUser&&!activeGame&&!showBounty&&!showLearnMode&&!showWarmup&&!showBaseline)
+    return(
+      <div style={{position:"fixed",inset:0,zIndex:9999,background:"rgba(0,0,0,0.9)",display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem"}}>
+        <div style={{background:"#1a0000",border:"2px solid #ff4444",padding:"2rem",maxWidth:400,textAlign:"center"}}>
+          <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1rem",color:"#ff4444",marginBottom:"0.5rem",letterSpacing:"0.1em"}}>TAB SWITCH DETECTED</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.9rem",color:"#ff8888",marginBottom:"1rem"}}>Switch #{globalTabCount} — Stay on Vanguard while working!</div>
+          <button onClick={()=>setShowGlobalTabWarning(false)} style={S.btnCyber}>GOT IT — BACK TO WORK</button>
+        </div>
+      </div>
+    );
+
   return(
     <div style={{minHeight:"100vh",background:"#03080f",fontFamily:"Rajdhani,sans-serif"}}>
       <Scanlines/>
       {notification&&<Toast n={notification}/>}
       {showCoach&&<ApexCoach profile={p} onClose={()=>setShowCoach(false)} onDeductCredits={()=>{}}/>}
-      {showParent&&<ParentMode profiles={profiles} rewards={Array.isArray(appState.rewards)&&appState.rewards.length>0?appState.rewards:DEFAULT_REWARDS} onClose={()=>setShowParent(false)} onUpdateProfiles={updateProfile} onUpdateRewards={(r)=>setAppState(prev=>({...prev,rewards:r}))} onStartRival={()=>setRivalPending(true)}/>}
+      {showParent&&<ParentMode
+        profiles={profiles}
+        rewards={Array.isArray(appState.rewards)&&appState.rewards.length>0?appState.rewards:DEFAULT_REWARDS}
+        onClose={()=>setShowParent(false)}
+        onUpdateProfiles={updateProfile}
+        onUpdateRewards={(r)=>setAppState(prev=>({...prev,rewards:r}))}
+        onStartRival={()=>setRivalPending(true)}
+        onRestoreState={(data)=>{setAppState(prev=>({...prev,CIPHER:data.profiles?.CIPHER||prev.CIPHER,NOVA:data.profiles?.NOVA||prev.NOVA,rewards:data.rewards||prev.rewards}));}}
+      />}
       {showBounty&&p&&<BountyBoard profile={p} onClose={()=>setShowBounty(false)} onCorrect={handleBountyCorrect} onSpendLC={()=>{}} onSpendFlux={(amt)=>updateProfile(activeUser,prev=>({...prev,flux:Math.max(0,(prev.flux||0)-amt),fluxHistory:addFluxHistory(prev,"Help (scaffold/example)",-amt)}))}/>}
       {showWarmup&&<DailyWarmup profile={p} onComplete={handleWarmupComplete} onSkipDay={()=>setShowWarmup(false)} />}
       {showFluxHistory&&<FluxHistory profile={p} onClose={()=>setShowFluxHistory(false)}/>}
@@ -4707,7 +4808,7 @@ export default function VanguardMathOS(){
             <div>
               <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.5rem",fontWeight:900,color:rank.color,lineHeight:1}}>{activeUser}</div>
               <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:rank.color,marginTop:"0.15rem",letterSpacing:"0.1em"}}>{rank.name}{p.pulse>0?` · ${p.pulse}🔥`:""}</div>
-              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#445566",marginTop:"0.1rem"}}>📅 {today()} · syncs: {p.sectionsToday||0}/{DAILY_SECTION_LIMIT}</div>
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#445566",marginTop:"0.1rem"}}>📅 {today()} · syncs: {p.sectionsToday||0}/{DAILY_SECTION_LIMIT} · <span style={{color:"#2a3a4a"}}>{APP_VERSION}</span></div>
             </div>
             {nextRank&&(
               <div style={{paddingLeft:"1rem",borderLeft:"1px solid #1a2a3a"}}>
