@@ -8,13 +8,18 @@ const DAILY_SECTION_LIMIT = 4;
 const PRIME_HUNTER_COST = 300;   // XP to unlock Prime Hunter (permanent)
 const SLITHER_COST = 600;        // XP to unlock Slither
 const LIVE_MODE_COST = 400;      // XP to unlock Live Mode
-const APEX_COST = 15;            // LC per Apex Coach query
 
 // Game time (earned by math)
-const MINS_PER_SECTION = 3;
-const MINS_PER_BOUNTY_CORRECT = 2;
+// Help costs (Flux) — nudge free, scaffold/example cost Flux
+const SCAFFOLD_FLUX_COST = 5;    // Step-by-step scaffold
+const EXAMPLE_FLUX_COST = 15;    // Full worked example
+// Game time removed — simplified to XP + Flux only
+// Stub constants — kept for backward compat after simplification
 const MAX_GAME_MINS = 30;
-const GAME_TIME_LIMIT_MS = MAX_GAME_MINS * 60 * 1000;
+const MINS_PER_SECTION = 0;
+const MINS_PER_BOUNTY_CORRECT = 0;
+const GAME_TIME_LIMIT_MS = 99999999;
+
 
 // XP values
 const SECTION_XP = 35;
@@ -24,17 +29,15 @@ const BOUNTY_XP = 25;
 const BOUNTY_DAILY_CAP = 15;
 const LEARN_XP = 20;             // XP per correct in Learn Mode (deep understanding)
 const LIVE_XP = 5;               // XP per correct in Live Mode
-const LIVE_DAILY_FLUX_CAP = 300;  // Max Flux from Live Mode per day (demonstration)
-const LIVE_FLUX = 30;            // Flux per correct in Live Mode
-const LEARN_FLUX = 5;            // Flux per correct in Learn Mode
+const LIVE_DAILY_FLUX_CAP = 800;  // Max Flux from Live Mode per day
+const LIVE_DAILY_XP_CAP = 200;   // Max XP from Live Mode per day (demonstration)
+const LIVE_FLUX = 20;            // Flux per correct in Live Mode
+const LEARN_FLUX = 10;           // Flux per correct proof in Learn Mode
+const CHALLENGE_FLUX = 20;       // Flux for completing challenge question
 const BOUNTY_FLUX = 15;          // Flux per correct bounty answer
-const SECTION_FLUX = 10;         // Flux per section synced
+const SECTION_FLUX = 5;          // Flux per section synced (reduced — proofs matter more)
 
 // LC costs
-const HINT_COST = 3;
-const REVEAL_COST = 5;
-const SCAFFOLD_COST = 3;         // Learn Mode scaffold help
-const WORKED_EXAMPLE_COST = 8;   // Learn Mode worked example
 
 // Bi-weekly test
 const TEST_INTERVAL_DAYS = 14;
@@ -53,13 +56,13 @@ function getNextRank(xp){return RANKS.find(r=>r.min>xp)||null;}
 
 // Default rewards (parent editable)
 const DEFAULT_REWARDS=[
-  {id:"tv15",  label:"15 min TV",          flux:200, emoji:"📺", category:"tv"},
-  {id:"tv45",  label:"45 min TV",          flux:500, emoji:"📺", category:"tv"},
-  {id:"tv60",  label:"60 min TV",          flux:650, emoji:"📺", category:"tv"},
-  {id:"vg30",  label:"30 min Video Games", flux:300, emoji:"🎮", category:"games"},
-  {id:"vg60",  label:"1 hr Video Games",   flux:550, emoji:"🎮", category:"games"},
-  {id:"rest",  label:"Choose Restaurant",  flux:800, emoji:"🍕", category:"outing"},
-  {id:"poke",  label:"Pokemon Pack",       flux:1000,emoji:"🃏", category:"special"},
+  {id:"tv15",  label:"15 min TV",          flux:500,  emoji:"📺", category:"tv"},
+  {id:"tv45",  label:"45 min TV",          flux:1500, emoji:"📺", category:"tv"},
+  {id:"tv60",  label:"60 min TV",          flux:2000, emoji:"📺", category:"tv"},
+  {id:"vg30",  label:"30 min Video Games", flux:800,  emoji:"🎮", category:"games"},
+  {id:"vg60",  label:"1 hr Video Games",   flux:1800, emoji:"🎮", category:"games"},
+  {id:"rest",  label:"Choose Restaurant",  flux:2500, emoji:"🍕", category:"outing"},
+  {id:"poke",  label:"Pokemon Pack",       flux:3000, emoji:"🃏", category:"special"},
 ];
 
 // Storage — v7 migrates from v6 automatically
@@ -1010,45 +1013,47 @@ const SECTION_PROOFS = {
   ],
   // C&P CH1
   c1s1:[
-    {q:"How many integers are from 1 to 50 inclusive?",a:"50",hint:"50−1+1=50"},
-    {q:"How many even numbers are from 2 to 20?",a:"10",hint:"(20−2)/2 + 1"},
+    {q:"How many integers from 15 to 85 inclusive?",a:"71",hint:"Last − first + 1 = 85−15+1"},
+    {q:"How many multiples of 7 are there from 1 to 200?",a:"28",hint:"⌊200/7⌋ = 28"},
+    {q:"How many integers from 1 to 500 are divisible by both 3 and 5?",a:"33",hint:"Divisible by both means divisible by lcm(3,5)=15. ⌊500/15⌋=33"},
   ],
   c1s2:[
-    {q:"How many integers from 13 to 27 inclusive?",a:"15",hint:"27−13+1"},
-    {q:"How many multiples of 5 from 10 to 50?",a:"9",hint:"(50−10)/5 + 1"},
+    {q:"How many 2-digit multiples of 3 exist?",a:"30",hint:"From 12 to 99: (99−12)/3 + 1"},
+    {q:"How many integers from 100 to 999 have all digits the same? (like 111, 222...)",a:"9",hint:"Only 111,222,...,999 — one for each digit 1-9"},
   ],
   c1s3:[
-    {q:"A set has 15 boys and 12 girls. How many total?",a:"27",hint:"Simply add"},
-    {q:"How many integers 1–30 are NOT multiples of 3?",a:"20",hint:"30 − 10 = 20 (there are 10 multiples of 3)"},
+    {q:"A survey: 30 like cats, 25 like dogs, 10 like both. How many like at least one?",a:"45",hint:"Addition Principle with overlap: 30+25−10"},
+    {q:"How many integers 1–100 are NOT divisible by 3 AND NOT divisible by 5?",a:"54",hint:"100 − (div by 3) − (div by 5) + (div by 15) = 100−33−20+6"},
   ],
   c1s4:[
-    {q:"You choose a shirt (3 options) and pants (4 options). How many outfits?",a:"12",hint:"Multiplication Principle: 3×4"},
-    {q:"A coin is flipped and a die is rolled. How many outcomes?",a:"12",hint:"2×6"},
+    {q:"A menu has 4 appetizers, 5 mains, 3 desserts. How many 3-course meals?",a:"60",hint:"Multiplication Principle: 4×5×3"},
+    {q:"A license plate has 2 letters then 3 digits. First letter cannot be O or I. How many plates?",a:"240000",hint:"24×26×10×10×10 = 240000"},
   ],
   c1s5:[
-    {q:"How many ways to arrange 4 books on a shelf?",a:"24",hint:"4! = 4×3×2×1"},
-    {q:"How many 3-digit numbers using digits 1,2,3 (no repeats)?",a:"6",hint:"3×2×1"},
-    {q:"What is 5!?",a:"120",hint:"5×4×3×2×1"},
+    {q:"In how many ways can 6 students line up if the tallest must be first?",a:"120",hint:"Fix first position (1 way), arrange remaining 5: 5!"},
+    {q:"How many 4-letter arrangements of the letters A,B,C,D,E,F (no repeats)?",a:"360",hint:"P(6,4)=6×5×4×3"},
+    {q:"A president, VP, and secretary are chosen from 10 people. How many ways?",a:"720",hint:"Order matters: 10×9×8"},
   ],
   // C&P CH2
   c2s1:[
-    {q:"How many ways to distribute 3 distinct balls into 2 labeled boxes?",a:"8",hint:"Each ball has 2 choices: 2³"},
+    {q:"How many ways to distribute 4 distinct balls into 3 labeled boxes (any box can be empty)?",a:"81",hint:"Each ball independently goes to one of 3 boxes: 3⁴"},
+    {q:"A quiz has 5 true/false questions. How many ways can a student answer?",a:"32",hint:"2 choices per question: 2⁵"},
   ],
   c2s2:[
-    {q:"Count integers 1–20 divisible by 2 or 3.",a:"13",hint:"Divisible by 2: 10; by 3: 6; by 6: 3. Use inclusion-exclusion."},
-    {q:"Passwords: 1 uppercase + 1 digit. Uppercase: 26 options. Digits: 10. How many total 2-character passwords?",a:"260",hint:"26×10"},
+    {q:"How many integers 1–200 are divisible by 4 or 6?",a:"67",hint:"div by 4: 50, div by 6: 33, div by 12: 16. Use inclusion-exclusion: 50+33−16"},
+    {q:"Passwords: 3 characters, each a digit or uppercase letter. How many passwords?",a:"46656",hint:"36 choices each position: 36³ = 46656"},
   ],
   c2s3:[
-    {q:"Integers 1–20 NOT divisible by 4?",a:"15",hint:"20 − (# divisible by 4) = 20−5"},
-    {q:"How many 2-digit numbers don't have a 7?",a:"72",hint:"Total 2-digit: 90. With 7: 18. 90−18=72"},
+    {q:"How many 5-digit numbers have NO digit equal to 5?",a:"52488",hint:"9×9×9×9×9... wait: first digit: 8 choices (1-9 except 5), rest: 9 each. 8×9⁴"},
+    {q:"Integers 1–1000: how many are NOT divisible by 2, 3, or 5?",a:"267",hint:"Inclusion-exclusion: 1000 − (500+333+200) + (166+100+66) − 33 = 267"},
   ],
   c2s4:[
-    {q:"4-digit numbers with first digit non-zero. How many?",a:"9000",hint:"9×10×10×10"},
-    {q:"License plates: 3 letters then 3 digits. How many?",a:"17576000",hint:"26³×10³"},
+    {q:"How many 5-digit palindromes exist? (e.g. 12321)",a:"900",hint:"First 3 digits determine all 5. First digit: 9 choices, 2nd: 10, 3rd: 10. 9×10×10"},
+    {q:"How many ways to roll 3 dice and get a sum of exactly 4?",a:"3",hint:"Casework: (1,1,2),(1,2,1),(2,1,1) — only 3 ways"},
   ],
   c2s5:[
-    {q:"How many 3-letter arrangements of A,B,C,D,E with no repeats?",a:"60",hint:"5×4×3"},
-    {q:"How many 4-digit numbers with all different digits?",a:"4536",hint:"9×9×8×7"},
+    {q:"How many 5-letter arrangements of ABCDE have A before B? (not necessarily adjacent)",a:"60",hint:"By symmetry, exactly half of all 5!=120 arrangements have A before B"},
+    {q:"How many 3-digit numbers use only odd digits (1,3,5,7,9)?",a:"125",hint:"5×5×5 = 125"},
   ],
   // C&P CH3
   c3s1:[
@@ -1178,12 +1183,11 @@ const CHALLENGES = {
 // ═══════════════════════════════════════════════════════════
 const INIT_P=(name,color,profileType="CIPHER")=>({
   name,color,profileType,
-  xp:0,flux:0,lc:30,pulse:0,lastActive:null,
+  xp:0,flux:0,pulse:0,lastActive:null,
   sectionsToday:0,lastSyncDate:null,
-  gameTimeUsedMs:0,lastGameDate:null,
   sectionsDone:{},proofsDone:{},challengesDone:{},
   topicMastery:{},          // {sectionId: {attempts,correct,lastSeen}}
-  bountyCorrectToday:0,bountyCountToday:0,lastBountyDate:null,
+  bountyCorrectToday:0,bountyCountToday:0,lastBountyDate:null,bountySessionDone:false,
   learnProgress:{},         // {sectionId: {done,correct}}
   baselineComplete:false,   // one-time assessment
   baselineScore:null,
@@ -1198,7 +1202,11 @@ const INIT_P=(name,color,profileType="CIPHER")=>({
   streakShield:false,       // 11yr old perk
   currentStreak:0,
   liveFluxToday:0,
+  liveXpToday:0,
+  liveSessionDone:false,
+  usedLiveQuestions:[],  // question texts used today
   lastLiveDate:null,
+  fluxHistory:[],  // [{date,activity,flux}]
 });
 function migrateV6toV7(v6){
   // Migrate old profile fields, add new ones with defaults
@@ -1206,13 +1214,10 @@ function migrateV6toV7(v6){
     ...INIT_P(name,color),
     xp:p.xp||0,
     flux:p.xp||0, // seed flux from old XP as starting balance
-    lc:p.lc||30,
     pulse:p.pulse||0,
     lastActive:p.lastActive||null,
     sectionsToday:p.sectionsToday||0,
     lastSyncDate:p.lastSyncDate||null,
-    gameTimeUsedMs:p.gameTimeUsedMs||0,
-    lastGameDate:p.lastGameDate||null,
     sectionsDone:p.sectionsDone||{},
     proofsDone:p.proofsDone||{},
     challengesDone:p.challengesDone||{},
@@ -1397,6 +1402,27 @@ function generateBountyQuestions(profile, count=8){
     ]);
   }
 
+  // ── Number Theory questions (for NOVA) ─────────────────────────────────────
+  if(done.some(id=>id.startsWith("nt"))){
+    pool.push(...[
+      {q:"What is gcd(48, 36)?",a:"12",xp:BOUNTY_XP,tag:"number theory"},
+      {q:"What is lcm(6, 10)?",a:"30",xp:BOUNTY_XP,tag:"number theory"},
+      {q:"How many divisors does 24 have?",a:"8",xp:BOUNTY_XP,tag:"number theory",hint:"1,2,3,4,6,8,12,24"},
+      {q:"What is 17 mod 5?",a:"2",xp:BOUNTY_XP,tag:"modular"},
+      {q:"Is 91 prime? (91=7×13)",a:"no",xp:BOUNTY_XP,tag:"primes"},
+      {q:"Prime factorization of 36?",a:"2^2*3^2|4*9|2²×3²",xp:BOUNTY_XP,tag:"primes"},
+      {q:"What is the last digit of 7^4?",a:"1",xp:BOUNTY_XP,tag:"modular",hint:"7,49,343,2401"},
+      {q:"gcd(100,75)=?",a:"25",xp:BOUNTY_XP,tag:"number theory"},
+      {q:"Is 2^31 even or odd?",a:"even",xp:BOUNTY_XP,tag:"number theory"},
+      {q:"What is 100 mod 7?",a:"2",xp:BOUNTY_XP,tag:"modular",hint:"100=14×7+2"},
+      {q:"Sum of divisors of 15?",a:"24",xp:BOUNTY_XP,tag:"number theory",hint:"1+3+5+15=24"},
+      {q:"How many primes are less than 30?",a:"10",xp:BOUNTY_XP,tag:"primes",hint:"2,3,5,7,11,13,17,19,23,29"},
+      {q:"Convert 1011 (base 2) to base 10.",a:"11",xp:BOUNTY_XP,tag:"bases",hint:"8+0+2+1=11"},
+      {q:"Is 561 = 3×11×17 divisible by 11?",a:"yes",xp:BOUNTY_XP,tag:"divisibility"},
+      {q:"What is φ(10)? (Euler's totient)",a:"4",xp:BOUNTY_XP+5,tag:"number theory",hint:"coprime to 10: 1,3,7,9"},
+    ]);
+  }
+
   // ── Hard challenge questions (unlocked after a lot of progress) ─
   if(done.length>=20){
     pool.push(...[
@@ -1415,25 +1441,29 @@ function generateBountyQuestions(profile, count=8){
 
 // Compute how many earned game minutes a profile has today
 function getEarnedGameMins(profile){
-  const t=today();
-  const sectionMins=(profile.lastSyncDate===t?(profile.sectionsToday||0):0)*MINS_PER_SECTION;
-  const bountyMins=(profile.lastBountyDate===t?(profile.bountyCorrectToday||0):0)*MINS_PER_BOUNTY_CORRECT;
-    return Math.min(MAX_GAME_MINS, sectionMins+bountyMins);
+  return 30; // game time simplified — returns max always
 }
 
 
+
+function addFluxHistory(prev, activity, flux){
+  if(!flux||flux<=0) return prev.fluxHistory||[];
+  const entry={date:today(),activity,flux};
+  const hist=[...(prev.fluxHistory||[]),entry];
+  // Keep last 100 entries
+  return hist.slice(-100);
+}
 // ═══════════════════════════════════════════════════════════
 // BOUNTY BOARD COMPONENT
 // ═══════════════════════════════════════════════════════════
-function BountyBoard({profile,onClose,onCorrect,onSpendLC}){
+function BountyBoard({profile,onClose,onCorrect,onSpendLC,onMarkDone}){
   const t=today();
   const isToday=profile.lastBountyDate===t;
   const usedToday=isToday?(profile.bountyCountToday||0):0;
   const correctToday=isToday?(profile.bountyCorrectToday||0):0;
-  const earnedMins=getEarnedGameMins(profile);
   const remaining=BOUNTY_DAILY_CAP-usedToday;
 
-  const [questions,setQuestions]=useState(()=>generateBountyQuestions(profile,8));
+  const [questions,setQuestions]=useState(()=>generateBountyQuestions(profile,15));
   const [qIdx,setQIdx]=useState(0);
   const [input,setInput]=useState("");
   const [hint,setHint]=useState(false);
@@ -1455,18 +1485,16 @@ function BountyBoard({profile,onClose,onCorrect,onSpendLC}){
           <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#8899aa",marginBottom:"0.5rem"}}>
             Today: {correctToday}/{usedToday} correct · +{correctToday*BOUNTY_XP} XP earned
           </div>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#00ffcc",marginBottom:"1.5rem"}}>
-            ⏱ Game time unlocked: <b>{earnedMins} min</b> today
-          </div>
+
           {done&&sessionCorrect>0&&(
             <div style={{background:"#001a10",border:"1px solid #00ffcc33",padding:"0.94rem",marginBottom:"1rem",fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#00ffcc"}}>
-              Session: +{sessionXP} XP · {sessionCorrect} correct · +{sessionCorrect*MINS_PER_BOUNTY_CORRECT} min game time
+              Session: +{sessionXP} XP · +{sessionCorrect*BOUNTY_FLUX} Flux · {sessionCorrect} correct
             </div>
           )}
           <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa",marginBottom:"1.5rem"}}>
             {remaining<=0?"Come back tomorrow for more bounties. Solve more sections to unlock harder questions!":"Great work! Earn game time by answering more tomorrow."}
           </div>
-          <button onClick={onClose} style={S.btnCyber}>RETURN TO OS</button>
+          <button onClick={()=>{onMarkDone&&onMarkDone();onClose();}} style={S.btnCyber}>RETURN TO OS</button>
         </div>
       </BountyOverlay>
     );
@@ -1498,7 +1526,7 @@ function BountyBoard({profile,onClose,onCorrect,onSpendLC}){
   }
 
   function revealAns(){
-    onSpendLC(REVEAL_COST);
+    onSpendLC(0);
     onCorrect(0,false);
     setRevealed(true);
   }
@@ -1523,8 +1551,8 @@ function BountyBoard({profile,onClose,onCorrect,onSpendLC}){
           </div>
         </div>
         <div style={{textAlign:"right"}}>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#00ffcc"}}>⏱ {Math.min(MAX_GAME_MINS,earnedMins+sessionCorrect*MINS_PER_BOUNTY_CORRECT)} min earned</div>
-          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#aabbcc"}}>+{MINS_PER_BOUNTY_CORRECT}min per correct</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#00ffcc"}}>⏱ {Math.min(MAX_GAME_MINS,30+sessionCorrect*0)} min earned</div>
+          <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#aabbcc"}}>+{0}min per correct</div>
         </div>
       </div>
 
@@ -1571,7 +1599,7 @@ function BountyBoard({profile,onClose,onCorrect,onSpendLC}){
           <div style={{display:"flex",gap:"0.94rem",padding:"0 1.25rem 1.25rem",flexWrap:"wrap"}}>
             {!hint&&q.hint&&<button onClick={()=>setHint(true)} style={S.btnGhost}>💡 HINT (no penalty)</button>}
             <button onClick={revealAns} style={{...S.btnGhost,color:"#ff6644",borderColor:"#ff664433"}}>REVEAL ANSWER</button>
-            <div style={{flex:1,textAlign:"right",fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#99aabb",paddingTop:"0.4rem"}}>Correct = +{MINS_PER_BOUNTY_CORRECT}min game time</div>
+            <div style={{flex:1,textAlign:"right",fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#99aabb",paddingTop:"0.4rem"}}>Correct = +{0}min game time</div>
           </div>
         </>
       )}
@@ -1631,9 +1659,12 @@ function TabWarning({message,onDismiss}){
 
 // Hook: call inside any question-based component
 function useTabDetection(enabled, onTabReturn){
+  // Use ref so callback is always fresh without re-registering the event
+  const cbRef=useRef(onTabReturn);
+  useEffect(()=>{cbRef.current=onTabReturn;},[onTabReturn]);
+  
   useEffect(()=>{
     if(!enabled) return;
-    // Only on desktop - skip mobile where visibilitychange fires from screen dim
     const isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     if(isMobile) return;
     let lastHidden=0;
@@ -1641,14 +1672,14 @@ function useTabDetection(enabled, onTabReturn){
       if(document.hidden){
         lastHidden=Date.now();
       } else {
-        // Only count as tab switch if they were gone > 2 seconds
-        if(lastHidden>0&&Date.now()-lastHidden>2000) onTabReturn();
+        // 1 second debounce — catches deliberate tab switches without false fires
+        if(lastHidden>0&&Date.now()-lastHidden>1000) cbRef.current();
         lastHidden=0;
       }
     }
     document.addEventListener("visibilitychange",onHide);
     return()=>document.removeEventListener("visibilitychange",onHide);
-  },[enabled,onTabReturn]);
+  },[enabled]); // only depends on enabled — callback is via ref
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1805,6 +1836,7 @@ function DailyWarmup({profile,onComplete,onSkipDay}){
           <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.88rem",color:"#8899aa",marginTop:"0.1rem"}}>3 quick questions · Then Bounty & Live Mode unlock</div>
         </div>
         <div style={{display:"flex",gap:"0.5rem",alignItems:"center"}}>
+          <button onClick={()=>{if(window.confirm("Exit warm-up? Bounty and Live Mode will stay locked until you complete it.")) onSkipDay&&onSkipDay();}} style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#ff6644",background:"none",border:"1px solid #ff664433",padding:"0.2rem 0.6rem",cursor:"pointer",borderRadius:2}}>EXIT</button>
           <div style={{display:"flex",gap:6}}>
             {[0,1,2].map(i=>(
               <div key={i} style={{width:32,height:6,borderRadius:3,background:i<results.length?(results[i].correct?"#00ffcc":"#ff6644"):i===qIdx?color:"#1a2a3a",transition:"all 0.3s"}}/>
@@ -2149,7 +2181,7 @@ function SlitherGame({onExit,gameTimeLeft,onTimeUsed}){
   const [started,setStarted]=useState(false);
   const [paused,setPaused]=useState(false);
   const pausedRef=useRef(false);
-  const [timeLeft,setTimeLeft]=useState(gameTimeLeft);
+  const [timeLeft,setTimeLeft]=useState(99999999);
   const keysRef=useRef({});
 
   const W=800,H=500,CELL=12;
@@ -2352,7 +2384,7 @@ function SlitherGame({onExit,gameTimeLeft,onTimeUsed}){
     if(!st||pausedRef.current)return;
     const now=Date.now();
     const elapsed=startRef.current?now-startRef.current:0;
-    const remaining=gameTimeLeft-elapsed;
+    const remaining=99999999-elapsed;
     setTimeLeft(Math.max(0,remaining));
     if(remaining<=0){clearTimeout(loopRef.current);onTimeUsed(elapsed);setGameOver(true);return;}
 
@@ -2386,11 +2418,11 @@ function SlitherGame({onExit,gameTimeLeft,onTimeUsed}){
     setScore(st.playerScore||0);
 
     if(st.player.dead){
-      onTimeUsed(Math.min(elapsed,gameTimeLeft));
+      onTimeUsed(Math.min(elapsed,99999999));
       setGameOver(true);return;
     }
     loopRef.current=setTimeout(gameLoop,50); // 20fps
-  },[gameTimeLeft,onTimeUsed]);
+  },[99999999,onTimeUsed]);
 
   function startGame(){
     clearTimeout(loopRef.current);
@@ -2418,7 +2450,7 @@ function SlitherGame({onExit,gameTimeLeft,onTimeUsed}){
   },[]);
 
   const mins=Math.floor(timeLeft/60000),secs=Math.floor((timeLeft%60000)/1000);
-  const timePct=gameTimeLeft>0?timeLeft/gameTimeLeft:0;
+  const timePct=99999999>0?timeLeft/99999999:0;
   const timeColor=timePct>0.5?"#00ffcc":timePct>0.25?"#ffaa00":"#ff4444";
 
   return(
@@ -2435,7 +2467,7 @@ function SlitherGame({onExit,gameTimeLeft,onTimeUsed}){
           </div>
           {started&&!gameOver&&<button onClick={togglePause} style={{background:"none",border:"1px solid #2a3a4a",color:"#8899aa",padding:"0.2rem 0.6rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.8rem",borderRadius:3}}>{paused?"▶":"⏸"}</button>}
         </div>
-        <button onClick={()=>{clearTimeout(loopRef.current);if(startRef.current)onTimeUsed(Math.min(Date.now()-startRef.current,gameTimeLeft));onExit();}}
+        <button onClick={()=>{clearTimeout(loopRef.current);if(startRef.current)onTimeUsed(Math.min(Date.now()-startRef.current,99999999));onExit();}}
           style={{background:"none",border:"1px solid #ff4444",color:"#ff4444",padding:"0.25rem 0.75rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.8rem",borderRadius:3}}>EXIT</button>
       </div>
       <div style={{padding:"0.25rem 1.5rem",background:"#030810",borderBottom:"1px solid #0a1a2a",fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa"}}>
@@ -2732,6 +2764,7 @@ function BaselineAssessment({profile,onComplete}){
         <div style={{textAlign:"right"}}>
           <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.5rem",fontWeight:900,color:timeColor}}>{Math.floor(timeLeft/60)}:{String(timeLeft%60).padStart(2,"0")}</div>
           <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa"}}>Q {qIdx+1} / {questions.length}</div>
+          <button onClick={()=>{if(window.confirm("Exit baseline? You can retake it later.")){clearInterval(timerRef.current);onComplete(0,[]);}}} style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.72rem",color:"#ff6644",background:"none",border:"1px solid #ff664433",padding:"0.15rem 0.5rem",cursor:"pointer",marginTop:"0.25rem"}}>EXIT TEST</button>
         </div>
       </div>
       {/* Progress */}
@@ -2940,7 +2973,7 @@ function AnswerGuide({onClose}){
 // ═══════════════════════════════════════════════════════════
 // LEARN MODE — no timer, scaffolded help, Apex-powered
 // ═══════════════════════════════════════════════════════════
-function LearnMode({section,book,profile,onComplete,onClose,onSpendLC}){
+function LearnMode({section,book,profile,onComplete,onClose,onSpendLC=()=>{},onSpendFlux=()=>{}}){
   const proofs=SECTION_PROOFS[section.id]||[];
   const [qIdx,setQIdx]=useState(0);
   const [input,setInput]=useState("");
@@ -3002,8 +3035,10 @@ function LearnMode({section,book,profile,onComplete,onClose,onSpendLC}){
     if(!q)return;
     if(level===1){setHelpLevel(1);return;} // free nudge
     if(level===2){
-      if(profile.lc<SCAFFOLD_COST){notify("Not enough LC for scaffold","warn");return;}
-      onSpendLC(SCAFFOLD_COST);
+      if((profile.flux||0)<SCAFFOLD_FLUX_COST){
+        notify(`Need ${SCAFFOLD_FLUX_COST} Flux for scaffold help`,"warn");return;
+      }
+      onSpendFlux(SCAFFOLD_FLUX_COST);
       setLoadingHelp(true);
       try{
         const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:200,system:"You are a math tutor. Give a 2-step scaffold: show step 1, ask student to do step 2. Be encouraging, not giving the answer. Max 3 sentences.",messages:[{role:"user",content:`Question: ${q.q}
@@ -3016,8 +3051,10 @@ Give scaffold help.`}]})});
       setHelpLevel(2);
     }
     if(level===3){
-      if(profile.lc<WORKED_EXAMPLE_COST){notify("Not enough LC for worked example","warn");return;}
-      onSpendLC(WORKED_EXAMPLE_COST);
+      if((profile.flux||0)<EXAMPLE_FLUX_COST){
+        notify(`Need ${EXAMPLE_FLUX_COST} Flux for a worked example`,"warn");return;
+      }
+      onSpendFlux(EXAMPLE_FLUX_COST);
       setLoadingHelp(true);
       try{
         const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:250,system:"Show a SIMILAR but DIFFERENT worked example (not the exact question). Then say 'Now try the original.' Keep it under 4 sentences.",messages:[{role:"user",content:`Question: ${q.q}
@@ -3095,9 +3132,9 @@ Show a similar worked example.`}]})});
         {/* Help buttons */}
         <div style={{display:"flex",gap:"0.90rem",padding:"0 1.25rem 1.25rem",flexWrap:"wrap"}}>
           {helpLevel===0&&<button onClick={()=>getHelp(1)} style={{...S.btnGhost,fontSize:"0.8rem"}}>💡 Nudge (free)</button>}
-          {helpLevel<=1&&<button onClick={()=>getHelp(2)} style={{...S.btnGhost,fontSize:"0.8rem",borderColor:"#00aaff44",color:"#00aaff"}}>{loadingHelp?"...":"🔧 Scaffold ("}{!loadingHelp&&`${SCAFFOLD_COST} LC)`}</button>}
-          {helpLevel<=2&&<button onClick={()=>getHelp(3)} style={{...S.btnGhost,fontSize:"0.8rem",borderColor:"#aa66ff44",color:"#aa66ff"}}>{loadingHelp?"...":"📖 Example ("}{!loadingHelp&&`${WORKED_EXAMPLE_COST} LC)`}</button>}
-          <div style={{flex:1,textAlign:"right",fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#aabbcc",paddingTop:"0.35rem"}}>⚡ {profile.lc} LC available</div>
+          {helpLevel<=1&&<button onClick={()=>getHelp(2)} style={{...S.btnGhost,fontSize:"0.8rem",borderColor:"#00aaff44",color:"#00aaff"}}>{loadingHelp?"...":"🔧 Scaffold ("}</button>}
+          {helpLevel<=2&&<button onClick={()=>getHelp(3)} style={{...S.btnGhost,fontSize:"0.8rem",borderColor:"#aa66ff44",color:"#aa66ff"}}>{loadingHelp?"...":"📖 Example ("}</button>}
+          <div style={{flex:1,textAlign:"right",fontFamily:"Share Tech Mono,monospace",fontSize:"0.76rem",color:"#445566",paddingTop:"0.35rem"}}>💡 Nudge: free · 🔧 Scaffold: {SCAFFOLD_FLUX_COST}⚡ · 📖 Example: {EXAMPLE_FLUX_COST}⚡</div>
         </div>
       </div>
     </div>
@@ -3107,7 +3144,7 @@ Show a similar worked example.`}]})});
 // ═══════════════════════════════════════════════════════════
 // LIVE MODE — 90 sec timer, Flux rewards, Gimkit-style
 // ═══════════════════════════════════════════════════════════
-function LiveMode({profile,onExit,onEarn}){
+function LiveMode({profile,onExit,onEarn,onMarkUsed=()=>{}}){
   const [questions]=useState(()=>buildLiveQuestions(profile));
   const [qIdx,setQIdx]=useState(0);
   const [input,setInput]=useState("");
@@ -3115,6 +3152,7 @@ function LiveMode({profile,onExit,onEarn}){
   const [score,setScore]=useState(0);
   const [streak,setStreak]=useState(0);
   const [fluxEarned,setFluxEarned]=useState(0);
+  const [xpEarned,setXpEarned]=useState(0);
   const [fluxPop,setFluxPop]=useState(null);
   const [timeLeft,setTimeLeft]=useState(90);
   const [done,setDone]=useState(false);
@@ -3148,6 +3186,7 @@ function LiveMode({profile,onExit,onEarn}){
     clearInterval(timerRef.current);
     if(done) return;
     if(qIdx+1>=questions.length){
+      onMarkUsed(questions); // mark all questions as used today
       setDone(true);
       return;
     }
@@ -3166,6 +3205,7 @@ function LiveMode({profile,onExit,onEarn}){
       setStreak(newStreak);
       setScore(s=>s+10*multiplier);
       setFluxEarned(f=>f+flux);
+      setXpEarned(x=>x+LIVE_XP);
       setFluxPop(`+${flux}⚡`);
       setTimeout(()=>setFluxPop(null),1000);
       onEarn(xp,flux);
@@ -3214,8 +3254,12 @@ function LiveMode({profile,onExit,onEarn}){
         <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1rem",fontWeight:700,color,letterSpacing:"0.1em"}}>⚡ LIVE MODE</div>
         <div style={{display:"flex",gap:"1.25rem",alignItems:"center",fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem"}}>
           <span>SCORE <b style={{color,fontSize:"1rem"}}>{score}</b></span>
+          <span style={{fontSize:"0.78rem",color:"#8899aa"}}>XP cap: {Math.min(xpEarned,LIVE_DAILY_XP_CAP)}/{LIVE_DAILY_XP_CAP}</span>
           {streak>=2&&<span style={{color:"#ff8800"}}>{streak}🔥 x{streakMult}</span>}
-          <span style={{color:"#ffdd00"}}>⚡{fluxEarned}<span style={{fontSize:"0.75em",color:"#aa8800"}}>/{LIVE_DAILY_FLUX_CAP}</span></span>
+          <span style={{color:fluxEarned>=LIVE_DAILY_FLUX_CAP?"#aa8800":"#ffdd00"}}>
+            ⚡{fluxEarned}/{LIVE_DAILY_FLUX_CAP}
+            {fluxEarned>=LIVE_DAILY_FLUX_CAP&&<span style={{fontSize:"0.8em",color:"#ff8800"}}> CAP HIT</span>}
+          </span>
           <div style={{display:"flex",alignItems:"center",gap:"0.4rem"}}>
             <div style={{width:80,height:6,background:"#1a2a3a",borderRadius:3}}>
               <div style={{height:"100%",background:timeColor,width:`${(timeLeft/90)*100}%`,transition:"width 0.9s linear",borderRadius:3}}/>
@@ -3224,7 +3268,7 @@ function LiveMode({profile,onExit,onEarn}){
           </div>
         </div>
         <button onClick={()=>setShowLiveGuide(true)} style={{...S.btnGhost,fontSize:"0.8rem",padding:"0.2rem 0.6rem",borderColor:"#ffdd0033",color:"#ffdd00"}}>? FORMAT</button>
-        <button onClick={onExit} style={{...S.btnGhost,fontSize:"0.8rem",padding:"0.2rem 0.6rem",borderColor:"#ff444433",color:"#ff6644"}}>EXIT</button>
+        <button onClick={onExit} style={{...S.btnGhost,fontSize:"0.8rem",padding:"0.2rem 0.6rem",borderColor:"#ff444433",color:"#ff6644"}}>EXIT → SAVE</button>
       </div>
       {/* Progress bar */}
       <div style={{height:4,background:"#0a1520"}}>
@@ -3258,24 +3302,40 @@ function LiveMode({profile,onExit,onEarn}){
 function buildLiveQuestions(profile){
   const done=Object.keys(profile.sectionsDone||{});
   if(done.length<3) return [];
-  const all=[];
-  const seen=new Set(); // deduplicate by question text
-  done.forEach(sid=>{
-    const qs=[...(SECTION_PROOFS[sid]||[])];
-    qs.forEach(q=>{
+  
+  // Weight toward recent sections (last 8 done) — 70% recent, 30% older
+  // Exclude challenge questions and already-used questions today
+  const recent=done.slice(-8);
+  const older=done.slice(0,-8);
+  const usedToday=new Set(profile.usedLiveQuestions||[]);
+  
+  const seen=new Set([...usedToday]); // start seen with already-used today
+  const recentQs=[];
+  const olderQs=[];
+  
+  recent.forEach(sid=>{
+    (SECTION_PROOFS[sid]||[]).forEach(q=>{
       if(!seen.has(q.q)){
         seen.add(q.q);
-        all.push({...q,sectionId:sid,topic:sid});
+        recentQs.push({...q,sectionId:sid,topic:sid});
       }
     });
-    const ch=CHALLENGES[sid];
-    if(ch&&!seen.has(ch.q)){
-      seen.add(ch.q);
-      all.push({...ch,sectionId:sid,topic:sid,isChallenge:true});
-    }
   });
-  // Shuffle and cap at 15 unique questions per session
-  return [...all].sort(()=>Math.random()-0.5).slice(0,15);
+  
+  older.forEach(sid=>{
+    (SECTION_PROOFS[sid]||[]).forEach(q=>{
+      if(!seen.has(q.q)){
+        seen.add(q.q);
+        olderQs.push({...q,sectionId:sid,topic:sid});
+      }
+    });
+  });
+  
+  // 70% recent, 30% older, no challenges, max 15 per session
+  const recentPick=[...recentQs].sort(()=>Math.random()-0.5).slice(0,10);
+  const olderPick=[...olderQs].sort(()=>Math.random()-0.5).slice(0,5);
+  
+  return [...recentPick,...olderPick].sort(()=>Math.random()-0.5).slice(0,15);
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -3371,7 +3431,7 @@ function PrimeHunterGame({onExit,gameTimeLeft,onTimeUsed}){
   const [score,setScore]=useState(0);const [lives,setLives]=useState(3);
   const [question,setQuestion]=useState(null);const [timeLeft,setTimeLeft]=useState(8);
   const [gameOver,setGameOver]=useState(false);const [feedback,setFeedback]=useState(null);
-  const [gameTimeLeft2,setGameTimeLeft2]=useState(gameTimeLeft);
+  const [gameTimeLeft2,setGameTimeLeft2]=useState(99999999);
   const timerRef=useRef(null);const sessionStartRef=useRef(Date.now());
 
   function isPrime(n){if(n<2)return false;for(let i=2;i<=Math.sqrt(n);i++)if(n%i===0)return false;return true;}
@@ -3382,7 +3442,7 @@ function PrimeHunterGame({onExit,gameTimeLeft,onTimeUsed}){
   useEffect(()=>{
     const t=setInterval(()=>{
       const elapsed=Date.now()-sessionStartRef.current;
-      const remaining=gameTimeLeft-elapsed;
+      const remaining=99999999-elapsed;
       setGameTimeLeft2(Math.max(0,remaining));
       if(remaining<=0){clearInterval(t);onTimeUsed(elapsed);setGameOver(true);}
     },1000);
@@ -3448,10 +3508,10 @@ function ApexCoach({profile,onClose,onDeductCredits}){
   const endRef=useRef(null);
   useEffect(()=>{endRef.current?.scrollIntoView({behavior:"smooth"});},[msgs]);
   async function send(){
-    if(!input.trim()||loading||profile.lc<APEX_COST)return;
+    if(!input.trim()||loading||999<0)return;
     const um={role:"user",content:input.trim()};
     const updated=[...msgs,um];setMsgs(updated);setInput("");setLoading(true);
-    onDeductCredits(APEX_COST,updated);
+    onDeductCredits(0,updated);
     try{
       const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:500,system:`You are APEX COACH, a Socratic math tutor in Vanguard Math OS. Student: ${profile.name}. Studying AoPS Intro to Algebra and Counting & Probability. RULES: NEVER give direct answers. Guide with ONE question per response. Max 3 sentences. Cyberpunk tone: "operative", "sync your logic", "run the diagnostic". Acknowledge correct steps. Probe the next gap.`,messages:updated})});
       const data=await res.json();
@@ -3467,11 +3527,11 @@ function ApexCoach({profile,onClose,onDeductCredits}){
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"0.9rem 1.25rem",borderBottom:"1px solid #1a2a3a",fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#ffdd00"}}>
           <span>◈ APEX COACH — NEURAL LINK</span>
           <div style={{display:"flex",gap:"1rem",alignItems:"center"}}>
-            <span style={{background:"#1a1500",border:"1px solid #ffdd0066",padding:"0.2rem 0.6rem",fontSize:"0.92rem"}}>⚡ {profile.lc} LC</span>
+            <span style={{background:"#1a1500",border:"1px solid #ffdd0066",padding:"0.2rem 0.6rem",fontSize:"0.92rem"}}>⚡ {999} LC</span>
             <button onClick={onClose} style={S.xBtn}>✕</button>
           </div>
         </div>
-        <div style={{padding:"0.35rem 1.25rem",background:"#1a1000",fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#ff8800",borderBottom:"1px solid #2a2000"}}>⚠ SOCRATIC MODE — {APEX_COST} LC/query · No direct answers</div>
+        <div style={{padding:"0.35rem 1.25rem",background:"#1a1000",fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#ff8800",borderBottom:"1px solid #2a2000"}}>⚠ SOCRATIC MODE — {0} LC/query · No direct answers</div>
         <div style={{flex:1,overflowY:"auto",padding:"1rem",display:"flex",flexDirection:"column",gap:"0.94rem",minHeight:180}}>
           {msgs.length===0&&<div style={{textAlign:"center",padding:"2rem",color:"#8899aa"}}><div style={{fontSize:"2.5rem",color:"#ffdd00",marginBottom:"0.5rem"}}>◈</div><p>Neural link established, <b>{profile.name}</b>. Show your work.</p></div>}
           {msgs.map((m,i)=>(
@@ -3484,9 +3544,82 @@ function ApexCoach({profile,onClose,onDeductCredits}){
           <div ref={endRef}/>
         </div>
         <div style={{display:"flex",gap:"0.5rem",padding:"0.9rem",borderTop:"1px solid #1a2a3a"}}>
-          <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder={profile.lc<APEX_COST?"INSUFFICIENT LC":"Show your work or describe the problem..."} disabled={profile.lc<APEX_COST||loading} style={S.ansInput}/>
-          <button onClick={send} disabled={profile.lc<APEX_COST||loading||!input.trim()} style={{...S.btnCyber,borderColor:"#ffdd00",color:"#ffdd00",opacity:profile.lc<APEX_COST?0.4:1}}>TRANSMIT</button>
+          <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&send()} placeholder={999<0?"INSUFFICIENT LC":"Show your work or describe the problem..."} disabled={999<0||loading} style={S.ansInput}/>
+          <button onClick={send} disabled={999<0||loading||!input.trim()} style={{...S.btnCyber,borderColor:"#ffdd00",color:"#ffdd00",opacity:999<0?0.4:1}}>TRANSMIT</button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// FLUX HISTORY TABLE
+// ═══════════════════════════════════════════════════════════
+function FluxHistory({profile,onClose}){
+  const color=profile.color;
+  const hist=[...(profile.fluxHistory||[])].reverse();
+  
+  // This week filter
+  const now=new Date();
+  const weekAgo=new Date(now);weekAgo.setDate(weekAgo.getDate()-7);
+  const weekStr=`${weekAgo.getFullYear()}-${String(weekAgo.getMonth()+1).padStart(2,'0')}-${String(weekAgo.getDate()).padStart(2,'0')}`;
+  const thisWeek=hist.filter(e=>e.date>=weekStr);
+  
+  const totalEarned=thisWeek.filter(e=>e.flux>0).reduce((a,e)=>a+e.flux,0);
+  const totalSpent=thisWeek.filter(e=>e.flux<0).reduce((a,e)=>a+Math.abs(e.flux),0);
+
+  return(
+    <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.92)",zIndex:9000,display:"flex",alignItems:"center",justifyContent:"center",padding:"1rem",overflowY:"auto"}}>
+      <div onClick={e=>e.stopPropagation()} style={{background:"#060d18",border:`1px solid ${color}55`,width:"100%",maxWidth:580,maxHeight:"92vh",overflowY:"auto"}}>
+        {/* Header */}
+        <div style={{padding:"1rem 1.25rem",borderBottom:"1px solid #1a2a3a",display:"flex",justifyContent:"space-between",alignItems:"center",position:"relative"}}>
+          <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg,${color},transparent)`}}/>
+          <div>
+            <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.95rem",color,letterSpacing:"0.1em"}}>⚡ FLUX HISTORY</div>
+            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.84rem",color:"#8899aa",marginTop:"0.1rem"}}>Last 7 days · Current balance: ⚡{profile.flux||0}</div>
+          </div>
+          <button onClick={onClose} style={S.xBtn}>✕</button>
+        </div>
+
+        {/* Weekly summary */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:"0.5rem",padding:"0.75rem 1.25rem",borderBottom:"1px solid #1a2a3a"}}>
+          {[
+            ["EARNED",`+${totalEarned} ⚡`,"#00ffcc"],
+            ["SPENT",`-${totalSpent} ⚡`,"#ff6644"],
+            ["NET",`${totalEarned-totalSpent>=0?"+":""}${totalEarned-totalSpent} ⚡`,totalEarned-totalSpent>=0?"#ffdd00":"#ff4444"],
+          ].map(([label,val,col])=>(
+            <div key={label} style={{background:"#040b14",border:"1px solid #1a2a3a",padding:"0.5rem",textAlign:"center"}}>
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.72rem",color:"#8899aa",marginBottom:"0.2rem"}}>{label} THIS WEEK</div>
+              <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1rem",fontWeight:700,color:col}}>{val}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Table */}
+        <div style={{padding:"0.75rem 1.25rem"}}>
+          {/* Header row */}
+          <div style={{display:"grid",gridTemplateColumns:"90px 1fr 60px",gap:"0.5rem",padding:"0.3rem 0",borderBottom:`1px solid ${color}33`,marginBottom:"0.25rem"}}>
+            {["DATE","ACTIVITY","FLUX"].map(h=>(
+              <div key={h} style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.72rem",color:color,letterSpacing:"0.1em"}}>{h}</div>
+            ))}
+          </div>
+
+          {thisWeek.length===0?(
+            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.88rem",color:"#445566",textAlign:"center",padding:"2rem"}}>
+              No activity this week yet — go earn some Flux!
+            </div>
+          ):thisWeek.map((entry,i)=>(
+            <div key={i} style={{display:"grid",gridTemplateColumns:"90px 1fr 60px",gap:"0.5rem",padding:"0.35rem 0",borderBottom:"1px solid #0a1520"}}>
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#667788"}}>{entry.date}</div>
+              <div style={{fontFamily:"Rajdhani,sans-serif",fontSize:"0.9rem",color:"#c8d8e8"}}>{entry.activity}</div>
+              <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.84rem",fontWeight:700,color:entry.flux>0?"#00ffcc":"#ff6644",textAlign:"right"}}>
+                {entry.flux>0?"+":""}{entry.flux}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <button onClick={onClose} style={{...S.btnCyber,width:"calc(100% - 2.5rem)",margin:"0.75rem 1.25rem",borderColor:color,color}}>CLOSE</button>
       </div>
     </div>
   );
@@ -3620,13 +3753,17 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
       .map(r=>({...r,profileName:name,profileColor:p.color})));
 
   function approveRedemption(profileName,rid,approved){
+    const redemption=allPending.find(r=>r.id===rid);
     onUpdateProfiles(profileName,p=>({
       ...p,
+      // Refund flux if denied
+      flux:(!approved&&redemption)?(p.flux||0)+redemption.flux:(p.flux||0),
+      fluxHistory:(!approved&&redemption)?addFluxHistory(p,`Refund: ${redemption.label} (declined)`,redemption.flux):(p.fluxHistory||[]),
       pendingRedemptions:(p.pendingRedemptions||[]).map(r=>
         r.id===rid?{...r,status:approved?"approved":"denied"}:r
       ),
     }));
-    setMsg(`${approved?"Approved":"Denied"}: ${allPending.find(r=>r.id===rid)?.label}`);
+    setMsg(`${approved?"✓ Approved":"✗ Denied — Flux refunded"}: ${redemption?.label||""}`);
     setTimeout(()=>setMsg(null),2000);
   }
 
@@ -3699,7 +3836,7 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
             </div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"0.90rem",marginBottom:"1.25rem"}}>
               {[
-                ["XP",p.xp,p.color],["FLUX",`⚡${p.flux||0}`,"#ffdd00"],["LC",`⚡${p.lc}`,"#ffdd00"],
+                ["XP",p.xp,p.color],["FLUX",`⚡${p.flux||0}`,"#ffdd00"],["LC",`⚡${999}`,"#ffdd00"],
                 ["SECTIONS",Object.keys(p.sectionsDone||{}).length,"#00ffcc"],
                 ["RANK",getRank(p.xp).name,getRank(p.xp).color],
                 ["STREAK",`${p.pulse||0}🔥`,"#ff8800"],
@@ -3791,7 +3928,7 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
               <input type="number" value={xpAmt} onChange={e=>setXpAmt(e.target.value)} style={{...S.ansInput,width:100,textAlign:"center"}} min="0"/>
               <button onClick={addXP} style={{...S.btnCyber,flex:1}}>➕ ADD XP + FLUX TO {selectedUser}</button>
             </div>
-            <button onClick={()=>{onUpdateProfiles(selectedUser,p=>({...p,sectionsToday:0,lastSyncDate:null,gameTimeUsedMs:0,lastGameDate:null,bountyCorrectToday:0,bountyCountToday:0,lastBountyDate:null,tabSwitchToday:0,warmupDoneToday:false,lastWarmupDate:null}));setMsg("Daily limits cleared");setTimeout(()=>setMsg(null),2000);}} style={{...S.btnCyber,borderColor:"#7744ff",color:"#7744ff"}}>🔓 CLEAR TODAY'S LIMITS FOR {selectedUser}</button>
+            <button onClick={()=>{onUpdateProfiles(selectedUser,p=>({...p,sectionsToday:0,lastSyncDate:null,bountyCorrectToday:0,bountyCountToday:0,lastBountyDate:null,tabSwitchToday:0,warmupDoneToday:false,lastWarmupDate:null}));setMsg("Daily limits cleared");setTimeout(()=>setMsg(null),2000);}} style={{...S.btnCyber,borderColor:"#7744ff",color:"#7744ff"}}>🔓 CLEAR TODAY'S LIMITS FOR {selectedUser}</button>
             <button onClick={()=>{onClose();setTimeout(()=>window.dispatchEvent(new CustomEvent("triggerTest")),100);}} style={{...S.btnCyber,borderColor:"#00aaff",color:"#00aaff"}}>📝 TRIGGER BI-WEEKLY TEST NOW</button>
             <button onClick={()=>{onUpdateProfiles(selectedUser,_=>({...INIT_P(selectedUser,profiles[selectedUser].color,selectedUser)}));setMsg(`${selectedUser} fully reset`);setTimeout(()=>setMsg(null),2000);}} style={{...S.btnCyber,borderColor:"#ff4444",color:"#ff4444"}}>⚠ FULL RESET {selectedUser}</button>
           </div>
@@ -3826,8 +3963,8 @@ function ChapterView({chapter,book,profile,sectionsLeft,onSectionProof,onBack,sh
           <button onClick={onBack} style={S.btnBack}>← BOOK</button>
           <span style={{fontFamily:"Orbitron,sans-serif",color:book.color,fontSize:"0.95rem"}}>Ch.{chapter.num} — {chapter.name}</span>
           <div style={{display:"flex",gap:"0.94rem",alignItems:"center"}}>
-            <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",background:"#1a1500",border:"1px solid #ffdd0066",color:"#ffdd00",padding:"0.2rem 0.6rem",cursor:"pointer"}} onClick={onCoach}>⚡ {profile.lc} LC</span>
-            <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:sectionsLeft>0?"#00ffcc":"#ff4444"}}>SYNCS: {sectionsLeft}/{DAILY_SECTION_LIMIT}</span>
+            <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",background:"#1a1500",border:"1px solid #ffdd0066",color:"#ffdd00",padding:"0.2rem 0.6rem",cursor:"pointer"}} onClick={onCoach}>⚡ {999} LC</span>
+            <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:sectionsLeft>0?"#00ffcc":"#ff4444"}}>SYNCS TODAY: {DAILY_SECTION_LIMIT-sectionsLeft}/{DAILY_SECTION_LIMIT} · {sectionsLeft>0?`${sectionsLeft} left`:"limit reached"}</span>
           </div>
         </div>
 
@@ -3907,7 +4044,7 @@ function ChapterView({chapter,book,profile,sectionsLeft,onSectionProof,onBack,sh
         </div>
 
         <button onClick={onCoach} style={{background:"#1a1500",border:"1px solid #ffdd0066",color:"#ffdd00",padding:"0.7rem 1.5rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",letterSpacing:"0.1em",width:"100%"}}>
-          ◈ NEURAL LINK — APEX COACH ({APEX_COST} LC/query)
+          ◈ NEURAL LINK — APEX COACH ({0} LC/query)
         </button>
       </div>
     </div>
@@ -3996,6 +4133,7 @@ export default function VanguardMathOS(){
   const [showReport,setShowReport]=useState(false);
   const [rivalPending,setRivalPending]=useState(false);
   const [showWarmup,setShowWarmup]=useState(false);
+  const [showFluxHistory,setShowFluxHistory]=useState(false);
 
   useEffect(()=>{saveState(appState);},[appState]);
 
@@ -4018,9 +4156,13 @@ export default function VanguardMathOS(){
         lastGameDate:t,
         bountyCorrectToday:(prev.lastBountyDate||"")===t?(prev.bountyCorrectToday||0):0,
         bountyCountToday:(prev.lastBountyDate||"")===t?(prev.bountyCountToday||0):0,
+        bountySessionDone:(prev.lastBountyDate||"")===t?(prev.bountySessionDone||false):false,
         lastBountyDate:t,
         warmupDoneToday:(prev.lastWarmupDate||"")===t?(prev.warmupDoneToday||false):false,
         liveFluxToday:(prev.lastLiveDate||"")===t?(prev.liveFluxToday||0):0,
+        liveXpToday:(prev.lastLiveDate||"")===t?(prev.liveXpToday||0):0,
+        liveSessionDone:(prev.lastLiveDate||"")===t?(prev.liveSessionDone||false):false,
+        usedLiveQuestions:(prev.lastLiveDate||"")===t?(prev.usedLiveQuestions||[]):[],
         lastLiveDate:t,
       }));
     }
@@ -4057,12 +4199,8 @@ export default function VanguardMathOS(){
         pulse:p.lastActive===ys?(p.pulse||0)+1:p.lastActive===t?(p.pulse||0):0};
       changed=true;
     }
-    if((p.lastGameDate||"")!==t){
-      updated={...updated,gameTimeUsedMs:0,lastGameDate:t};
-      changed=true;
-    }
     if((p.lastBountyDate||"")!==t){
-      updated={...updated,bountyCorrectToday:0,bountyCountToday:0,lastBountyDate:t};
+      updated={...updated,bountyCorrectToday:0,bountyCountToday:0,lastBountyDate:t,bountySessionDone:false};
       changed=true;
     }
     if((p.lastWarmupDate||"")!==t){
@@ -4114,8 +4252,8 @@ export default function VanguardMathOS(){
     updateProfile(activeUser,prev=>({
       ...prev,
       xp:prev.xp+xpGain,
-      flux:(prev.flux||0)+(alreadyDone?0:SECTION_FLUX),
-      lc:prev.lc+(alreadyDone?0:5),
+      flux:(prev.flux||0)+(alreadyDone?0:SECTION_FLUX)+(challengeDone&&!prev.challengesDone?.[section.id]?CHALLENGE_FLUX:0),
+      fluxHistory:alreadyDone?prev.fluxHistory:addFluxHistory(prev,`Synced: ${section.name}`,SECTION_FLUX),
       sectionsToday:newSectionsToday,
       lastSyncDate:t,lastActive:t,
       sectionsDone:{...prev.sectionsDone,[section.id]:true},
@@ -4131,26 +4269,24 @@ export default function VanguardMathOS(){
     setProofTarget(null);
   }
 
-  function deductCredits(amt,hist){updateProfile(activeUser,prev=>({...prev,lc:Math.max(0,prev.lc-amt),chatHistory:hist||prev.chatHistory}));}
+  function deductCredits(amt,hist){updateProfile(activeUser,prev=>({...prev,lc:Math.max(0,999-amt),chatHistory:hist||prev.chatHistory}));}
 
   function handleLiveEarn(xp,flux){
     const t=today();
     updateProfile(activeUser,prev=>{
-      const lastLive=prev.lastLiveDate;
-      const earnedToday=lastLive===t?(prev.liveFluxToday||0):0;
-      const remaining=Math.max(0,LIVE_DAILY_FLUX_CAP-earnedToday);
-      const actualFlux=Math.min(flux,remaining);
-      // Consume game time (Live Mode counts as game time)
-      const gameAdd=30000; // 30 seconds per correct answer
+      const isToday=prev.lastLiveDate===t;
+      const fluxEarnedToday=isToday?(prev.liveFluxToday||0):0;
+      const xpEarnedToday=isToday?(prev.liveXpToday||0):0;
+      const actualFlux=Math.min(flux,Math.max(0,LIVE_DAILY_FLUX_CAP-fluxEarnedToday));
+      const actualXp=Math.min(xp,Math.max(0,LIVE_DAILY_XP_CAP-xpEarnedToday));
       return{
         ...prev,
-        xp:prev.xp+xp,
+        xp:prev.xp+actualXp,
         flux:(prev.flux||0)+actualFlux,
-        lc:prev.lc+1,
-        liveFluxToday:earnedToday+actualFlux,
+        liveFluxToday:fluxEarnedToday+actualFlux,
+        liveXpToday:xpEarnedToday+actualXp,
         lastLiveDate:t,
-        gameTimeUsedMs:Math.min(GAME_TIME_LIMIT_MS,(prev.gameTimeUsedMs||0)+gameAdd),
-        lastGameDate:t,
+        fluxHistory:actualFlux>0?addFluxHistory(prev,"Live Mode",actualFlux):(prev.fluxHistory||[]),
       };
     });
   }
@@ -4165,6 +4301,7 @@ export default function VanguardMathOS(){
       ...prev,
       xp:prev.xp+xp,
       flux:(prev.flux||0)+baseFlux+bonusFlux,
+      fluxHistory:addFluxHistory({...prev,fluxHistory:addFluxHistory(prev,"Warm-up complete",baseFlux)},"Warm-up all correct bonus",bonusFlux>0?bonusFlux:0),
       warmupDoneToday:true,
       lastWarmupDate:t,
       warmupStreak:(prev.lastWarmupDate===yesterday()?((prev.warmupStreak||0)+1):1),
@@ -4233,7 +4370,7 @@ export default function VanguardMathOS(){
       ...prev,
       xp:prev.xp+xp,
       flux:(prev.flux||0)+(isCorrect?BOUNTY_FLUX:0),
-      lc:prev.lc+(isCorrect?2:0),
+      fluxHistory:isCorrect?addFluxHistory(prev,"Bounty correct",BOUNTY_FLUX):prev.fluxHistory,
       bountyCorrectToday:(prev.lastBountyDate===t?(prev.bountyCorrectToday||0):0)+(isCorrect?1:0),
       bountyCountToday:(prev.lastBountyDate===t?(prev.bountyCountToday||0):0)+1,
       lastBountyDate:t,
@@ -4247,15 +4384,16 @@ export default function VanguardMathOS(){
   // Game time: base 5min + 2min per bounty correct, max 30min
   const p=activeUser?getProfile(activeUser):null;
   const gameTimeUsed=p?(p.lastGameDate===today()?p.gameTimeUsedMs||0:0):0;
-  const earnedMins=p?getEarnedGameMins(p):0;
-  const gameTimeLimitMs=earnedMins*60*1000;
+  const earnedGameMins=p?getEarnedGameMins(p):0;
+  const gameTimeLimitMs=30*60*1000;
   const gameTimeLeft=Math.max(0,gameTimeLimitMs-gameTimeUsed);
 
-  if(activeGame==="SLITHER") return<SlitherGame onExit={()=>setActiveGame(null)} gameTimeLeft={gameTimeLeft} onTimeUsed={onGameTimeUsed}/>;
-  if(activeGame==="LIVE") return<LiveMode profile={p} profiles={profiles} onExit={()=>setActiveGame(null)} onEarn={handleLiveEarn} rivalSession={appState.rivalSession}/>;
+  if(activeGame==="SLITHER") return<SlitherGame onExit={()=>setActiveGame(null)}/>;
+  if(activeGame==="LIVE") return<LiveMode profile={p} profiles={profiles} onExit={()=>setActiveGame(null)} onEarn={handleLiveEarn} rivalSession={appState.rivalSession}
+    onMarkUsed={(qs)=>updateProfile(activeUser,prev=>({...prev,liveSessionDone:true,usedLiveQuestions:[...(prev.usedLiveQuestions||[]),...qs.map(q=>q.q)].slice(-200)}))}/>;
   if(activeGame==="BASELINE") return<BaselineAssessment profile={p} onComplete={(score,weak)=>handleBaselineComplete(score,weak)} />;
   if(activeGame==="BIWEEKLY") return<BiweeklyTest profile={p} onComplete={(score,weak)=>handleTestComplete(score,weak)}/>;
-  if(activeGame==="PRIME") return<PrimeHunterGame onExit={()=>setActiveGame(null)} gameTimeLeft={gameTimeLeft} onTimeUsed={onGameTimeUsed}/>;
+  if(activeGame==="PRIME") return<PrimeHunterGame onExit={()=>setActiveGame(null)}/>;
 
   const otherUser=activeUser==="CIPHER"?"NOVA":"CIPHER";
   const op=(activeUser&&profiles[otherUser]&&'xp' in profiles[otherUser])?profiles[otherUser]:{xp:0,color:'#556677',name:otherUser,pulse:0,flux:0};
@@ -4287,8 +4425,8 @@ export default function VanguardMathOS(){
                 <div style={{fontSize:"0.92rem",color:"#ff8800",marginBottom:"0.94rem"}}>PULSE {prof.pulse||0} 🔥</div>
                 <div style={{height:3,background:"#1a2a3a",marginBottom:"0.90rem"}}><div style={{height:"100%",background:prof.color,width:`${Math.min(100,(prof.xp%500)/5)}%`}}/></div>
                 <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#8899aa",marginBottom:"0.2rem"}}>{doneSecs}/{totalSecs} SECTIONS</div>
-                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:prof.xp>=PRIME_HUNTER_COST?"#00ffcc":"#445566",marginBottom:"0.35rem"}}>{prof.xp>=PRIME_HUNTER_COST?"✓ ARCADE UNLOCKED":`${Math.max(0,PRIME_HUNTER_COST-prof.xp)} XP TO ARCADE`}</div>
-                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#ffdd0088",marginBottom:"0.94rem"}}>⚡ {getEarnedGameMins(prof)}min game time earned today</div>
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#ffdd00",marginBottom:"0.35rem"}}>⚡ {prof.flux||0} Flux</div>
+
                 <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:prof.color}}>BOOT SESSION →</div>
               </button>
             );
@@ -4305,7 +4443,7 @@ export default function VanguardMathOS(){
     const sectionsLeft=DAILY_SECTION_LIMIT-(p.sectionsToday||0);
     return<>
       <BookView book={book} profile={p} sectionsLeft={sectionsLeft} onChapter={ch=>{setActiveChapter(ch);}} onBack={()=>setActiveBook(null)}/>
-      {showCoach&&<ApexCoach profile={p} onClose={()=>setShowCoach(false)} onDeductCredits={deductCredits}/>}
+      {showCoach&&<ApexCoach profile={p} onClose={()=>setShowCoach(false)} onDeductCredits={()=>{}}/>}
       {notification&&<Toast n={notification}/>}
       <style>{GCSS}</style>
     </>;
@@ -4320,7 +4458,7 @@ export default function VanguardMathOS(){
         onSectionProof={sec=>setProofTarget({section:sec,book})}
         onBack={()=>setActiveChapter(null)}
         onCoach={()=>setShowCoach(true)}/>
-      {showCoach&&<ApexCoach profile={p} onClose={()=>setShowCoach(false)} onDeductCredits={deductCredits}/>}
+      {showCoach&&<ApexCoach profile={p} onClose={()=>setShowCoach(false)} onDeductCredits={()=>{}}/>}
       {proofTarget&&(
         <ProofModal
           section={proofTarget.section} book={proofTarget.book}
@@ -4337,8 +4475,7 @@ export default function VanguardMathOS(){
 
   // ── ARCADE ──
   if(showArcade){
-    const gameMinLeft=Math.floor(gameTimeLeft/60000);
-    const games=[
+      const games=[
       {key:"PRIME",label:"◈ PRIME HUNTER",cost:PRIME_HUNTER_COST,color:"#00ffcc",desc:"Rapid-fire prime vs composite. 8s per question. Mental math under pressure.",type:"math"},
 
       {key:"LIVE",label:"⚡ LIVE MODE",cost:LIVE_MODE_COST,color:"#aa66ff",desc:"Gimkit-style! Answer questions from YOUR curriculum. Streak multipliers. Earn Flux. The main event.",type:"math"},
@@ -4352,18 +4489,18 @@ export default function VanguardMathOS(){
             <button onClick={()=>setShowArcade(false)} style={S.btnBack}>← OS</button>
             <span style={{color:p.color}}>◈ ARCADE · {activeUser} · {p.xp} XP</span>
             <div style={{display:"flex",gap:"0.94rem",alignItems:"center"}}>
-              <span style={{color:gameTimeLeft<300000?"#ff4444":"#8899aa"}}>⏱ {gameMinLeft}min left</span>
+              <span style={{color:99999999<300000?"#ff4444":"#8899aa"}}>⏱ {gameMinLeft}min left</span>
               <button onClick={()=>{setShowArcade(false);setShowBounty(true);}} style={{...S.btnGhost,borderColor:"#ffdd0066",color:"#ffdd00",fontSize:"0.96rem",padding:"0.2rem 0.65rem"}}>⚡ EARN TIME</button>
             </div>
           </div>
-          {gameTimeLeft<=0&&(
+          {99999999<=0&&(
             <div style={{background:"#1a1000",border:"1px solid #ffdd0033",padding:"0.75rem 1.25rem",marginBottom:"1rem",fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:"#ffdd00"}}>
-              ⚡ NO GAME TIME — Answer bounty questions to earn up to {MAX_GAME_MINS} min/day. Each correct = +{MINS_PER_BOUNTY_CORRECT} min.
+              ⚡ NO GAME TIME — Answer bounty questions to earn up to {MAX_GAME_MINS} min/day. Each correct = +{0} min.
             </div>
           )}
           <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(280px,1fr))",gap:"1.5rem"}}>
             {games.map(g=>{
-              const unlocked=p.xp>=g.cost&&gameTimeLeft>0;
+              const unlocked=p.xp>=g.cost&&99999999>0;
               const xpLocked=p.xp<g.cost;
               const c=g.color||"#00ffcc";
               return(
@@ -4399,9 +4536,6 @@ export default function VanguardMathOS(){
   const profileBooks=getBooksForProfile(activeUser);
   const totalSections=profileBooks.flatMap(b=>b.chapters).flatMap(c=>c.sections).length;
   const doneSections=Object.keys(p.sectionsDone||{}).length;
-  const gameMinLeft=Math.floor(gameTimeLeft/60000);
-  const gamePct=gameTimeLimitMs>0?gameTimeLeft/gameTimeLimitMs:0;
-  const gameColor=gamePct>0.5?"#00ffcc":gamePct>0.25?"#ffaa00":"#ff4444";
   const flux=p.flux||0;
   const pendingCount=(p.pendingRedemptions||[]).filter(r=>r.status==="pending").length;
 
@@ -4419,10 +4553,11 @@ export default function VanguardMathOS(){
     <div style={{minHeight:"100vh",background:"#03080f",fontFamily:"Rajdhani,sans-serif"}}>
       <Scanlines/>
       {notification&&<Toast n={notification}/>}
-      {showCoach&&<ApexCoach profile={p} onClose={()=>setShowCoach(false)} onDeductCredits={deductCredits}/>}
+      {showCoach&&<ApexCoach profile={p} onClose={()=>setShowCoach(false)} onDeductCredits={()=>{}}/>}
       {showParent&&<ParentMode profiles={profiles} rewards={Array.isArray(appState.rewards)&&appState.rewards.length>0?appState.rewards:DEFAULT_REWARDS} onClose={()=>setShowParent(false)} onUpdateProfiles={updateProfile} onUpdateRewards={(r)=>setAppState(prev=>({...prev,rewards:r}))} onStartRival={()=>setRivalPending(true)}/>}
-      {showBounty&&p&&<BountyBoard profile={p} onClose={()=>setShowBounty(false)} onCorrect={handleBountyCorrect} onSpendLC={(amt)=>updateProfile(activeUser,prev=>({...prev,lc:Math.max(0,prev.lc-amt)}))}/>}
-      {showWarmup&&<DailyWarmup profile={p} onComplete={handleWarmupComplete} />}
+      {showBounty&&p&&<BountyBoard profile={p} onClose={()=>setShowBounty(false)} onCorrect={handleBountyCorrect} onSpendLC={()=>{}} onSpendFlux={(amt)=>updateProfile(activeUser,prev=>({...prev,flux:Math.max(0,(prev.flux||0)-amt),fluxHistory:addFluxHistory(prev,"Help (scaffold/example)",-amt)}))}/>}
+      {showWarmup&&<DailyWarmup profile={p} onComplete={handleWarmupComplete} onSkipDay={()=>setShowWarmup(false)} />}
+      {showFluxHistory&&<FluxHistory profile={p} onClose={()=>setShowFluxHistory(false)}/>}
       {showReport&&<GradeReport profile={p} onClose={()=>setShowReport(false)}/>}
       {showRedemption&&<RedemptionCenter profile={p} rewards={Array.isArray(appState.rewards)&&appState.rewards.length>0?appState.rewards:DEFAULT_REWARDS} onClose={()=>setShowRedemption(false)} onRedeem={handleRedeem}/>}
 
@@ -4470,6 +4605,9 @@ export default function VanguardMathOS(){
             <button onClick={()=>setShowRedemption(true)} style={{background:"#1a1500",border:"1px solid #ffdd0066",color:"#ffdd00",padding:"0.3rem 0.75rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.8rem",borderRadius:2,position:"relative"}}>
               ⚡ {flux} FLUX{pendingCount>0?` · ${pendingCount}⏳`:""}
             </button>
+            <button onClick={()=>setShowFluxHistory(true)} style={{background:"#0a1520",border:"1px solid #ffdd0033",color:"#ffdd0088",padding:"0.3rem 0.6rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.75rem",borderRadius:2}}>
+              📊 HISTORY
+            </button>
             <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.8rem",color:"#8899aa"}}>{p.xp} XP</div>
             <div style={{width:1,height:20,background:"#1a2a3a",margin:"0 0.25rem"}}/>
             <button onClick={()=>setShowParent(true)} style={{...S.btnGhost,fontSize:"0.8rem",padding:"0.2rem 0.6rem"}}>🔑{pendingCount>0?` (${pendingCount})`:" PARENT"}</button>
@@ -4500,39 +4638,31 @@ export default function VanguardMathOS(){
           </div>
         )}
 
-        {/* ── GAME TIME BAR ── */}
-        <div style={{background:"#060d18",border:"1px solid #1a2a3a",borderLeft:`3px solid ${gameColor}`,padding:"0.9rem 1.25rem",marginBottom:"1rem"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.5rem",flexWrap:"wrap",gap:"0.5rem"}}>
-            <div style={{display:"flex",alignItems:"baseline",gap:"0.5rem"}}>
-              <span style={{fontFamily:"Orbitron,sans-serif",fontSize:"2rem",fontWeight:900,color:gameColor,lineHeight:1}}>{gameMinLeft}</span>
-              <span style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#99aabb"}}>/ {earnedMins} min game time left</span>
-            </div>
-            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.8rem",color:"#aabbcc",textAlign:"right"}}>
-              <div>{p.sectionsToday||0} sections = <span style={{color:"#00ffcc"}}>{Math.min(MAX_GAME_MINS,(p.sectionsToday||0)*MINS_PER_SECTION)}m</span></div>
-              <div>{bountyCorrect} bounties = <span style={{color:"#ffdd00"}}>{Math.min(MAX_GAME_MINS,bountyCorrect*MINS_PER_BOUNTY_CORRECT)}m</span></div>
-            </div>
-          </div>
-          <div style={{height:7,background:"#0a1520",borderRadius:4,overflow:"hidden",marginBottom:"0.5rem"}}>
-            <div style={{height:"100%",background:`linear-gradient(90deg,${gameColor},${gameColor}88)`,width:`${gamePct*100}%`,borderRadius:4,transition:"width 0.5s"}}/>
-          </div>
-          <div style={{display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:"0.5rem"}}>
-            <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.90rem",color:"#8899aa"}}>
-              {sectionsLeft>0?`${sectionsLeft} section sync${sectionsLeft!==1?"s":""} left`:"Limit reached"} · {BOUNTY_DAILY_CAP-(isToday?(p.bountyCountToday||0):0)} bounties left
-            </div>
-            <div style={{display:"flex",gap:"0.5rem",flexWrap:"wrap"}}>
-              <button onClick={()=>{if(warmupNeeded()){setShowWarmup(true);}else{setShowBounty(true);}}} style={{background:"#1a1500",border:"1px solid #ffdd0066",color:"#ffdd00",padding:"0.3rem 0.75rem",cursor:"pointer",fontFamily:"Share Tech Mono,monospace",fontSize:"0.8rem",borderRadius:2}}>
-                {warmupNeeded()?"⚡ WARM-UP FIRST":"⚡ BOUNTY"}
-              </button>
-              <button onClick={()=>setShowArcade(true)} style={{...S.btnCyber,padding:"0.3rem 0.85rem",fontSize:"0.8rem"}}>▶ ARCADE</button>
-              <button onClick={()=>{
-                if(warmupNeeded()){setShowWarmup(true);return;}
-                if(p.xp>=LIVE_MODE_COST){setActiveGame("LIVE");}
-                else{notify("Earn "+LIVE_MODE_COST+" XP to unlock Live Mode","warn");}
-              }} style={{...S.btnCyber,padding:"0.3rem 0.85rem",fontSize:"0.8rem",borderColor:warmupNeeded()?"#ffdd00":p.xp>=LIVE_MODE_COST?"#aa66ff":"#2a3a4a",color:warmupNeeded()?"#ffdd00":p.xp>=LIVE_MODE_COST?"#aa66ff":"#334455"}}>
-                {warmupNeeded()?"⚡ WARM-UP FIRST":"⚡ LIVE MODE"}
-              </button>
-            </div>
-          </div>
+        {/* ── ACTION BUTTONS ── */}
+        <div style={{display:"flex",gap:"0.6rem",marginBottom:"1rem",flexWrap:"wrap"}}>
+          <button
+            onClick={()=>{
+              if(warmupNeeded()){setShowWarmup(true);}
+              else if(p.bountySessionDone){notify("Bounty done for today!","warn");}
+              else{setShowBounty(true);}
+            }}
+            style={{flex:1,background:"#1a1500",border:`1px solid ${p.bountySessionDone?"#334455":"#ffdd0066"}`,color:p.bountySessionDone?"#445566":"#ffdd00",padding:"0.65rem",cursor:p.bountySessionDone?"not-allowed":"pointer",fontFamily:"Orbitron,sans-serif",fontSize:"0.88rem",letterSpacing:"0.05em",borderRadius:3,opacity:warmupNeeded()||p.bountySessionDone?0.5:1}}>
+            {p.bountySessionDone?"✓ BOUNTY DONE":"⚡ BOUNTY BOARD"}{warmupNeeded()&&!p.bountySessionDone?<span style={{fontSize:"0.72em",opacity:0.7}}> (do warm-up first)</span>:null}
+          </button>
+          <button
+            disabled={warmupNeeded()||p.liveSessionDone||p.xp<LIVE_MODE_COST}
+            onClick={()=>{
+              if(p.liveSessionDone){notify("Live Mode done for today!","warn");}
+              else if(p.xp>=LIVE_MODE_COST){setActiveGame("LIVE");}
+              else{notify("Earn "+LIVE_MODE_COST+" XP to unlock Live Mode","warn");}
+            }}
+            style={{flex:1,background:"#0a0a1a",border:`1px solid ${p.liveSessionDone||warmupNeeded()?"#223344":p.xp>=LIVE_MODE_COST?"#aa66ff99":"#2a3a4a"}`,color:p.liveSessionDone?"#334455":warmupNeeded()?"#334455":p.xp>=LIVE_MODE_COST?"#aa66ff":"#445566",padding:"0.65rem",cursor:warmupNeeded()||p.liveSessionDone?"not-allowed":"pointer",fontFamily:"Orbitron,sans-serif",fontSize:"0.88rem",letterSpacing:"0.05em",borderRadius:3,opacity:warmupNeeded()||p.liveSessionDone?0.5:1}}>
+            {p.liveSessionDone?"✓ LIVE DONE":p.xp>=LIVE_MODE_COST?"⚡ LIVE MODE":"⚡ LIVE MODE ("+Math.max(0,LIVE_MODE_COST-p.xp)+" XP)"}
+          </button>
+          <button onClick={()=>setShowArcade(true)}
+            style={{background:"#0a1520",border:"1px solid #00ffcc44",color:"#00ffcc",padding:"0.65rem 1rem",cursor:"pointer",fontFamily:"Orbitron,sans-serif",fontSize:"0.88rem",borderRadius:3}}>
+            ▶ ARCADE
+          </button>
         </div>
 
         {/* ── RIVALRY BAR ── */}
@@ -4565,7 +4695,7 @@ export default function VanguardMathOS(){
             {label:"WARM-UP",val:warmupNeeded()?"⚡ DUE":"✓ DONE",color:warmupNeeded()?"#ffdd00":"#00ffcc",sub:warmupNeeded()?"do this first":"bounty unlocked"},
             {label:"PROGRESS",val:`${doneSections}/${totalSections}`,color:"#00ffcc",sub:"sections done"},
             {label:"TODAY",val:`${p.sectionsToday||0}/${DAILY_SECTION_LIMIT} syncs`,color:sectionsLeft>0?"#00aaff":"#ff4444",sub:`${bountyCorrect} bounties ✓`},
-            {label:"FLUX",val:`⚡${p.flux||0}`,color:"#ffdd00",sub:`${p.lc||0} LC`},
+            {label:"FLUX",val:`⚡${p.flux||0}`,color:"#ffdd00",sub:`${(p.pendingRedemptions||[]).filter(r=>r.status==="approved").length} approved`},
           ].map(s=>(
             <div key={s.label} style={{background:"#060d18",border:"1px solid #1a2a3a",padding:"0.65rem 0.75rem"}}>
               <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.94rem",color:"#99aabb",marginBottom:"0.2rem"}}>{s.label}</div>
@@ -4579,7 +4709,7 @@ export default function VanguardMathOS(){
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.65rem"}}>
           <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1rem",color:"#e0eeff",letterSpacing:"0.1em",fontWeight:700}}>MISSION NODES</div>
           <div style={{display:"flex",gap:"0.5rem"}}>
-            <button onClick={()=>setShowCoach(true)} style={{...S.btnGhost,fontSize:"0.90rem",padding:"0.25rem 0.65rem",borderColor:"#ffdd0044",color:"#ffdd00"}}>◈ APEX ({p.lc} LC)</button>
+            <button onClick={()=>setShowCoach(true)} style={{...S.btnGhost,fontSize:"0.90rem",padding:"0.25rem 0.65rem",borderColor:"#ffdd0044",color:"#ffdd00"}}>◈ APEX COACH</button>
             {p.name==="NOVA"&&<button onClick={()=>setShowReport(true)} style={{...S.btnGhost,fontSize:"0.90rem",padding:"0.25rem 0.65rem",borderColor:"#00aaff44",color:"#00aaff"}}>📊 REPORT</button>}
           </div>
         </div>
