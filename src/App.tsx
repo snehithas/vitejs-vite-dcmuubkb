@@ -3935,28 +3935,15 @@ function ParentMode({profiles,rewards,onClose,onUpdateProfiles,onUpdateRewards,o
         const wt=(p.baselineWeakTopics||[]).join(", ")||"none";
         const th=(p.biweeklyTests||[]).slice(-3).map(t=>t.date+": "+t.score+"%").join("; ")||"none";
         return p.name+" | "+getRank(p.xp).name+" | XP:"+p.xp+" | "+sdone+"/"+stotal+" sections"
-          +"
-Proof accuracy: "+(pt>0?Math.round(pc/pt*100)+"%":"no data")+" ("+pc+"/"+pt+")"
-          +"
-Baseline: "+(p.baselineScore!=null?p.baselineScore+"%":"not taken")
-          +"
-Weak topics: "+wt
-          +"
-Recent tests: "+th
-          +"
-Warmup streak: "+(p.warmupStreak||0)+" days | Tab switches: "+(p.tabSwitchToday||0)+" today";
+          +" | Proofs: "+(pt>0?Math.round(pc/pt*100)+"%":"no data")+" ("+pc+"/"+pt+")"
+          +" | Baseline: "+(p.baselineScore!=null?p.baselineScore+"%":"not taken")
+          +" | Weak: "+wt
+          +" | Tests: "+th
+          +" | Warmup streak: "+(p.warmupStreak||0)+" | Tabs: "+(p.tabSwitchToday||0);
       };
-      const prompt="Analyze progress for two AoPS math students.
-
-"
-        +"CIPHER (11yr, Algebra B Ch.10-21 + C&P):
-"+buildSummary(profiles.CIPHER)+"
-
-"
-        +"NOVA (13yr, C&P + Number Theory):
-"+buildSummary(profiles.NOVA)+"
-
-"
+      const prompt="Analyze progress for two AoPS math students. "
+        +"CIPHER (11yr, Algebra B Ch.10-21 + C&P): "+buildSummary(profiles.CIPHER)+" "
+        +"NOVA (13yr, C&P + Number Theory): "+buildSummary(profiles.NOVA)+" "
         +"For each student: (1) What topics need more work? (2) What is going well? (3) Is difficulty appropriate? "
         +"Then: (4) Any curriculum adjustments? (5) What question types would help most? "
         +"Be specific and use the data. 3-4 sentences per student. Concise.";
