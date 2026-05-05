@@ -2813,7 +2813,7 @@ const BASELINE_QUESTIONS = {
     // ── HARD MULTI-STEP ──────────────────────────────────────────────────
     {id:"n34",q:"How many integers 1–200 are coprime to 200?",a:"80",topic:"euler",difficulty:3,hint:"φ(200)=? Use 200=2³×5²"},
     {id:"n35",q:"Find the remainder when 1!+2!+3!+...+100! is divided by 10.",a:"3",topic:"modular",difficulty:3,hint:"Which factorials contribute to the last digit? n!≡0 mod 10 for n≥5"},
-  ],,
+  ],
 };
 
 const TOPIC_LABELS={
