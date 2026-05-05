@@ -62,7 +62,7 @@ const DEFAULT_REWARDS=[
 
 // Storage — v7 migrates from v6 automatically
 const STORAGE_KEY = "vanguard_v7";
-const APP_VERSION = "v8.0 · 2026-04-08";
+const APP_VERSION = "v8.1 · 2026-04-08";
 const STORAGE_KEY_V6 = "vanguard_v6";
 const PARENT_PIN = "1234";
 
@@ -2767,28 +2767,53 @@ const BASELINE_QUESTIONS = {
     {id:"b34",q:"P(rolling sum=7 with 2 dice)?",a:"1/6|6/36",topic:"probability",difficulty:2},
     {id:"b35",q:"How many 3-digit numbers use only digits 1,3,5,7,9 (repeats allowed)?",a:"125",topic:"counting",difficulty:2},
   ],
+  // NOVA (13yr): C&P (completed) + Number Theory (current)
+  // 35 questions — thorough coverage of both books
   NOVA: [
-    {id:"n1",q:"C(8,3) = ?",a:"56",topic:"combinations",difficulty:1},
-    {id:"n2",q:"How many ways to arrange letters in MATH?",a:"24",topic:"permutations",difficulty:1},
-    {id:"n3",q:"P(drawing two aces in a row from a standard deck, no replacement)?",a:"1/221|4/52*3/51",topic:"probability",difficulty:2},
-    {id:"n4",q:"Paths from (0,0) to (4,3) using only right/up steps?",a:"35",topic:"combinations",difficulty:2},
-    {id:"n5",q:"Is 91 prime?",a:"no",topic:"number_theory",difficulty:1,hint:"91 = 7 × 13"},
-    {id:"n6",q:"What is 17 mod 5?",a:"2",topic:"modular",difficulty:1},
-    {id:"n7",q:"Sum of row 6 of Pascal's Triangle?",a:"64",topic:"pascal",difficulty:2},
-    {id:"n8",q:"How many divisors does 36 have?",a:"9",topic:"number_theory",difficulty:2},
-    {id:"n9",q:"P(at least one head in 4 fair coin flips)?",a:"15/16",topic:"probability",difficulty:2},
-    {id:"n10",q:"In how many ways can 3 people be chosen from 8 for president, VP, secretary (order matters)?",a:"336",topic:"permutations",difficulty:2},
-    {id:"n11",q:"What is gcd(48, 36)?",a:"12",topic:"number_theory",difficulty:2},
-    {id:"n12",q:"How many integers 1-100 are divisible by 3 or 5?",a:"47",topic:"counting",difficulty:2},
-    {id:"n13",q:"Expected value: roll fair die, win $x where x = die value. E = ?",a:"3.5|7/2",topic:"expected_value",difficulty:2},
-    {id:"n14",q:"Find all prime factors of 360.",a:"2,3,5",topic:"number_theory",difficulty:2},
-    {id:"n15",q:"HARD: How many positive integers less than 100 are coprime to 100?",a:"40",topic:"number_theory",difficulty:3},
-    {id:"n16",q:"P(same number on both dice when rolling two dice)?",a:"1/6|6/36",topic:"probability",difficulty:1},
-    {id:"n17",q:"What is 2^10 mod 7?",a:"2",topic:"modular",difficulty:3},
-    {id:"n18",q:"Binomial: (x+1)^4 expanded — what is the coefficient of x²?",a:"6",topic:"binomial",difficulty:3},
-    {id:"n19",q:"How many ways to put 5 distinct balls into 3 labeled boxes?",a:"243",topic:"counting",difficulty:3},
-    {id:"n20",q:"What is LCM(12, 18, 24)?",a:"72",topic:"number_theory",difficulty:2},
-  ],
+    // ── C&P FUNDAMENTALS (completed book — verify mastery) ────────────────
+    {id:"n1", q:"C(8,3)=?",a:"56",topic:"combinations",difficulty:1},
+    {id:"n2", q:"Arrange letters in MATH — how many ways?",a:"24",topic:"permutations",difficulty:1},
+    {id:"n3", q:"P(drawing 2 aces in a row, no replacement)?",a:"1/221",topic:"probability",difficulty:2},
+    {id:"n4", q:"Paths from (0,0) to (4,3) using only right/up steps?",a:"35",topic:"combinations",difficulty:2},
+    {id:"n5", q:"How many diagonals does an octagon have?",a:"20",topic:"counting",difficulty:2,hint:"C(8,2)−8"},
+    {id:"n6", q:"C(n,2)=21. Find n.",a:"7",topic:"combinations",difficulty:2,hint:"n(n-1)/2=21"},
+    {id:"n7", q:"Committee of 3 men and 2 women from 5 men and 6 women. Ways?",a:"200",topic:"combinations",difficulty:2},
+    {id:"n8", q:"How many arrangements of MISSISSIPPI?",a:"34650",topic:"permutations",difficulty:3,hint:"11!/(4!4!2!1!)"},
+    // ── PROBABILITY (C&P) ─────────────────────────────────────────────────
+    {id:"n9", q:"P(sum≥10 with 2 dice)?",a:"1/6|6/36",topic:"probability",difficulty:2},
+    {id:"n10",q:"P(at least 1 head in 4 flips)?",a:"15/16",topic:"probability",difficulty:2,hint:"1−P(all tails)"},
+    {id:"n11",q:"P(A∪B) if P(A)=0.5, P(B)=0.4, P(A∩B)=0.2?",a:"0.7",topic:"probability",difficulty:2},
+    {id:"n12",q:"Expected value of a fair die roll?",a:"3.5|7/2",topic:"expected_value",difficulty:2},
+    {id:"n13",q:"Binomial: (x+y)^4 coefficient of x²y²?",a:"6|C(4,2)",topic:"binomial",difficulty:3},
+    // ── NUMBER THEORY — PRIMES & DIVISIBILITY ─────────────────────────────
+    {id:"n14",q:"Is 143 prime?",a:"no",topic:"primes",difficulty:2,hint:"Try dividing by 11"},
+    {id:"n15",q:"Prime factorization of 360?",a:"2^3×3^2×5|2³·3²·5",topic:"primes",difficulty:2},
+    {id:"n16",q:"How many divisors does 2²×3²×5=180 have?",a:"18",topic:"divisors",difficulty:2,hint:"(2+1)(2+1)(1+1)"},
+    {id:"n17",q:"Sum of divisors of 28?",a:"56",topic:"divisors",difficulty:2,hint:"Is 28 a perfect number?"},
+    // ── GCD / LCM ─────────────────────────────────────────────────────────
+    {id:"n18",q:"gcd(252,105) using Euclidean algorithm?",a:"21",topic:"gcd",difficulty:2},
+    {id:"n19",q:"lcm(12,18,24)=?",a:"72",topic:"lcm",difficulty:2},
+    {id:"n20",q:"gcd(a,b)=6 and a×b=216. lcm(a,b)=?",a:"36",topic:"lcm",difficulty:3,hint:"Use gcd×lcm=a×b"},
+    {id:"n21",q:"Are 35 and 36 coprime?",a:"yes",topic:"gcd",difficulty:1,hint:"What is the gcd of consecutive integers?"},
+    // ── MODULAR ARITHMETIC ────────────────────────────────────────────────
+    {id:"n22",q:"What is 2^10 mod 7?",a:"2",topic:"modular",difficulty:2,hint:"Find the pattern of powers of 2 mod 7"},
+    {id:"n23",q:"What is the last digit of 7^53?",a:"3",topic:"modular",difficulty:2,hint:"Find the cycle length for powers of 7"},
+    {id:"n24",q:"Solve: 3x≡1 (mod 7). What is x?",a:"5",topic:"modular",difficulty:3,hint:"Try values 1-6 — which makes 3x divisible by 7 with remainder 1?"},
+    {id:"n25",q:"Find smallest x>0: x≡2(mod 3) and x≡3(mod 5)",a:"8",topic:"modular",difficulty:3,hint:"List numbers ≡2 mod 3: 2,5,8... which also satisfies mod 5 condition?"},
+    {id:"n26",q:"What is 100! mod 7?",a:"0",topic:"modular",difficulty:2,hint:"Does 7 divide 100!?"},
+    // ── BASES ─────────────────────────────────────────────────────────────
+    {id:"n27",q:"Convert 11010 (base 2) to base 10.",a:"26",topic:"bases",difficulty:2},
+    {id:"n28",q:"Convert 47 (base 10) to base 2.",a:"101111",topic:"bases",difficulty:2},
+    {id:"n29",q:"Add in base 2: 1011+0101=?",a:"10000",topic:"bases",difficulty:3,hint:"Work column by column, carry when sum≥2"},
+    // ── FERMAT / EULER / WILSON ───────────────────────────────────────────
+    {id:"n30",q:"Fermat: 2^12 mod 13=? (13 is prime)",a:"1",topic:"fermat",difficulty:2,hint:"Apply Fermat's Little Theorem directly"},
+    {id:"n31",q:"What is 2^100 mod 13?",a:"3",topic:"fermat",difficulty:3,hint:"2^12≡1 mod 13. Write 100=8×12+4, so 2^100≡2^4 mod 13"},
+    {id:"n32",q:"Wilson's theorem: 6! mod 7=?",a:"6|-1",topic:"wilson",difficulty:2,hint:"(p-1)!≡-1 mod p for prime p"},
+    {id:"n33",q:"φ(20)=?",a:"8",topic:"euler",difficulty:3,hint:"20=4×5. Use φ(p^a)=p^a−p^(a-1) for each prime factor"},
+    // ── HARD MULTI-STEP ──────────────────────────────────────────────────
+    {id:"n34",q:"How many integers 1–200 are coprime to 200?",a:"80",topic:"euler",difficulty:3,hint:"φ(200)=? Use 200=2³×5²"},
+    {id:"n35",q:"Find the remainder when 1!+2!+3!+...+100! is divided by 10.",a:"3",topic:"modular",difficulty:3,hint:"Which factorials contribute to the last digit? n!≡0 mod 10 for n≥5"},
+  ],,
 };
 
 const TOPIC_LABELS={
