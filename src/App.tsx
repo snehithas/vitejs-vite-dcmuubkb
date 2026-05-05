@@ -7,7 +7,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 const DAILY_SECTION_LIMIT = 4;
 const PRIME_HUNTER_COST = 300;   // XP to unlock Prime Hunter (permanent)
 const SLITHER_COST = 600;        // XP to unlock Slither
-const LIVE_MODE_COST = 400;      // XP to unlock Live Mode
+const LIVE_MODE_COST = 150;      // XP to unlock Live Mode (~4 sections)
 
 // Help costs (Flux) — nudge free, scaffold/example cost Flux
 const SCAFFOLD_FLUX_COST = 5;    // Step-by-step scaffold
@@ -17,12 +17,12 @@ const EXAMPLE_FLUX_COST = 15;    // Full worked example
 
 
 // XP values
-const SECTION_XP = 35;
-const CHALLENGE_XP = 50;
-const PROOF_PASS_XP = 20;
-const BOUNTY_XP = 25;
+const SECTION_XP = 20;
+const CHALLENGE_XP = 25;
+const PROOF_PASS_XP = 10;
+const BOUNTY_XP = 15;
 const BOUNTY_DAILY_CAP = 15;
-const LEARN_XP = 20;             // XP per correct in Learn Mode (deep understanding)
+const LEARN_XP = 10;             // XP per correct in Learn Mode (deep understanding)
 const LIVE_XP = 5;               // XP per correct in Live Mode
 const LIVE_DAILY_FLUX_CAP = 800;  // Max Flux from Live Mode per day
 const LIVE_DAILY_XP_CAP = 200;   // Max XP from Live Mode per day (demonstration)
@@ -62,7 +62,7 @@ const DEFAULT_REWARDS=[
 
 // Storage — v7 migrates from v6 automatically
 const STORAGE_KEY = "vanguard_v7";
-const APP_VERSION = "v7.5 · 2026-04-08";
+const APP_VERSION = "v8.0 · 2026-04-08";
 const STORAGE_KEY_V6 = "vanguard_v6";
 const PARENT_PIN = "1234";
 
@@ -893,9 +893,11 @@ const SECTION_PROOFS = {
   ],
   // NUMBER THEORY
   nt1s1:[
-    {q:"Is the sum of two odd numbers always even?",a:"yes",hint:"odd+odd=(2k+1)+(2m+1)=2(k+m+1)"},
-    {q:"Is 0 even or odd?",a:"even",hint:"0=2×0, so it's divisible by 2"},
-    {q:"What is the product of two consecutive integers always divisible by?",a:"2",hint:"One of any two consecutive integers must be even"},
+    {q:"Is the sum of two odd numbers always even?",a:"yes",hint:"Write odd numbers as 2k+1 and 2m+1 — what do you get when you add them?"},
+    {q:"Is 0 even or odd?",a:"even",hint:"What does it mean to be even? Check: does 2 divide 0?"},
+    {q:"Product of two consecutive integers is always divisible by?",a:"2",hint:"In any two consecutive integers, what must be true about at least one of them?"},
+    {q:"Prove: n²+n is always even.",a:"n(n+1)|always even",hint:"Factor first — what do you notice about n(n+1)?"},
+    {q:"If n is odd, is n²−1 divisible by 8?",a:"yes",hint:"Write n=2k+1, expand n²−1=(n-1)(n+1). What do you know about (n-1) and (n+1)?"},
   ],
   nt1s2:[
     {q:"Is 138 divisible by 3?",a:"yes",hint:"1+3+8=12, which is divisible by 3"},
@@ -903,8 +905,10 @@ const SECTION_PROOFS = {
     {q:"Is 7,654 divisible by 4?",a:"yes",hint:"Only check last two digits: 54÷4=13.5... wait, 52÷4=13. Check: 54÷4? No. 54/2=27, 27/2 not integer. Actually no.",hint:"Check last two digits: 54÷4 = 13.5, not divisible"},
   ],
   nt1s3:[
-    {q:"If a|b and a|c, does a|(b+c)?",a:"yes",hint:"b=ak, c=am, so b+c=a(k+m)"},
-    {q:"If 6|n, is 3|n?",a:"yes",hint:"If 6 divides n, then 2×3 divides n, so 3 divides n"},
+    {q:"If a|b and a|c, does a|(b+c)?",a:"yes",hint:"Write b=ak and c=am — what does b+c equal?"},
+    {q:"If 6|n, is 3|n?",a:"yes",hint:"6=2×3 — if 6 divides n, what other factors must divide n?"},
+    {q:"If a|b, does a|kb for any integer k?",a:"yes",hint:"Write b=am — what is kb in terms of a?"},
+    {q:"If 4|n and 6|n, must 24|n?",a:"no",hint:"Try n=12: 4|12 and 6|12, but does 24|12?"},
   ],
   nt2s1:[
     {q:"Is 1 prime?",a:"no",hint:"Primes must have exactly 2 factors. 1 has only 1."},
@@ -912,8 +916,10 @@ const SECTION_PROOFS = {
     {q:"What is the smallest prime number?",a:"2",hint:"It's the only even prime"},
   ],
   nt2s2:[
-    {q:"Using the sieve, is 37 prime?",a:"yes",hint:"Check primes up to √37≈6: not divisible by 2,3,5"},
-    {q:"How many primes are less than 20?",a:"8",hint:"2,3,5,7,11,13,17,19"},
+    {q:"Is 37 prime?",a:"yes",hint:"Only need to check primes up to √37 — which primes is that?"},
+    {q:"How many primes are less than 20?",a:"8",hint:"List them systematically using the sieve"},
+    {q:"Is 143 prime?",a:"no",hint:"Check primes up to √143≈12: try 11"},
+    {q:"What is the largest prime less than 50?",a:"47",hint:"Check candidates 47,49,43... is each divisible by any small prime?"},
   ],
   nt2s3:[
     {q:"What is the prime factorization of 60?",a:"2^2*3*5|2²×3×5|4*3*5",hint:"60=4×15=4×3×5=2²×3×5"},
@@ -921,27 +927,36 @@ const SECTION_PROOFS = {
     {q:"How many prime factors does 360 have? (counting multiplicity)",a:"6",hint:"360=2³×3²×5, so 3+2+1=6"},
   ],
   nt2s4:[
-    {q:"True or false: there are infinitely many prime numbers.",a:"true",hint:"Euclid proved this — assume finitely many, multiply them all and add 1"},
+    {q:"True or false: there are infinitely many primes.",a:"true",hint:"Assume finitely many — what happens when you multiply them all together and add 1?"},
+    {q:"What is a twin prime pair?",a:"primes that differ by 2|p and p+2 both prime",hint:"Example: (11,13) are both prime and differ by 2"},
+    {q:"Give an example of a twin prime pair greater than 20.",a:"(29,31)|(41,43)|(59,61)|etc",hint:"Find two consecutive odd numbers that are both prime"},
+    {q:"Is there a prime between 114 and 126?",a:"yes",hint:"Check 127... too big. Try smaller: is 127 in range? No. Try 113: too small. What about 127? Check numbers in range carefully"},
   ],
   nt3s1:[
     {q:"What is gcd(12, 18)?",a:"6",hint:"Factors of 12: 1,2,3,4,6,12. Factors of 18: 1,2,3,6,9,18. Largest common: 6"},
     {q:"What is gcd(35, 49)?",a:"7",hint:"35=5×7, 49=7². GCD=7"},
     {q:"If gcd(a,b)=1, what are a and b called?",a:"coprime|relatively prime",hint:"Two numbers with GCD 1 are coprime"},
-    {q:"Are 14 and 15 coprime?",a:"yes",hint:"gcd(14,15)=1 since consecutive integers are always coprime"},
+    {q:"Are 14 and 15 coprime?",a:"yes",hint:"What is the gcd of two consecutive integers always equal to?"},
     {q:"Find two numbers between 10 and 20 that are coprime to each other.",a:"11,13|11,15|13,15|11,17|any coprime pair",hint:"Two primes are always coprime — try 11 and 13"},
   ],
   nt3s2:[
-    {q:"What is lcm(4, 6)?",a:"12",hint:"Multiples of 4: 4,8,12. Multiples of 6: 6,12. First common: 12"},
-    {q:"What is lcm(5, 7)?",a:"35",hint:"Since gcd(5,7)=1, lcm=5×7=35"},
-    {q:"Formula: gcd(a,b) × lcm(a,b) = ?",a:"a*b|ab",hint:"This always holds for positive integers"},
+    {q:"What is lcm(4,6)?",a:"12",hint:"List multiples of each — what is the first common one?"},
+    {q:"What is lcm(5,7)?",a:"35",hint:"What is gcd(5,7)? Use the formula gcd×lcm=a×b"},
+    {q:"Formula: gcd(a,b) × lcm(a,b) = ?",a:"a×b|ab",hint:"This always holds — verify with a=4, b=6"},
+    {q:"gcd(a,b)=6 and a×b=216. What is lcm(a,b)?",a:"36",hint:"Use gcd×lcm=a×b"},
+    {q:"lcm(12,18,24)=?",a:"72",hint:"Find lcm(12,18) first, then lcm of that with 24"},
   ],
   nt3s3:[
-    {q:"Use Euclidean algorithm: gcd(48,18)=?",a:"6",hint:"48=2×18+12, 18=1×12+6, 12=2×6+0. GCD=6"},
-    {q:"First step of Euclidean algorithm for gcd(100,35): 100=?×35+?",a:"2 remainder 30|2,30",hint:"100=2×35+30"},
+    {q:"Euclidean algorithm: gcd(48,18)=?",a:"6",hint:"Start: 48=?×18+? What is the remainder?"},
+    {q:"First step of gcd(100,35): 100=?×35+?",a:"2 remainder 30",hint:"How many times does 35 go into 100?"},
+    {q:"gcd(252,105)=? Use Euclidean algorithm.",a:"21",hint:"252=2×105+42, then continue..."},
+    {q:"If gcd(a,b)=d, can you write d=xa+yb for integers x,y?",a:"yes|Bezout's identity",hint:"This is Bezout's identity — d is always a linear combination of a and b"},
   ],
   nt3s4:[
-    {q:"lcm(8,12)=? (Use gcd first)",a:"24",hint:"gcd(8,12)=4, lcm=8×12÷4=24"},
-    {q:"Three bells ring every 6, 8, and 12 minutes. When do they all ring together again?",a:"24",hint:"lcm(6,8,12)=24"},
+    {q:"lcm(8,12)=?",a:"24",hint:"Find gcd(8,12) first, then use gcd×lcm=a×b"},
+    {q:"Three bells ring every 6, 8, 12 minutes. When do they next all ring together?",a:"24",hint:"What mathematical operation gives the answer here?"},
+    {q:"lcm(14,21)=?",a:"42",hint:"Factor each: 14=2×7, 21=3×7. Take highest powers of each prime"},
+    {q:"Two lights flash every 8 and 12 seconds. They flashed together now. In how many seconds do they next both flash?",a:"24",hint:"You need the smallest time that is a multiple of both 8 and 12"},
   ],
   nt4s1:[
     {q:"How many divisors does 12 have?",a:"6",hint:"1,2,3,4,6,12"},
@@ -949,16 +964,23 @@ const SECTION_PROOFS = {
     {q:"How many divisors does 2^3 × 3^2 = 72 have?",a:"12",hint:"(3+1)(2+1)=12"},
   ],
   nt4s2:[
-    {q:"What is the sum of divisors of 6?",a:"12",hint:"1+2+3+6=12"},
-    {q:"What is the sum of divisors of 8?",a:"15",hint:"1+2+4+8=15"},
+    {q:"Sum of divisors of 6?",a:"12",hint:"List all divisors of 6 first"},
+    {q:"Sum of divisors of 8?",a:"15",hint:"What are all the divisors of 8?"},
+    {q:"Sum of divisors of 15?",a:"24",hint:"15=3×5 — list all divisors"},
+    {q:"If n=p (prime), what is the sum of divisors of n?",a:"p+1|1+p",hint:"Primes have exactly 2 divisors: 1 and themselves"},
+    {q:"Sum of divisors of 2³=8 using the formula (2⁴−1)/(2−1)?",a:"15",hint:"For p^a, sum of divisors = (p^(a+1)−1)/(p−1)"},
   ],
   nt4s3:[
-    {q:"A perfect number equals the sum of its proper divisors. Is 6 perfect?",a:"yes",hint:"Proper divisors of 6: 1,2,3. Sum=6 ✓"},
-    {q:"Is 12 perfect, abundant, or deficient?",a:"abundant",hint:"Proper divisors: 1+2+3+4+6=16 > 12"},
+    {q:"Is 6 a perfect number?",a:"yes",hint:"Add the proper divisors (all divisors except 6 itself)"},
+    {q:"Is 12 perfect, abundant, or deficient?",a:"abundant",hint:"Compare sum of proper divisors to 12"},
+    {q:"Is 8 perfect, abundant, or deficient?",a:"deficient",hint:"Sum proper divisors of 8: 1+2+4=?"},
+    {q:"The next perfect number after 6 is 28. Verify.",a:"yes|28 is perfect",hint:"Proper divisors of 28: 1,2,4,7,14. Do they sum to 28?"},
   ],
   nt5s1:[
-    {q:"In the division algorithm: 17 = 5×3 + r. What is r?",a:"2",hint:"17=5×3+2"},
-    {q:"What is the remainder when 100 is divided by 7?",a:"2",hint:"100=14×7+2"},
+    {q:"17 = 5×3 + r. What is r?",a:"2",hint:"Compute 5×3 first, then subtract from 17"},
+    {q:"Remainder when 100 is divided by 7?",a:"2",hint:"Find the largest multiple of 7 that is ≤100"},
+    {q:"Remainder when 2^8 is divided by 5?",a:"1",hint:"Find pattern: 2^1,2^2,2^3,2^4 mod 5 — does it repeat?"},
+    {q:"What is the remainder when 1+2+3+...+100 is divided by 4?",a:"2",hint:"Sum = 5050. What is 5050 mod 4?"},
   ],
   nt5s2:[
     {q:"What does 13 ≡ 1 (mod 6) mean?",a:"13 and 1 have the same remainder when divided by 6|remainder is 1",hint:"13=2×6+1, same remainder as 1÷6=0r1"},
@@ -966,16 +988,22 @@ const SECTION_PROOFS = {
     {q:"Is 17 ≡ 3 (mod 7)?",a:"yes",hint:"17=2×7+3 and 3=0×7+3, same remainder"},
   ],
   nt5s3:[
-    {q:"What day of the week is 100 days after a Monday? (0=Mon,1=Tue...6=Sun)",a:"wednesday|3",hint:"100 mod 7 = 2, so Monday+2 = Wednesday"},
-    {q:"What is the last digit of 3^100?",a:"1",hint:"3^1=3,3^2=9,3^3=27,3^4=81,3^5=243. Pattern repeats every 4. 100 mod 4=0, so same as 3^4: last digit 1"},
+    {q:"100 days after Monday is what day?",a:"Wednesday",hint:"Find 100 mod 7 first — then count forward from Monday"},
+    {q:"Last digit of 3^100?",a:"1",hint:"Find the cycle: what are the last digits of 3^1,3^2,3^3,3^4? How long is the period?"},
+    {q:"Last digit of 7^53?",a:"3",hint:"Find the cycle length for powers of 7, then find 53 mod cycle_length"},
+    {q:"What is the units digit of 2^2026?",a:"4",hint:"Powers of 2 cycle with period 4: 2,4,8,6,2,4... What is 2026 mod 4?"},
   ],
   nt6s1:[
-    {q:"If a≡b (mod m), is b≡a (mod m)?",a:"yes",hint:"Congruence is symmetric"},
-    {q:"What does a≡0 (mod m) mean?",a:"m divides a|a is divisible by m",hint:"Remainder 0 means m divides evenly"},
+    {q:"If a≡b (mod m), is b≡a (mod m)?",a:"yes",hint:"What does a≡b (mod m) mean in terms of remainders?"},
+    {q:"a≡0 (mod m) means?",a:"m divides a",hint:"What remainder does a have when divided by m?"},
+    {q:"Is 100≡1 (mod 9)?",a:"yes",hint:"What is 100 mod 9? Digit sum shortcut works here"},
+    {q:"What is 2^10 mod 3?",a:"1",hint:"Find the pattern: 2^1 mod 3=2, 2^2 mod 3=1, 2^3 mod 3=..."},
   ],
   nt6s2:[
-    {q:"If a≡b (mod m) and c≡d (mod m), is a+c ≡ b+d (mod m)?",a:"yes",hint:"Congruences can be added"},
-    {q:"If a≡3 (mod 5) and b≡4 (mod 5), what is ab mod 5?",a:"2",hint:"3×4=12, 12 mod 5=2"},
+    {q:"If a≡b(mod m) and c≡d(mod m), is a+c≡b+d(mod m)?",a:"yes",hint:"What does a≡b mean? Write it out and add the two congruences"},
+    {q:"a≡3(mod 5) and b≡4(mod 5). Find ab mod 5.",a:"2",hint:"Can you multiply congruences? What is 3×4 mod 5?"},
+    {q:"2^50 mod 3=?",a:"1",hint:"What is 2 mod 3? What is 2^2 mod 3? Find the pattern"},
+    {q:"If a≡2(mod 7), what is a^3 mod 7?",a:"1",hint:"2^3=8, and 8 mod 7=?"},
   ],
   nt6s3:[
     {q:"Solve: 2x ≡ 4 (mod 6). One solution?",a:"2|x=2",hint:"2×2=4≡4 mod 6 ✓"},
@@ -984,32 +1012,48 @@ const SECTION_PROOFS = {
     {q:"Solve: 5x ≡ 3 (mod 11). What is x?",a:"5",hint:"5×5=25≡3 mod 11 ✓"},
   ],
   nt6s4:[
-    {q:"Chinese Remainder Theorem: x≡1(mod 2) and x≡1(mod 3). Smallest positive x?",a:"1|7",hint:"x=1 works: 1 mod 2=1 ✓, 1 mod 3=1 ✓"},
+    {q:"x≡1(mod 2) and x≡1(mod 3). Smallest positive x?",a:"1",hint:"Try x=1: check both conditions"},
+    {q:"x≡2(mod 3) and x≡3(mod 5). Smallest positive x?",a:"8",hint:"List numbers ≡2 mod 3: 2,5,8,11... which is also ≡3 mod 5?"},
+    {q:"x≡0(mod 4) and x≡1(mod 3). Smallest positive x?",a:"4",hint:"Multiples of 4: 4,8,12... which gives remainder 1 when divided by 3?"},
+    {q:"What is the smallest positive integer that gives remainder 1 when divided by 2, 3, and 5?",a:"31",hint:"lcm(2,3,5)=30, so x=30+1=31"},
   ],
   nt7s1:[
-    {q:"What does 101 in base 2 equal in base 10?",a:"5",hint:"1×4+0×2+1×1=5"},
-    {q:"What is 12 in base 10 written in base 2?",a:"1100",hint:"12=8+4=1×2³+1×2²+0+0"},
+    {q:"101 in base 2 to base 10?",a:"5",hint:"Each position is a power of 2 — start from the right"},
+    {q:"12 in base 10 to base 2?",a:"1100",hint:"Find the largest power of 2 ≤ 12, subtract, repeat"},
+    {q:"1101 in base 2 to base 10?",a:"13",hint:"8+4+0+1 — write out the powers of 2"},
+    {q:"Convert 25 from base 10 to base 2.",a:"11001",hint:"25=16+8+1 — which powers of 2?"},
+    {q:"What is 11111 in base 2 in base 10?",a:"31",hint:"2⁵−1=31, or just add up 16+8+4+2+1"},
   ],
   nt7s2:[
-    {q:"Convert 1A (base 16) to base 10. (A=10)",a:"26",hint:"1×16+10=26"},
-    {q:"Convert 25 (base 10) to base 3.",a:"221",hint:"25=2×9+2×3+1=221 base 3"},
+    {q:"Convert 1A (base 16) to base 10. (A=10)",a:"26",hint:"1×16+A×1 — what is the value of each position?"},
+    {q:"Convert 25 to base 3.",a:"221",hint:"Find the largest power of 3 ≤25, subtract, repeat"},
+    {q:"What is 100 in base 3?",a:"10201",hint:"100=81+18+1=3⁴+2×3²+1×3⁰. What digits does that give?"},
+    {q:"Convert 255 to base 16.",a:"FF",hint:"255=15×16+15, and 15 in hex is F"},
   ],
   nt7s3:[
-    {q:"Add in base 2: 101 + 011 = ?",a:"1000",hint:"1+1=10 in binary (carry the 1)"},
-    {q:"What is 11 × 11 in base 2?",a:"1001",hint:"11×11 in binary = 3×3=9 = 1001 in binary"},
+    {q:"Add in base 2: 101+011=?",a:"1000",hint:"Work column by column right to left — remember 1+1=10 in binary"},
+    {q:"11×11 in base 2=?",a:"1001",hint:"Convert to base 10, multiply, convert back — or do binary multiplication directly"},
+    {q:"In base 5: 34+23=?",a:"112",hint:"4+3=12 in base 5 (write 2, carry 1). Then 3+2+1=11 in base 5"},
+    {q:"Subtract in base 2: 1010−0011=?",a:"0111",hint:"Borrow as needed — 10−1=1 in binary with a borrow"},
   ],
   nt8s1:[
-    {q:"Fermat's Little Theorem: if p is prime and gcd(a,p)=1, then a^(p-1) ≡ ? (mod p)",a:"1",hint:"a^(p-1) ≡ 1 (mod p) — this is Fermat's Little Theorem"},
-    {q:"Using Fermat: 2^6 mod 7 = ? (7 is prime)",a:"1",hint:"p=7, so 2^(7-1)=2^6≡1 mod 7"},
-    {q:"What is 3^100 mod 101? (101 is prime)",a:"1",hint:"Fermat: 3^(101-1)=3^100≡1 mod 101"},
+    {q:"Fermat's Little Theorem: a^(p-1) ≡ ? (mod p) for prime p, gcd(a,p)=1",a:"1",hint:"What does Fermat tell us about a^(p-1) modulo p?"},
+    {q:"2^6 mod 7=? (Use Fermat, 7 is prime)",a:"1",hint:"p=7, so what power of 2 gives 1 mod 7 by Fermat?"},
+    {q:"3^100 mod 101=? (101 is prime)",a:"1",hint:"What is 101-1? Apply Fermat directly"},
+    {q:"2^100 mod 13=? (13 is prime)",a:"1",hint:"Fermat: 2^12≡1 mod 13. Is 100 a multiple of 12?... 100=8×12+4, so 2^100≡2^4 mod 13"},
   ],
   nt8s2:[
-    {q:"Wilson's Theorem: (p-1)! ≡ ? (mod p) for prime p",a:"-1|p-1",hint:"(p-1)! ≡ -1 (mod p) for all primes p"},
-    {q:"Using Wilson: 4! mod 5 = ?",a:"4|-1",hint:"4!=24, 24 mod 5=4≡-1 mod 5 ✓"},
+    {q:"Wilson's Theorem: (p-1)! ≡ ? (mod p) for prime p",a:"-1|p-1",hint:"Wilson says (p-1)! is always 1 less than p — verify with p=5"},
+    {q:"4! mod 5=?",a:"4",hint:"Compute 4! then find remainder when divided by 5"},
+    {q:"Using Wilson: is 7 prime? Check (7-1)! mod 7.",a:"yes, 720 mod 7=6≡-1",hint:"Compute 6! = 720, then 720 mod 7"},
+    {q:"Wilson's theorem converse: if (n-1)!≡-1(mod n), is n prime?",a:"yes",hint:"Wilson's theorem is an if AND only if — the converse holds too"},
   ],
   nt8s3:[
-    {q:"Euler's totient φ(n) counts integers from 1 to n that are coprime to n. What is φ(7)?",a:"6",hint:"7 is prime, so φ(7)=7-1=6"},
-    {q:"What is φ(12)?",a:"4",hint:"Numbers 1-12 coprime to 12: 1,5,7,11 → φ(12)=4"},
+    {q:"φ(7)=? (φ counts integers 1 to n coprime to n)",a:"6",hint:"7 is prime — how many integers from 1 to 6 share no factor with 7?"},
+    {q:"φ(12)=?",a:"4",hint:"List integers 1-11 that share no factor with 12"},
+    {q:"For prime p, φ(p)=?",a:"p-1",hint:"Which integers from 1 to p-1 are coprime to a prime?"},
+    {q:"φ(p²)=? for prime p",a:"p²-p|p(p-1)",hint:"Which integers 1 to p² are NOT coprime to p²?"},
+    {q:"Use Euler's theorem: 3^φ(10) mod 10=? What is φ(10)?",a:"φ(10)=4, 3^4 mod 10=1",hint:"φ(10)=φ(2×5)=(2-1)(5-1). Then apply Euler's theorem"},
   ],
   // C&P CH1
   c1s1:[
@@ -1030,30 +1074,36 @@ const SECTION_PROOFS = {
     {q:"A license plate has 2 letters then 3 digits. First letter cannot be O or I. How many plates?",a:"240000",hint:"24×26×10×10×10 = 240000"},
   ],
   c1s5:[
-    {q:"In how many ways can 6 students line up if the tallest must be first?",a:"120",hint:"Fix first position (1 way), arrange remaining 5: 5!"},
-    {q:"How many 4-letter arrangements of the letters A,B,C,D,E,F (no repeats)?",a:"360",hint:"P(6,4)=6×5×4×3"},
-    {q:"A president, VP, and secretary are chosen from 10 people. How many ways?",a:"720",hint:"Order matters: 10×9×8"},
+    {q:"6 students line up, tallest must be first. How many ways?",a:"120",hint:"How many choices remain after fixing the first position?"},
+    {q:"4-letter arrangements from A,B,C,D,E,F (no repeats)?",a:"360",hint:"P(6,4) — how many choices for position 1? Position 2?"},
+    {q:"President, VP, secretary chosen from 10 people. How many ways?",a:"720",hint:"Does the order of selection matter here?"},
+    {q:"How many ways can 8 horses finish 1st, 2nd, 3rd?",a:"336",hint:"P(8,3) — think about it as filling 3 ordered positions"},
+    {q:"5 people sit in a row. A and B must sit next to each other. How many ways?",a:"48",hint:"Treat A and B as one unit first — how many arrangements of 4 units?"},
   ],
   // C&P CH2
   c2s1:[
-    {q:"How many ways to distribute 4 distinct balls into 3 labeled boxes (any box can be empty)?",a:"81",hint:"Each ball independently goes to one of 3 boxes: 3⁴"},
-    {q:"A quiz has 5 true/false questions. How many ways can a student answer?",a:"32",hint:"2 choices per question: 2⁵"},
+    {q:"How many ways to distribute 4 distinct balls into 3 labeled boxes (any box can be empty)?",a:"81",hint:"Each ball independently — how many destinations per ball?"},
+    {q:"A quiz has 5 true/false questions. How many ways can a student answer?",a:"32",hint:"Each question has how many possible answers? Use multiplication principle"},
   ],
   c2s2:[
     {q:"How many integers 1–200 are divisible by 4 or 6?",a:"67",hint:"div by 4: 50, div by 6: 33, div by 12: 16. Use inclusion-exclusion: 50+33−16"},
     {q:"Passwords: 3 characters, each a digit or uppercase letter. How many passwords?",a:"46656",hint:"36 choices each position: 36³ = 46656"},
   ],
   c2s3:[
-    {q:"How many 5-digit numbers have NO digit equal to 5?",a:"52488",hint:"9×9×9×9×9... wait: first digit: 8 choices (1-9 except 5), rest: 9 each. 8×9⁴"},
-    {q:"Integers 1–1000: how many are NOT divisible by 2, 3, or 5?",a:"267",hint:"Inclusion-exclusion: 1000 − (500+333+200) + (166+100+66) − 33 = 267"},
+    {q:"5-digit numbers with no digit equal to 5?",a:"52488",hint:"First digit: how many choices (can't be 0 or 5)? Other digits?"},
+    {q:"Integers 1–1000: how many are NOT divisible by 2, 3, or 5?",a:"267",hint:"Start with inclusion-exclusion to count those that ARE divisible"},
+    {q:"How many 4-digit numbers have no repeated digits and no zeros?",a:"3024",hint:"9 choices for first digit, then 8, 7, 6 for the rest — why?"},
+    {q:"How many 6-digit numbers are palindromes?",a:"9000",hint:"The first 3 digits determine the last 3 — how many choices for the first 3?"},
   ],
   c2s4:[
     {q:"How many 5-digit palindromes exist? (e.g. 12321)",a:"900",hint:"First 3 digits determine all 5. First digit: 9 choices, 2nd: 10, 3rd: 10. 9×10×10"},
     {q:"How many ways to roll 3 dice and get a sum of exactly 4?",a:"3",hint:"Casework: (1,1,2),(1,2,1),(2,1,1) — only 3 ways"},
   ],
   c2s5:[
-    {q:"How many 5-letter arrangements of ABCDE have A before B? (not necessarily adjacent)",a:"60",hint:"By symmetry, exactly half of all 5!=120 arrangements have A before B"},
-    {q:"How many 3-digit numbers use only odd digits (1,3,5,7,9)?",a:"125",hint:"5×5×5 = 125"},
+    {q:"5-letter arrangements of ABCDE with A before B?",a:"60",hint:"Think about it: of all arrangements, what fraction has A before B?"},
+    {q:"3-digit numbers using only odd digits (1,3,5,7,9)?",a:"125",hint:"How many choices per digit position?"},
+    {q:"How many ways to arrange the letters in LEVEL?",a:"30",hint:"There are repeated letters — how does that change the formula?"},
+    {q:"In how many ways can 4 boys and 4 girls sit alternately in a row?",a:"1152",hint:"Fix a boy in position 1 — how many ways for boys? For girls?"},
   ],
   // C&P CH3
   c3s1:[
@@ -1226,6 +1276,16 @@ function migrateV6toV7(v6){
     bountyCountToday:p.bountyCountToday||0,
     lastBountyDate:p.lastBountyDate||null,
     chatHistory:p.chatHistory||[],
+    baselineComplete:p.baselineComplete||false,
+    baselineScore:p.baselineScore!=null?p.baselineScore:null,
+    baselineWeakTopics:p.baselineWeakTopics||[],
+    fluxHistory:p.fluxHistory||[],
+    liveFluxToday:p.liveFluxToday||0,
+    liveXpToday:p.liveXpToday||0,
+    liveSessionDone:p.liveSessionDone||false,
+    bountySessionDone:p.bountySessionDone||false,
+    usedLiveQuestions:p.usedLiveQuestions||[],
+    lastBackupDate:p.lastBackupDate||null,
   });
   return{
     CIPHER:migrate(v6.CIPHER||{},"CIPHER","#00ffcc","CIPHER"),
@@ -1336,71 +1396,143 @@ function generateBountyQuestions(profile, count=15){
   // ── Supplement with hardcoded bank if pool too small ──────────────────────
   const bank=[];
 
-  // Always available
+  // Always available — mental math & fundamentals
   bank.push(...[
     {q:"Solve: 4x − 7 = 13",a:"5",xp:BOUNTY_XP,tag:"linear"},
-    {q:"Expand: (x+3)(x−3)",a:"x^2-9|x²-9",xp:BOUNTY_XP,tag:"algebra"},
+    {q:"Expand: (x+3)(x−3)",a:"x^2-9",xp:BOUNTY_XP,tag:"algebra"},
     {q:"What is 2^10?",a:"1024",xp:BOUNTY_XP,tag:"exponents"},
-    {q:"Factor: x² − 9",a:"(x+3)(x-3)",xp:BOUNTY_XP,tag:"factoring"},
-    {q:"What is 15% of 200?",a:"30",xp:BOUNTY_XP,tag:"percent"},
-    {q:"A price increases 20% then decreases 20%. Net change?",a:"-4%|4% decrease",xp:BOUNTY_XP+5,tag:"percent",hint:"1.2×0.8=0.96"},
-    {q:"Evaluate: 5!",a:"120",xp:BOUNTY_XP,tag:"counting"},
-    {q:"What is the sum 1+2+3+...+20?",a:"210",xp:BOUNTY_XP,tag:"sequences",hint:"n(n+1)/2"},
+    {q:"A price increases 20% then decreases 20%. Net change?",a:"-4%|4% decrease",xp:BOUNTY_XP+5,tag:"percent",hint:"Start with 1.2 × 0.8"},
+    {q:"Sum 1+2+3+...+20?",a:"210",xp:BOUNTY_XP,tag:"sequences",hint:"Use n(n+1)/2"},
+    {q:"Evaluate 5!",a:"120",xp:BOUNTY_XP,tag:"counting"},
+    {q:"What is √169?",a:"13",xp:BOUNTY_XP,tag:"radicals"},
+    {q:"Simplify: (2³)²",a:"64",xp:BOUNTY_XP,tag:"exponents",hint:"Multiply the exponents"},
   ]);
 
-  if(done.some(id=>id.startsWith("a10")||id.startsWith("a11")||id.startsWith("a13"))){
+  // ── ALGEBRA B (Ch10-21) — for CIPHER who completed it ────────────────────
+  if(done.some(id=>id.startsWith("a10")||id.startsWith("a11"))){
     bank.push(...[
+      // Quadratics
       {q:"Factor: x²+7x+12",a:"(x+3)(x+4)",xp:BOUNTY_XP,tag:"quadratic"},
-      {q:"Discriminant of x²+4x+5=0?",a:"-4",xp:BOUNTY_XP,tag:"quadratic"},
-      {q:"Solve: x²−5x+6=0",a:"x=2,x=3|2,3",xp:BOUNTY_XP,tag:"quadratic"},
-      {q:"Vertex of y=(x−3)²+5?",a:"(3,5)",xp:BOUNTY_XP,tag:"graphing"},
-      {q:"What is i²?",a:"-1",xp:BOUNTY_XP,tag:"complex"},
-      {q:"Multiply: (2+i)(2−i)",a:"5",xp:BOUNTY_XP+5,tag:"complex",hint:"a²−b²=4−(−1)=5"},
+      {q:"Factor: 2x²+5x+3",a:"(2x+3)(x+1)",xp:BOUNTY_XP+5,tag:"quadratic"},
+      {q:"Solve: x²−5x+6=0",a:"2,3",xp:BOUNTY_XP,tag:"quadratic"},
+      {q:"Discriminant of x²+4x+5=0?",a:"-4",xp:BOUNTY_XP,tag:"quadratic",hint:"b²−4ac"},
+      {q:"How many real solutions does x²+4x+5=0 have?",a:"0|none",xp:BOUNTY_XP,tag:"quadratic"},
+      {q:"Complete the square: x²+6x+? = (x+3)²",a:"9",xp:BOUNTY_XP,tag:"completing_square"},
+      {q:"Solve by completing the square: x²+4x−5=0",a:"x=1,x=-5|1,-5",xp:BOUNTY_XP+5,tag:"completing_square"},
+      {q:"Vertex of y=x²−6x+11?",a:"(3,2)",xp:BOUNTY_XP+5,tag:"graphing",hint:"x = -b/2a, then find y"},
+      {q:"Axis of symmetry of y=2x²−8x+3?",a:"x=2",xp:BOUNTY_XP,tag:"graphing"},
+      {q:"Does y=−2x²+4x−3 open up or down?",a:"down",xp:BOUNTY_XP,tag:"graphing"},
+      {q:"What is the minimum value of y=(x−4)²+7?",a:"7",xp:BOUNTY_XP,tag:"graphing"},
+      {q:"Factor: x²−16",a:"(x+4)(x-4)",xp:BOUNTY_XP,tag:"factoring"},
+      {q:"Factor: x³−27",a:"(x-3)(x^2+3x+9)",xp:BOUNTY_XP+5,tag:"factoring",hint:"Difference of cubes"},
+      {q:"Expand: (x+5)²",a:"x^2+10x+25",xp:BOUNTY_XP,tag:"quadratic"},
+      {q:"Expand: (2x−3)²",a:"4x^2-12x+9",xp:BOUNTY_XP+5,tag:"quadratic"},
     ]);
   }
-  if(done.some(id=>id.startsWith("a16")||id.startsWith("a17"))){
+  if(done.some(id=>id.startsWith("a12")||id.startsWith("a13")||id.startsWith("a14"))){
     bank.push(...[
-      {q:"If f(x)=2x+1, find f(f(3))",a:"15",xp:BOUNTY_XP+5,tag:"functions",hint:"f(3)=7, f(7)=15"},
+      // Complex numbers & advanced quadratics
+      {q:"What is i²?",a:"-1",xp:BOUNTY_XP,tag:"complex"},
+      {q:"What is i³?",a:"-i",xp:BOUNTY_XP,tag:"complex"},
+      {q:"What is i⁴?",a:"1",xp:BOUNTY_XP,tag:"complex"},
+      {q:"Add: (3+2i)+(1−4i)",a:"4-2i",xp:BOUNTY_XP,tag:"complex"},
+      {q:"Multiply: (2+i)(2−i)",a:"5",xp:BOUNTY_XP+5,tag:"complex",hint:"(a+b)(a-b)=a²-b²"},
+      {q:"Multiply: (1+2i)(3−i)",a:"5+5i",xp:BOUNTY_XP+5,tag:"complex"},
+      {q:"Conjugate of 4−3i?",a:"4+3i",xp:BOUNTY_XP,tag:"complex"},
+      {q:"|3+4i| = ?",a:"5",xp:BOUNTY_XP+5,tag:"complex",hint:"√(3²+4²)"},
+      {q:"Solve: x²+9=0",a:"x=3i,x=-3i|±3i",xp:BOUNTY_XP+5,tag:"complex"},
+      {q:"Quadratic formula: x²−6x+5=0",a:"x=1,x=5|1,5",xp:BOUNTY_XP,tag:"quadratic"},
+    ]);
+  }
+  if(done.some(id=>id.startsWith("a15")||id.startsWith("a16")||id.startsWith("a17"))){
+    bank.push(...[
+      // Functions
+      {q:"If f(x)=2x+1, find f(f(3))",a:"15",xp:BOUNTY_XP+5,tag:"functions",hint:"Find f(3) first"},
+      {q:"If f(x)=x²−1 and g(x)=x+2, find f(g(1))",a:"8",xp:BOUNTY_XP+5,tag:"functions"},
       {q:"Inverse of f(x)=3x−6?",a:"(x+6)/3",xp:BOUNTY_XP+5,tag:"functions"},
-      {q:"If f(x)=x² and g(x)=x+2, find f(g(1))",a:"9",xp:BOUNTY_XP+5,tag:"functions"},
+      {q:"Inverse of f(x)=2x+4?",a:"(x-4)/2",xp:BOUNTY_XP,tag:"functions"},
+      {q:"If f(x)=√(x−3), what is the domain?",a:"x≥3|x>=3",xp:BOUNTY_XP,tag:"functions"},
+      {q:"How does y=f(x+3) shift compared to y=f(x)?",a:"left 3|3 left",xp:BOUNTY_XP,tag:"functions"},
+      {q:"How does y=f(x)−2 shift compared to y=f(x)?",a:"down 2|2 down",xp:BOUNTY_XP,tag:"functions"},
+      {q:"If f is odd and f(2)=5, what is f(−2)?",a:"-5",xp:BOUNTY_XP+5,tag:"functions",hint:"Odd means f(-x)=-f(x)"},
+      {q:"Center and radius of (x−3)²+(y+1)²=25?",a:"(3,-1),r=5",xp:BOUNTY_XP+5,tag:"graphing"},
+    ]);
+  }
+  if(done.some(id=>id.startsWith("a18")||id.startsWith("a19")||id.startsWith("a20"))){
+    bank.push(...[
+      // Polynomials, logs, exponents
+      {q:"log₂(64)=?",a:"6",xp:BOUNTY_XP,tag:"logarithms"},
+      {q:"log₁₀(1000)=?",a:"3",xp:BOUNTY_XP,tag:"logarithms"},
+      {q:"log₃(1/9)=?",a:"-2",xp:BOUNTY_XP+5,tag:"logarithms",hint:"3^? = 1/9 = 3^(-2)"},
+      {q:"If logₐ(x)=3 and a=2, find x.",a:"8",xp:BOUNTY_XP,tag:"logarithms"},
+      {q:"Simplify: log(100)+log(10)",a:"3",xp:BOUNTY_XP+5,tag:"logarithms",hint:"log(10)=1, log(100)=2"},
+      {q:"$500 at 10% annual compound interest. After 2 years?",a:"605",xp:BOUNTY_XP+5,tag:"applications"},
+      {q:"Degree of polynomial: 3x⁴−2x²+x−7?",a:"4",xp:BOUNTY_XP,tag:"polynomials"},
+      {q:"Add: (3x³+2x−1)+(x³−x+4)",a:"4x^3+x+3",xp:BOUNTY_XP,tag:"polynomials"},
+      {q:"Multiply: (x+2)(x²−2x+4)",a:"x^3+8",xp:BOUNTY_XP+5,tag:"polynomials",hint:"Sum of cubes pattern"},
     ]);
   }
   if(done.some(id=>id.startsWith("a21"))){
     bank.push(...[
-      {q:"Arithmetic: a₁=3, d=4. What is the 10th term?",a:"39",xp:BOUNTY_XP,tag:"sequences"},
+      // Sequences & series
+      {q:"Arithmetic: a₁=3, d=4. 10th term?",a:"39",xp:BOUNTY_XP,tag:"sequences"},
+      {q:"Arithmetic: first=5, last=35, n=6. Sum?",a:"120",xp:BOUNTY_XP+5,tag:"sequences",hint:"n(a₁+aₙ)/2"},
       {q:"Geometric: 2,6,18... 6th term?",a:"486",xp:BOUNTY_XP,tag:"sequences"},
-      {q:"Sum of infinite geometric: a=4, r=1/2?",a:"8",xp:BOUNTY_XP+5,tag:"sequences"},
-    ]);
-  }
-  if(done.some(id=>id.startsWith("c"))){
-    bank.push(...[
-      {q:"C(8,3)=?",a:"56",xp:BOUNTY_XP,tag:"combinations"},
-      {q:"How many 3-digit numbers use only digits 1,3,5,7,9?",a:"125",xp:BOUNTY_XP+5,tag:"counting"},
-      {q:"P(sum=7 with 2 dice)?",a:"1/6|6/36",xp:BOUNTY_XP,tag:"probability"},
-      {q:"How many diagonals does a hexagon have?",a:"9",xp:BOUNTY_XP+5,tag:"counting",hint:"C(6,2)−6=9"},
-      {q:"P(drawing 2 aces without replacement)?",a:"1/221|4/52×3/51",xp:BOUNTY_XP+5,tag:"probability"},
-    ]);
-  }
-  if(done.some(id=>id.startsWith("nt"))){
-    bank.push(...[
-      {q:"gcd(48,36)=?",a:"12",xp:BOUNTY_XP,tag:"number theory"},
-      {q:"lcm(6,10)=?",a:"30",xp:BOUNTY_XP,tag:"number theory"},
-      {q:"17 mod 5=?",a:"2",xp:BOUNTY_XP,tag:"modular"},
-      {q:"Last digit of 7^20?",a:"1",xp:BOUNTY_XP+5,tag:"modular",hint:"7^4 ends in 1, 20=4×5"},
-      {q:"How many divisors does 72 have?",a:"12",xp:BOUNTY_XP+5,tag:"number theory",hint:"2³×3²→(3+1)(2+1)=12"},
-      {q:"φ(12)=? (Euler totient)",a:"4",xp:BOUNTY_XP+5,tag:"number theory",hint:"coprime to 12: 1,5,7,11"},
-      {q:"3x≡1 (mod 7). Find x.",a:"5",xp:BOUNTY_XP+5,tag:"modular",hint:"3×5=15≡1 mod 7"},
-    ]);
-  }
-  if(done.length>=15){
-    bank.push(...[
-      {q:"CHALLENGE: x+y=5 and xy=6. Find x²+y².",a:"13",xp:BOUNTY_XP*2,tag:"challenge",hint:"(x+y)²=x²+2xy+y²=25−12"},
-      {q:"CHALLENGE: How many integers 1–100 are divisible by 3 or 5?",a:"47",xp:BOUNTY_XP*2,tag:"challenge",hint:"33+20−6=47"},
-      {q:"CHALLENGE: If log₂(x)=5, what is x?",a:"32",xp:BOUNTY_XP*2,tag:"challenge"},
+      {q:"Sum of infinite geometric: a=6, r=1/3?",a:"9",xp:BOUNTY_XP+5,tag:"sequences",hint:"a/(1-r)"},
+      {q:"Geometric: a₁=5, r=2. Sum of first 4 terms?",a:"75",xp:BOUNTY_XP+5,tag:"sequences",hint:"a(rⁿ-1)/(r-1)"},
+      {q:"Is 1/2+1/4+1/8+... convergent? Sum?",a:"yes,1|converges to 1",xp:BOUNTY_XP+5,tag:"sequences"},
     ]);
   }
 
-  // Add bank questions not already in pool
+  // ── C&P (for CIPHER's current book) ──────────────────────────────────────
+  if(done.some(id=>id.startsWith("c"))){
+    bank.push(...[
+      // Counting fundamentals
+      {q:"C(8,3)=?",a:"56",xp:BOUNTY_XP,tag:"combinations"},
+      {q:"P(5,3)=? (permutations)",a:"60",xp:BOUNTY_XP,tag:"permutations",hint:"5×4×3"},
+      {q:"How many 3-digit numbers use only odd digits 1,3,5,7,9?",a:"125",xp:BOUNTY_XP+5,tag:"counting"},
+      {q:"How many diagonals does a hexagon have?",a:"9",xp:BOUNTY_XP+5,tag:"counting",hint:"C(6,2) minus the 6 sides"},
+      {q:"10 people shake hands exactly once. Total handshakes?",a:"45",xp:BOUNTY_XP+5,tag:"counting",hint:"C(10,2)"},
+      {q:"P(rolling sum=7 with 2 dice)?",a:"1/6",xp:BOUNTY_XP,tag:"probability"},
+      {q:"P(drawing 2 aces from deck without replacement)?",a:"1/221",xp:BOUNTY_XP+5,tag:"probability",hint:"4/52 × 3/51"},
+      {q:"Committee of 3 from 7 people. How many ways?",a:"35",xp:BOUNTY_XP,tag:"combinations"},
+      {q:"How many ways to arrange letters in MATH?",a:"24",xp:BOUNTY_XP,tag:"permutations"},
+      {q:"Passwords: 3 digits, each 0-9. How many?",a:"1000",xp:BOUNTY_XP,tag:"counting"},
+      {q:"C(n,2)=15. Find n.",a:"6",xp:BOUNTY_XP+5,tag:"combinations",hint:"n(n-1)/2=15"},
+      {q:"How many ways to choose 2 boys and 2 girls from 4 boys and 4 girls?",a:"36",xp:BOUNTY_XP+5,tag:"combinations",hint:"C(4,2)×C(4,2)"},
+    ]);
+  }
+
+  // ── NT (NOVA) ─────────────────────────────────────────────────────────────
+  if(done.some(id=>id.startsWith("nt"))){
+    bank.push(...[
+      {q:"gcd(48,36)=?",a:"12",xp:BOUNTY_XP,tag:"number theory"},
+      {q:"lcm(8,12)=?",a:"24",xp:BOUNTY_XP,tag:"number theory"},
+      {q:"17 mod 5=?",a:"2",xp:BOUNTY_XP,tag:"modular"},
+      {q:"Last digit of 7^20?",a:"1",xp:BOUNTY_XP+5,tag:"modular",hint:"7^4 ends in 1"},
+      {q:"How many divisors does 72 have?",a:"12",xp:BOUNTY_XP+5,tag:"number theory",hint:"72=2³×3², so (3+1)(2+1)"},
+      {q:"φ(12)=?",a:"4",xp:BOUNTY_XP+5,tag:"number theory",hint:"Numbers coprime to 12 up to 12"},
+      {q:"3x≡1 (mod 7). Find x.",a:"5",xp:BOUNTY_XP+5,tag:"modular",hint:"Try x=1,2,3,4,5"},
+      {q:"Is 91 prime?",a:"no",xp:BOUNTY_XP,tag:"primes",hint:"Check if any small primes divide it"},
+      {q:"Prime factorization of 360?",a:"2^3×3^2×5|2³·3²·5",xp:BOUNTY_XP+5,tag:"primes"},
+      {q:"How many primes less than 20?",a:"8",xp:BOUNTY_XP,tag:"primes",hint:"List them: 2,3,5,..."},
+    ]);
+  }
+
+  // ── CHALLENGE (15+ sections done) ────────────────────────────────────────
+  if(done.length>=15){
+    bank.push(...[
+      {q:"CHALLENGE: x+y=5, xy=6. Find x²+y².",a:"13",xp:BOUNTY_XP*2,tag:"challenge",hint:"Use (x+y)² = x²+2xy+y²"},
+      {q:"CHALLENGE: How many integers 1–100 divisible by 3 or 5?",a:"47",xp:BOUNTY_XP*2,tag:"challenge",hint:"Use inclusion-exclusion"},
+      {q:"CHALLENGE: log₂(x)+log₂(x+2)=3. Find x.",a:"2",xp:BOUNTY_XP*2,tag:"challenge",hint:"Combine logs first"},
+      {q:"CHALLENGE: Sum of all roots of x⁴−5x²+4=0?",a:"0",xp:BOUNTY_XP*2,tag:"challenge",hint:"Factor as quadratic in x²"},
+      {q:"CHALLENGE: How many ways to seat 6 people in a circle?",a:"120",xp:BOUNTY_XP*2,tag:"challenge",hint:"Circular permutation: (n-1)!"},
+      {q:"CHALLENGE: If z=3+4i, what is z×z̄?",a:"25",xp:BOUNTY_XP*2,tag:"challenge",hint:"z×z̄ = |z|²"},
+      {q:"CHALLENGE: Arithmetic sequence. a₃=11, a₇=23. Find a₁.",a:"5",xp:BOUNTY_XP*2,tag:"challenge",hint:"Find d first from a₇-a₃"},
+    ]);
+  }
+
+    // Add bank questions not already in pool
   const poolTexts=new Set(pool.map(q=>q.q));
   bank.forEach(q=>{if(!poolTexts.has(q.q)&&!usedToday.has(q.q)) pool.push(q);});
 
@@ -1726,10 +1858,10 @@ const WARMUP_BANK = {
     {q:"Temperature: 72°F to 58°F. Drop?",a:"14",hint:"72-58"},
     {q:"Flight: departs 10:45am, arrives 2:15pm. Duration?",a:"3h30m|3.5|210",hint:"Count hours and minutes"},
     // Proportions
-    {q:"Recipe: 2 cups flour per 12 cookies. Flour for 36 cookies?",a:"6",hint:"Scale by 3"},
+    {q:"Recipe: 2 cups flour per 12 cookies. Flour for 36 cookies?",a:"6",hint:"If 2 cups makes 12 cookies, what ratio gives 36 cookies?"},
     {q:"Map: 1cm = 50km. Distance 7cm on map. Real?",a:"350",hint:"7×50"},
     {q:"3 workers paint in 4 hours. 1 worker: how long?",a:"12",hint:"3×4=12 person-hours"},
-    {q:"If 5 pens cost $3, how much for 15 pens?",a:"9",hint:"Scale by 3"},
+    {q:"If 5 pens cost $3, how much for 15 pens?",a:"9",hint:"If 2 cups makes 12 cookies, what ratio gives 36 cookies?"},
     {q:"Car uses 1 gallon per 35 miles. Miles on 4 gallons?",a:"140",hint:"35×4"},
     // Estimation
     {q:"Estimate: 49 × 51",a:"2499|2500",hint:"(50-1)(50+1)=50²-1"},
@@ -4835,7 +4967,7 @@ export default function VanguardMathOS(){
         onStartRival={()=>setRivalPending(true)}
         onRestoreState={(data)=>{setAppState(prev=>({...prev,CIPHER:data.profiles?.CIPHER||prev.CIPHER,NOVA:data.profiles?.NOVA||prev.NOVA,rewards:data.rewards||prev.rewards}));}}
       />}
-      {showBounty&&p&&<BountyBoard profile={p} onClose={()=>setShowBounty(false)} onCorrect={handleBountyCorrect} onSpendLC={()=>{}} onSpendFlux={(amt)=>updateProfile(activeUser,prev=>({...prev,flux:Math.max(0,(prev.flux||0)-amt),fluxHistory:addFluxHistory(prev,"Help (scaffold/example)",-amt)}))}/>}
+      {showBounty&&p&&<BountyBoard profile={p} onClose={()=>setShowBounty(false)} onCorrect={handleBountyCorrect} onSpendLC={()=>{}} onSpendFlux={(amt)=>updateProfile(activeUser,prev=>({...prev,flux:Math.max(0,(prev.flux||0)-amt),fluxHistory:addFluxHistory(prev,"Help (scaffold/example)",-amt)}))} onMarkDone={()=>updateProfile(activeUser,prev=>({...prev,bountySessionDone:true}))}/>}
       {showWarmup&&<DailyWarmup profile={p} onComplete={handleWarmupComplete} onSkipDay={()=>setShowWarmup(false)} />}
       {showFluxHistory&&<FluxHistory profile={p} onClose={()=>setShowFluxHistory(false)}/>}
       {showReport&&<GradeReport profile={p} onClose={()=>setShowReport(false)}/>}
@@ -4895,6 +5027,29 @@ export default function VanguardMathOS(){
           </div>
         </div>
 
+        {/* ── BASELINE RESULTS (shown after completion) ── */}
+        {!baselineNeeded&&p.baselineScore!=null&&(
+          <div style={{background:"#060d18",border:"1px solid #1a2a3a",borderLeft:"3px solid "+p.color,padding:"0.85rem 1.25rem",marginBottom:"1rem"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.4rem"}}>
+              <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.82rem",color:p.color,letterSpacing:"0.1em"}}>BASELINE SCORE</div>
+              <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.3rem",fontWeight:900,color:p.baselineScore>=80?"#00ffcc":p.baselineScore>=60?"#ffaa00":"#ff4444"}}>{p.baselineScore}%</div>
+            </div>
+            {(p.baselineWeakTopics||[]).length>0&&(
+              <div>
+                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.72rem",color:"#8899aa",marginBottom:"0.3rem"}}>FOCUS AREAS:</div>
+                <div style={{display:"flex",gap:"0.35rem",flexWrap:"wrap"}}>
+                  {(p.baselineWeakTopics||[]).map(t=>(
+                    <span key={t} style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.74rem",background:"#1a0800",border:"1px solid #ff880033",color:"#ff8800",padding:"0.1rem 0.4rem",borderRadius:2}}>{TOPIC_LABELS[t]||t}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {(p.baselineWeakTopics||[]).length===0&&(
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.78rem",color:"#00ffcc"}}>✓ No major gaps identified — keep pushing!</div>
+            )}
+          </div>
+        )}
+
         {/* ── DAILY QUEST CARD ── */}
         {(
           <div style={{background:"linear-gradient(135deg,#0a1520,#060d18)",border:"1px solid "+rank.color+"44",padding:"1rem 1.25rem",marginBottom:"1rem",position:"relative",overflow:"hidden"}}>
@@ -4920,15 +5075,22 @@ export default function VanguardMathOS(){
 
         {/* ── ACTION BUTTONS ── */}
         <div style={{display:"flex",gap:"0.6rem",marginBottom:"1rem",flexWrap:"wrap"}}>
-          <button
-            onClick={()=>{
-              if(warmupNeeded()){setShowWarmup(true);}
-              else if(p.bountySessionDone){notify("Bounty done for today!","warn");}
-              else{setShowBounty(true);}
-            }}
-            style={{flex:1,background:"#1a1500",border:`1px solid ${p.bountySessionDone?"#334455":"#ffdd0066"}`,color:p.bountySessionDone?"#445566":"#ffdd00",padding:"0.65rem",cursor:p.bountySessionDone?"not-allowed":"pointer",fontFamily:"Orbitron,sans-serif",fontSize:"0.88rem",letterSpacing:"0.05em",borderRadius:3,opacity:warmupNeeded()||p.bountySessionDone?0.5:1}}>
-            {p.bountySessionDone?"✓ BOUNTY DONE":"⚡ BOUNTY BOARD"}{warmupNeeded()&&!p.bountySessionDone?<span style={{fontSize:"0.72em",opacity:0.7}}> (do warm-up first)</span>:null}
-          </button>
+          {warmupNeeded()&&(
+            <button onClick={()=>setShowWarmup(true)}
+              style={{flex:2,background:"#1a1500",border:"1px solid #ffdd0099",color:"#ffdd00",padding:"0.65rem",cursor:"pointer",fontFamily:"Orbitron,sans-serif",fontSize:"0.88rem",letterSpacing:"0.05em",borderRadius:3}}>
+              ⚡ DAILY WARM-UP — START HERE
+            </button>
+          )}
+          {!warmupNeeded()&&(
+            <button
+              onClick={()=>{
+                if(p.bountySessionDone){notify("Bounty done for today!","warn");}
+                else{setShowBounty(true);}
+              }}
+              style={{flex:1,background:"#1a1500",border:`1px solid ${p.bountySessionDone?"#334455":"#ffdd0066"}`,color:p.bountySessionDone?"#445566":"#ffdd00",padding:"0.65rem",cursor:p.bountySessionDone?"not-allowed":"pointer",fontFamily:"Orbitron,sans-serif",fontSize:"0.88rem",letterSpacing:"0.05em",borderRadius:3,opacity:p.bountySessionDone?0.5:1}}>
+              {p.bountySessionDone?"✓ BOUNTY DONE TODAY":"⚡ BOUNTY BOARD"}
+            </button>
+          )}
           <button
             disabled={warmupNeeded()||p.liveSessionDone||p.xp<LIVE_MODE_COST}
             onClick={()=>{
