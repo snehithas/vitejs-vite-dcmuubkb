@@ -1618,14 +1618,15 @@ function BountyBoard({profile,onClose,onCorrect,onSpendLC,onMarkDone}){
   function submit(){
     if(revealed)return;
     const ok=checkAns(input,q.a);
-    const newAnswered=[...answered,{q:q.q,ok,xp:ok?q.xp:0}];
-    setAnswered(newAnswered);
     setFlash(ok?"good":"bad");
     setTimeout(()=>setFlash(null),600);
     if(ok){
+      // Only record to answered[] on correct — wrong attempts don't count
+      const newAnswered=[...answered,{q:q.q,ok:true,xp:q.xp}];
+      setAnswered(newAnswered);
       setSessionCorrect(c=>c+1);
       setSessionXP(x=>x+q.xp);
-      onCorrect(q.xp,true); // XP + bounty correct count
+      onCorrect(q.xp,true);
       setInput("");setHint(false);
       if(qIdx+1>=totalQ||usedToday+qIdx+1>=BOUNTY_DAILY_CAP){
         setTimeout(()=>setDone(true),500);
@@ -1633,13 +1634,16 @@ function BountyBoard({profile,onClose,onCorrect,onSpendLC,onMarkDone}){
         setTimeout(()=>setQIdx(i=>i+1),500);
       }
     } else {
-      setRevealed(false); // let them try again or reveal
+      // Wrong answer — flash red, let them retry, don't advance
+      setInput("");
     }
   }
 
   function revealAns(){
     onSpendLC(0);
     onCorrect(0,false);
+    // Record as wrong when answer is revealed
+    setAnswered(prev=>[...prev,{q:q.q,ok:false,xp:0}]);
     setRevealed(true);
   }
   function nextQ(){
@@ -2826,7 +2830,7 @@ const TOPIC_LABELS={
   expected_value:"Expected Value",binomial:"Binomial Theorem",
 };
 
-function BaselineAssessment({profile,onComplete}){
+function BaselineAssessment({profile,onComplete,onExit}){
   const questions=BASELINE_QUESTIONS[profile.name]||BASELINE_QUESTIONS.CIPHER;
   const [qIdx,setQIdx]=useState(0);
   const [input,setInput]=useState("");
@@ -2851,8 +2855,7 @@ function BaselineAssessment({profile,onComplete}){
     setShowWarning(true);
     setInput("");setFlash(null);setRevealed(false);
     setTimeLeft(180);
-    // Swap to next question - functional update avoids stale closure
-    setQIdx(i=>Math.min(i+1, questions.length-1));
+    // Don't advance question on tab switch — just reset timer
   });
 
   useEffect(()=>{
@@ -3014,7 +3017,7 @@ function BaselineAssessment({profile,onComplete}){
         <div style={{textAlign:"right"}}>
           <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.5rem",fontWeight:900,color:timeColor}}>{Math.floor(timeLeft/60)}:{String(timeLeft%60).padStart(2,"0")}</div>
           <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.96rem",color:"#8899aa"}}>Q {qIdx+1} / {questions.length}</div>
-          <button onClick={()=>{if(window.confirm("Exit baseline? You can retake it later.")){clearInterval(timerRef.current);onComplete(0,[]);}}} style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.72rem",color:"#ff6644",background:"none",border:"1px solid #ff664433",padding:"0.15rem 0.5rem",cursor:"pointer",marginTop:"0.25rem"}}>EXIT TEST</button>
+          <button onClick={()=>{if(window.confirm("Exit baseline? Progress won't be saved.")){clearInterval(timerRef.current);onExit&&onExit();}}} style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.72rem",color:"#ff6644",background:"none",border:"1px solid #ff664433",padding:"0.15rem 0.5rem",cursor:"pointer",marginTop:"0.25rem"}}>EXIT TEST</button>
         </div>
       </div>
       {/* Progress */}
@@ -4745,6 +4748,11 @@ export default function VanguardMathOS(){
   }
 
   function handleBaselineComplete(score,weakTopics){
+    // Only mark complete if they actually finished (score > 0 means real attempt)
+    if(score===0&&(!weakTopics||weakTopics.length===0)){
+      setActiveGame(null);
+      return; // Exited early — don't save
+    }
     updateProfile(activeUser,prev=>({
       ...prev,
       baselineComplete:true,
@@ -4809,7 +4817,7 @@ export default function VanguardMathOS(){
   if(activeGame==="SLITHER") return<SlitherGame onExit={()=>setActiveGame(null)}/>;
   if(activeGame==="LIVE") return<LiveMode profile={p} profiles={profiles} onExit={()=>setActiveGame(null)} onEarn={handleLiveEarn} rivalSession={appState.rivalSession}
     onMarkUsed={(qs)=>updateProfile(activeUser,prev=>({...prev,liveSessionDone:true,usedLiveQuestions:[...(prev.usedLiveQuestions||[]),...qs.map(q=>q.q)].slice(-200)}))}/>;
-  if(activeGame==="BASELINE") return<BaselineAssessment profile={p} onComplete={(score,weak)=>handleBaselineComplete(score,weak)} />;
+  if(activeGame==="BASELINE") return<BaselineAssessment profile={p} onComplete={(score,weak)=>handleBaselineComplete(score,weak)} onExit={()=>setActiveGame(null)}/>;
   if(activeGame==="BIWEEKLY") return<BiweeklyTest profile={p} onComplete={(score,weak)=>handleTestComplete(score,weak)}/>;
   if(activeGame==="PRIME") return<PrimeHunterGame onExit={()=>setActiveGame(null)}/>;
 
