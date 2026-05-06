@@ -62,9 +62,9 @@ const DEFAULT_REWARDS=[
 
 // Storage — v7 migrates from v6 automatically
 const STORAGE_KEY = "vanguard_v7";
-const APP_VERSION = "v8.1 · 2026-04-08";
+const APP_VERSION = "v8.3 · 2026-04-08";
 const STORAGE_KEY_V6 = "vanguard_v6";
-const PARENT_PIN = "1234";
+const PARENT_PIN = "4578";
 
 // ═══════════════════════════════════════════════════════════
 // AoPS CURRICULUM — Real chapters + sections
