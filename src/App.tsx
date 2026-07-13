@@ -62,7 +62,67 @@ const DEFAULT_REWARDS=[
 
 // Storage — v7 migrates from v6 automatically
 const STORAGE_KEY = "vanguard_v7";
-const APP_VERSION = "v8.3 · 2026-04-08";
+const APP_VERSION = "v9.0 · 2026-07-13";
+
+// Exam countdown & catch-up tracking
+const EXAM_DATES = {
+  CIPHER: "2026-07-22",
+  NOVA: "2026-08-05",
+};
+// Chapters that make up each kid's catch-up path (missed June classes + what's next)
+const CATCHUP_CHAPTERS = {
+  CIPHER: ["c7","c8","c9","c10","c11"], // Intro Prob → Techniques → Symmetry → Geometric → Expected Value
+  NOVA: ["nt5","nt6"], // Remainders → Congruences (covers Modular Arith I/II, Divisibility, Linear Congruences)
+};
+
+function daysUntil(dateStr){
+  const target=new Date(dateStr+"T00:00:00");
+  const now=new Date(today()+"T00:00:00");
+  return Math.round((target-now)/(1000*60*60*24));
+}
+
+// Compute mastery split by tier (fundamentals vs advanced) across a set of chapters
+function computeTierMastery(profile, chapterIds){
+  let fCorrect=0,fTotal=0,aCorrect=0,aTotal=0;
+  chapterIds.forEach(chId=>{
+    const book=CURRICULUM.find(b=>b.chapters.some(c=>c.id===chId));
+    const chapter=book?.chapters.find(c=>c.id===chId);
+    if(!chapter) return;
+    chapter.sections.forEach(sec=>{
+      const proofs=SECTION_PROOFS[sec.id]||[];
+      const results=profile.proofsDone?.[sec.id]||[];
+      proofs.forEach((q,i)=>{
+        const tier=q.tier||"fundamentals"; // untagged questions count as fundamentals
+        const attempted=results[i]!==undefined;
+        const correct=results[i]===true;
+        if(tier==="advanced"){
+          if(attempted){aTotal++; if(correct)aCorrect++;}
+        } else {
+          if(attempted){fTotal++; if(correct)fCorrect++;}
+        }
+      });
+    });
+  });
+  return{
+    fundamentals: fTotal>0?Math.round((fCorrect/fTotal)*100):null,
+    advanced: aTotal>0?Math.round((aCorrect/aTotal)*100):null,
+    fAttempted:fTotal, aAttempted:aTotal,
+  };
+}
+
+// Chapter completion status for the catch-up roadmap
+function getCatchupStatus(profile, chapterIds){
+  return chapterIds.map(chId=>{
+    const book=CURRICULUM.find(b=>b.chapters.some(c=>c.id===chId));
+    const chapter=book?.chapters.find(c=>c.id===chId);
+    if(!chapter) return{id:chId,name:chId,status:"missing",pct:0};
+    const secs=chapter.sections;
+    const doneCount=secs.filter(s=>profile.sectionsDone?.[s.id]).length;
+    const pct=secs.length>0?Math.round((doneCount/secs.length)*100):0;
+    const status=pct===100?"done":pct>0?"in-progress":"not-started";
+    return{id:chId,name:`${chapter.num}. ${chapter.name}`,status,pct};
+  });
+}
 const STORAGE_KEY_V6 = "vanguard_v6";
 const PARENT_PIN = "4578";
 
@@ -247,27 +307,25 @@ const CURRICULUM = [
         {id:"c5s3",num:"5.3",name:"More Committee-type Problems"},
         {id:"c5s4",num:"5.4",name:"Distinguishability"},
       ]},
-      { id:"c7", num:"7", name:"Introduction to Probability", sections:[
-        {id:"c7s1",num:"7.1",name:"Introduction"},
-        {id:"c7s2",num:"7.2",name:"Basic Probability"},
-        {id:"c7s3",num:"7.3",name:"Equally Likely Outcomes"},
-        {id:"c7s4",num:"7.4",name:"Counting Techniques in Probability"},
-      ]},
-      { id:"c8", num:"8", name:"Basic Probability Techniques", sections:[
-        {id:"c8s1",num:"8.1",name:"Introduction"},
-        {id:"c8s2",num:"8.2",name:"Probability and Addition"},
-        {id:"c8s3",num:"8.3",name:"Complementary Probabilities"},
-        {id:"c8s4",num:"8.4",name:"Probability and Multiplication"},
-        {id:"c8s5",num:"8.5",name:"Probability with Dependent Events"},
-      ]},
       { id:"c6",  num:"6",  name:"Some Hard Counting Problems", sections:[
         {id:"c6s1", num:"6.1", name:"Introduction to Hard Counting"},
         {id:"c6s2", num:"6.2", name:"Counting with Restrictions"},
         {id:"c6s3", num:"6.3", name:"Multiple Counting Techniques"},
       ]},
+      { id:"c7",  num:"7",  name:"Introduction to Probability", sections:[
+        {id:"c7s1", num:"7.1", name:"Basic Probability"},
+        {id:"c7s2", num:"7.2", name:"Counting-Based Probability"},
+        {id:"c7s3", num:"7.3", name:"Casework in Probability"},
+      ]},
+      { id:"c8",  num:"8",  name:"Probability Techniques", sections:[
+        {id:"c8s1", num:"8.1", name:"The Addition Rule"},
+        {id:"c8s2", num:"8.2", name:"Independent and Dependent Events"},
+        {id:"c8s3", num:"8.3", name:"Complementary Probability"},
+      ]},
       { id:"c9",  num:"9",  name:"Think About It", sections:[
-        {id:"c9s1", num:"9.1", name:"Challenge Counting Problems"},
-        {id:"c9s2", num:"9.2", name:"Challenge Probability Problems"},
+        {id:"c9s1", num:"9.1", name:"Symmetry Arguments"},
+        {id:"c9s2", num:"9.2", name:"Using Symmetry with Games"},
+        {id:"c9s3", num:"9.3", name:"Recognizing When Symmetry Applies"},
       ]},
       { id:"c10", num:"10", name:"Geometric Probability", sections:[
         {id:"c10s1",num:"10.1",name:"Introduction to Geometric Probability"},
@@ -811,26 +869,64 @@ const SECTION_PROOFS = {
     {q:"How many subsets of {1,2,3,4,5} have an even sum?",a:"16",hint:"Half of all 32 subsets have even sum (by symmetry)"},
     {q:"A committee of 5 from 4 men and 6 women must have more women than men. How many ways?",a:"186",hint:"Cases: 3W2M=C(6,3)C(4,2)=120, 4W1M=C(6,4)C(4,1)=60, 5W0M=C(6,5)=6. Total=186"},
   ],
-  // C&P CH9
+  // ── C&P CH7: Introduction to Probability ──────────────────────────────
+  c7s1:[
+    {q:"A bag has 3 red and 5 blue marbles. What is P(drawing red)?",a:"3/8",hint:"P(A) = outcomes for A / total outcomes",tier:"fundamentals"},
+    {q:"Roll a fair 6-sided die. What is P(rolling a number greater than 4)?",a:"1/3",hint:"Which outcomes count: 5 and 6. How many total outcomes?",tier:"fundamentals"},
+    {q:"A spinner has 4 equal sections numbered 1-4. What is P(landing on an even number)?",a:"1/2",hint:"How many of the 4 sections are even?",tier:"fundamentals"},
+  ],
+  c7s2:[
+    {q:"A deck of 28 cards has 4 colors and 7 numbers (1-7), one card for each color-number pair. What is P(drawing red and odd)?",a:"1/7",hint:"How many red-and-odd cards are there? How many cards total?",tier:"fundamentals"},
+    {q:"Same deck (28 cards, 4 colors × numbers 1-7): what is P(drawing red or odd)?",a:"19/28",hint:"Use P(A or B)=P(A)+P(B)−P(A and B) — count red cards, odd cards, and red-odd cards",tier:"fundamentals"},
+    {q:"Same deck (28 cards). Two cards are drawn without replacement. What is P(both cards are red)?",a:"1/18",hint:"P(1st red) × P(2nd red given 1st was red) — the second draw has one fewer card of each kind",tier:"advanced"},
+  ],
+  c7s3:[
+    {q:"Each of the 4 squares in a 2×2 grid is painted red or blue at random (independently, 50/50). What is P(no row or column has both squares blue)?",a:"7/16",hint:"Count by how many blue squares there are: 0, 1, or 2 — for 2 blue squares, they can't share a row or column",tier:"advanced"},
+    {q:"A committee of 3 is chosen at random from 4 boys and 4 girls. What is P(the committee has at least 2 girls)?",a:"1/2",hint:"Count committees with exactly 2 girls, plus committees with exactly 3 girls, out of all possible committees",tier:"advanced"},
+  ],
+  // ── C&P CH8: Probability Techniques ────────────────────────────────────
+  c8s1:[
+    {q:"P(A)=0.4, P(B)=0.3, P(A and B)=0.1. Find P(A or B).",a:"0.6",hint:"P(A or B) = P(A) + P(B) − P(A and B)",tier:"fundamentals"},
+    {q:"Events A and B are mutually exclusive with P(A)=0.25 and P(B)=0.35. Find P(A or B).",a:"0.6",hint:"Mutually exclusive means P(A and B)=0 — what does the formula simplify to?",tier:"fundamentals"},
+    {q:"An integer from 1 to 100 is picked at random. What is P(it's a multiple of 4 or 6)?",a:"33/100",hint:"Count multiples of 4, multiples of 6, and multiples of both (multiples of 12) — then combine",tier:"fundamentals"},
+  ],
+  c8s2:[
+    {q:"Two fair coins are flipped. What is P(both land heads)?",a:"1/4",hint:"Are the two flips independent? What rule applies when events are independent?",tier:"fundamentals"},
+    {q:"A bag has 5 red and 3 blue marbles. Two are drawn without replacement. What is P(both red)?",a:"5/14",hint:"P(1st red) × P(2nd red given 1st was red already removed)",tier:"fundamentals"},
+    {q:"A deck of 28 cards has 4 suits and values 1-7. Two cards are drawn without replacement. What is P(the first drawn is a 1, and the second is prime)?",a:"16/189",hint:"How many 1-cards are there? After removing one, how many prime-valued cards remain out of how many total?",tier:"advanced"},
+  ],
+  c8s3:[
+    {q:"P(rain tomorrow) = 0.3. What is P(no rain)?",a:"0.7",hint:"Complementary events always sum to 1",tier:"fundamentals"},
+    {q:"A fair die is rolled 3 times. What is P(at least one 6)?",a:"91/216",hint:"It's easier to find P(no 6 in any of the 3 rolls) and subtract from 1",tier:"fundamentals"},
+    {q:"Exactly one of events A, B, C must happen. P(A)=0.2 and P(B)=0.45. Find P(C).",a:"0.35",hint:"If exactly one must happen, their probabilities sum to 1",tier:"fundamentals"},
+    {q:"A club has 12 members: 7 like hiking, 5 like biking, 2 like both. What is P(a randomly chosen member likes neither)?",a:"1/6",hint:"First find how many like at least one activity, using the addition rule — then use the complement",tier:"advanced"},
+  ],
+  // ── C&P CH9: Think About It (Symmetry) ──────────────────────────────────
   c9s1:[
-    {q:"How many integers 1-1000 are divisible by 3, 5, or 7?",a:"543",hint:"Inclusion-exclusion with three sets"},
-    {q:"In how many ways can 8 people be split into two groups of 4 (groups are unlabeled)?",a:"35",hint:"C(8,4)/2=70/2=35"},
+    {q:"Two players each flip 2 fair coins. By symmetry, what is P(Player A gets more heads than Player B)?",a:"5/16",hint:"By symmetry, P(A>B)=P(B>A). What's left over is P(tie) — find that first, then split the remainder in half",tier:"fundamentals"},
+    {q:"Two players each roll one fair die. By symmetry, what is P(Player 1 rolls higher than Player 2)?",a:"5/12",hint:"Find P(tie) first — there are 6 ways to tie out of 36 total outcomes",tier:"fundamentals"},
   ],
   c9s2:[
-    {q:"Toss a fair coin 5 times. P(more heads than tails)?",a:"1/2|16/32",hint:"By symmetry, P(more H)=P(more T). They sum with P(equal) to 1. P(equal)=C(5,2.5)... not integer. Actually P(3H)+P(4H)+P(5H)=(10+5+1)/32=16/32=1/2"},
-    {q:"Two dice rolled. P(product > 20)?",a:"1/9|4/36",hint:"Pairs: (4,6),(5,5),(5,6),(6,4),(6,5),(6,6) — check each: >20 means (4,6),(6,4),(5,5),(5,6),(6,5),(6,6)=6, wait (5,5)=25>20 ✓. 6 pairs → 6/36=1/6. Let me recount: (4,6)=24,(5,5)=25,(5,6)=30,(6,4)=24,(6,5)=30,(6,6)=36. Yes 6 pairs → 1/6"},
+    {q:"A fair coin is flipped 4 times. By symmetry, what is P(more heads than tails)?",a:"5/16",hint:"With 4 flips, a tie means exactly 2 heads and 2 tails — find that probability first",tier:"advanced"},
+    {q:"Jenny and Kenny each flip 3 fair coins. By symmetry, what is P(Jenny flips more heads than Kenny)?",a:"11/32",hint:"Find P(tie) using all the ways they can match: 0-0, 1-1, 2-2, 3-3 heads",tier:"advanced"},
+  ],
+  c9s3:[
+    {q:"True or false: symmetry can help compare P(Player A wins) vs P(Player B wins) whenever both players follow identical random processes.",a:"true",hint:"If swapping the two players' labels doesn't change the setup, it shouldn't change either player's win probability",tier:"fundamentals"},
+    {q:"5 friends each flip a coin once. By symmetry, what is P(more heads than tails among all 5 flips)?",a:"1/2",hint:"With an odd number of flips, can there ever be a tie? What does that mean for P(more heads) vs P(more tails)?",tier:"advanced"},
   ],
   // C&P CH10
   c10s1:[
-    {q:"A dart lands uniformly on a 10×10 board. A 3×3 square is painted. P(dart hits painted area)?",a:"9/100",hint:"Area of painted / total area = 9/100"},
-    {q:"A point is chosen uniformly in a square of side 4. P(it's within distance 1 of the center)?",a:"π/16",hint:"Circle area π(1)²=π, square area=16, P=π/16"},
+    {q:"A dart lands uniformly on a 10×10 board. A 3×3 square is painted. P(dart hits painted area)?",a:"9/100",hint:"Area of painted / total area",tier:"fundamentals"},
+    {q:"A point is chosen uniformly in a square of side 4. P(it's within distance 1 of the center)?",a:"π/16",hint:"Find the area of the circle of radius 1, then divide by the area of the square",tier:"fundamentals"},
+    {q:"A square dartboard has side 10. A circle of radius 5 is inscribed, touching all four sides. If a dart lands uniformly at random, what is P(it lands inside the circle)? (use π≈3.14)",a:"0.785",hint:"Find the circle's area and the square's area, then take the ratio",tier:"advanced"},
   ],
   c10s2:[
     {q:"A stick is broken at a random point. P(longer piece is more than twice the shorter)?",a:"2/3",hint:"Longer > 2×shorter means cut in outer 2/3 (within 1/3 of either end)"},
     {q:"Two points chosen uniformly on [0,1]. P(they are within 0.5 of each other)?",a:"3/4",hint:"Area of region |x-y|<0.5 in unit square = 1-2×(0.5×0.5×0.5)=3/4"},
   ],
   c10s3:[
-    {q:"A chord is drawn at random in a circle. P(chord is longer than the radius)?",a:"1/2|varies",hint:"Depends on the model — this is Bertrand's paradox! Answer varies by method."},
+    {q:"A chord is drawn at random in a circle. P(chord is longer than the radius)?",a:"1/2|varies",hint:"Depends on the model — this is Bertrand's paradox! Answer varies by method.",tier:"fundamentals"},
+    {q:"A circle of radius 1 is inscribed in a 2×2 square. If a point is thrown uniformly at random and lands inside the circle with probability p, express π in terms of p.",a:"π=4p|4p",hint:"Set up the ratio of the circle's area to the square's area as an equation, then solve for π",tier:"advanced"},
   ],
   // C&P CH11 (Expected Value)
   c11s1:[
@@ -838,12 +934,16 @@ const SECTION_PROOFS = {
     {q:"A coin flip: win $3 on heads, lose $1 on tails. Expected value?",a:"1|$1",hint:"0.5×3 + 0.5×(−1) = 1.5−0.5 = 1"},
   ],
   c11s2:[
-    {q:"Roll two dice. Expected value of the sum?",a:"7",hint:"E[sum]=E[die1]+E[die2]=3.5+3.5=7"},
-    {q:"Draw a card from a standard deck. Expected value if face cards=10, ace=1, others=face value?",a:"85/13|6.54",hint:"4×(1+2+...+10+10+10+10)/52. Sum per suit=1+2+...+9+10+10+10+10=85. E=85×4/52=85/13"},
+    {q:"Roll two dice. Expected value of the sum?",a:"7",hint:"Use linearity: E[sum]=E[die1]+E[die2]",tier:"fundamentals"},
+    {q:"Draw a card from a standard deck. Expected value if face cards=10, ace=1, others=face value?",a:"85/13|6.54",hint:"Find the sum of all 13 values in one suit, then divide by 13",tier:"fundamentals"},
+    {q:"A die has faces 1,2,2,3,3,3. It is rolled once. What is its expected value?",a:"7/3",hint:"Weight each value by how many faces show it, out of 6 total faces",tier:"advanced"},
+    {q:"Using the die from above (faces 1,2,2,3,3,3), it is rolled 30 times. What is the expected value of the SUM of all 30 rolls?",a:"70",hint:"You don't need to redo the whole problem — use linearity: just scale the single-roll expected value by 30",tier:"advanced"},
   ],
   c11s3:[
-    {q:"Game: roll die, win $n if n=6, lose $1 otherwise. Fair to play?",a:"no",hint:"E=$6×(1/6)+(-$1)×(5/6)=1-5/6=$1/6 > 0, so favorable to player"},
-    {q:"Expected number of coin flips to get first head?",a:"2",hint:"Geometric distribution: E=1/p=1/(1/2)=2"},
+    {q:"Game: roll die, win $n if n=6, lose $1 otherwise. Fair to play?",a:"no",hint:"Compute the expected value — is it positive, negative, or zero?",tier:"fundamentals"},
+    {q:"Expected number of coin flips to get first head?",a:"2",hint:"This is a geometric distribution — expected value is 1 divided by the probability of success",tier:"fundamentals"},
+    {q:"4 people each own a hat marked with their own initial. All 4 hats go in a bag, and each person randomly grabs one hat. What is the expected number of people who get their OWN hat?",a:"1",hint:"Don't compute the full distribution — find the probability ONE specific person gets their own hat, then use linearity across all 4 people",tier:"advanced"},
+    {q:"A spinner wheel: landing on '1' gives you 1 point and you spin again; landing on '2' gives you 2 points and the game ends. Each outcome has probability 1/2. What is the expected number of points you win in one full game? (Set up an equation where E appears on both sides.)",a:"3",hint:"E = ½(1+E) + ½(2) — since after landing on '1' you're back to the same situation, just with 1 point already banked. Solve this equation for E",tier:"advanced"},
   ],
   // C&P CH12 (Pascal's Triangle)
   c12s1:[
@@ -1155,44 +1255,6 @@ const SECTION_PROOFS = {
     {q:"How many ways to split 6 people into 2 unlabeled groups of 3?",a:"10",hint:"C(6,3)/2 = 20/2"},
     {q:"4 identical balls into 3 labeled boxes (0 or more per box). Ways?",a:"15",hint:"C(4+2,2) = C(6,2) = 15 (stars and bars)"},
   ],
-  // C&P CH7
-  c7s1:[
-    {q:"Probability is always between what two values?",a:"0 and 1|0,1",hint:"0 = impossible, 1 = certain"},
-    {q:"P(A) + P(not A) = ?",a:"1",hint:"Complement rule"},
-  ],
-  c7s2:[
-    {q:"P(rolling a 4 on a fair die)?",a:"1/6",hint:"1 favorable out of 6 equally likely"},
-    {q:"P(flipping heads on a fair coin)?",a:"1/2",hint:"1 out of 2 outcomes"},
-  ],
-  c7s3:[
-    {q:"A bag has 3 red and 2 blue marbles. P(red)?",a:"3/5",hint:"3 red out of 5 total"},
-    {q:"P(drawing a heart from standard deck)?",a:"1/4",hint:"13 hearts out of 52"},
-  ],
-  c7s4:[
-    {q:"P(sum=7 when rolling 2 dice)?",a:"1/6|6/36",hint:"6 ways to get 7 out of 36 outcomes"},
-    {q:"P(at least one head when flipping 2 coins)?",a:"3/4",hint:"1 − P(no heads) = 1 − 1/4"},
-  ],
-  // C&P CH8
-  c8s1:[
-    {q:"P(A or B) if mutually exclusive: P(A)=0.3, P(B)=0.4?",a:"0.7",hint:"Add for mutually exclusive"},
-  ],
-  c8s2:[
-    {q:"P(A∪B) = P(A)+P(B)−P(A∩B). If P(A)=0.5, P(B)=0.4, P(A∩B)=0.2, find P(A∪B).",a:"0.7",hint:"0.5+0.4−0.2"},
-    {q:"P(A or B) if mutually exclusive: P(A)=0.25, P(B)=0.35?",a:"0.6",hint:"Add: 0.25+0.35"},
-  ],
-  c8s3:[
-    {q:"P(not rolling a 6)?",a:"5/6",hint:"1 − 1/6"},
-    {q:"P(A) = 0.7. P(not A)?",a:"0.3",hint:"1 − 0.7"},
-  ],
-  c8s4:[
-    {q:"P(heads and then tails) flipping fair coin twice?",a:"1/4",hint:"1/2 × 1/2 for independent events"},
-    {q:"P(A and B) if independent, P(A)=1/3, P(B)=1/4?",a:"1/12",hint:"Multiply: 1/3 × 1/4"},
-  ],
-  c8s5:[
-    {q:"Draw 2 cards without replacement. P(both aces)?",a:"1/221|4/52×3/51",hint:"4/52 × 3/51"},
-    {q:"Bag: 5 red, 3 blue. Draw 2 without replacement. P(first red, second blue)?",a:"15/56",hint:"5/8 × 3/7"},
-  ],
-  // C&P CH11
   // C&P CH12 proofs defined above
 };
 
@@ -4472,7 +4534,12 @@ function BookView({book,profile,sectionsLeft,onChapter,onBack}){
               <button key={ch.id} onClick={()=>onChapter(ch)}
                 style={{background:"#060d18",border:`1px solid ${done>0?`${book.color}44`:"#1a2a3a"}`,padding:"1.1rem",cursor:"pointer",textAlign:"left",transition:"all 0.2s",position:"relative",overflow:"hidden"}}>
                 <div style={{position:"absolute",top:0,left:0,right:0,height:done>0?2:1,background:done>0?book.color:"#8899aa",transition:"all 0.3s"}}/>
-                <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:book.color,letterSpacing:"0.15em",marginBottom:"0.3rem"}}>CHAPTER {ch.num}</div>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.3rem"}}>
+                  <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.92rem",color:book.color,letterSpacing:"0.15em"}}>CHAPTER {ch.num}</div>
+                  {(CATCHUP_CHAPTERS[profile.name]||[]).includes(ch.id)&&(
+                    <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.62rem",background:"#2a1500",border:"1px solid #ff880066",color:"#ffaa00",padding:"0.15rem 0.4rem",borderRadius:2,letterSpacing:"0.05em"}}>🎯 CATCH-UP</div>
+                  )}
+                </div>
                 <div style={{fontFamily:"Rajdhani,sans-serif",fontWeight:700,fontSize:"0.96rem",color:"#c8d8e8",marginBottom:"0.94rem",lineHeight:1.3}}>{ch.name}</div>
                 <div style={{height:4,background:"#1a2a3a",marginBottom:"0.3rem"}}><div style={{height:"100%",background:book.color,width:`${(done/total)*100}%`,transition:"width 0.5s"}}/></div>
                 <div style={{display:"flex",justifyContent:"space-between"}}>
@@ -5082,6 +5149,55 @@ export default function VanguardMathOS(){
             )}
           </div>
         )}
+
+        {/* ── EXAM COUNTDOWN & CATCH-UP ROADMAP ── */}
+        {(()=>{
+          const examDate=EXAM_DATES[activeUser];
+          if(!examDate) return null;
+          const days=daysUntil(examDate);
+          const catchupIds=CATCHUP_CHAPTERS[activeUser]||[];
+          const roadmap=getCatchupStatus(p,catchupIds);
+          const tierMastery=computeTierMastery(p,catchupIds);
+          const urgentColor=days<=10?"#ff6644":days<=20?"#ffaa00":"#00ffcc";
+          return(
+            <div style={{background:"#060d18",border:`1px solid ${urgentColor}44`,borderLeft:`3px solid ${urgentColor}`,padding:"1rem 1.25rem",marginBottom:"1rem"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.6rem",flexWrap:"wrap",gap:"0.4rem"}}>
+                <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"0.86rem",color:urgentColor,letterSpacing:"0.1em"}}>🎯 EXAM COUNTDOWN</div>
+                <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1.1rem",fontWeight:900,color:urgentColor}}>{days} days</div>
+              </div>
+              <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.8rem",color:"#8899aa",marginBottom:"0.75rem"}}>
+                Exam: {examDate} · Here's the path to get there — no surprises, just the plan.
+              </div>
+              <div style={{display:"flex",flexDirection:"column",gap:"0.35rem",marginBottom:"0.75rem"}}>
+                {roadmap.map((r,i)=>(
+                  <div key={r.id} style={{display:"flex",alignItems:"center",gap:"0.5rem"}}>
+                    <div style={{width:18,height:18,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"0.7rem",background:r.status==="done"?"#00ffcc":r.status==="in-progress"?"#ffaa00":"#1a2a3a",color:r.status==="not-started"?"#556677":"#03080f",flexShrink:0}}>
+                      {r.status==="done"?"✓":i+1}
+                    </div>
+                    <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.8rem",color:r.status==="not-started"?"#556677":"#c8d8e8",flex:1}}>{r.name}</div>
+                    <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.72rem",color:r.status==="done"?"#00ffcc":r.status==="in-progress"?"#ffaa00":"#445566"}}>{r.pct}%</div>
+                  </div>
+                ))}
+              </div>
+              {(tierMastery.fAttempted>0||tierMastery.aAttempted>0)&&(
+                <div style={{display:"flex",gap:"0.75rem",paddingTop:"0.6rem",borderTop:"1px solid #1a2a3a"}}>
+                  <div style={{flex:1}}>
+                    <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.7rem",color:"#8899aa"}}>FUNDAMENTALS (target 90%)</div>
+                    <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1rem",fontWeight:700,color:tierMastery.fundamentals>=90?"#00ffcc":tierMastery.fundamentals>=70?"#ffaa00":"#ff6644"}}>
+                      {tierMastery.fundamentals!=null?`${tierMastery.fundamentals}%`:"—"}
+                    </div>
+                  </div>
+                  <div style={{flex:1}}>
+                    <div style={{fontFamily:"Share Tech Mono,monospace",fontSize:"0.7rem",color:"#8899aa"}}>ADVANCED (target 75%)</div>
+                    <div style={{fontFamily:"Orbitron,sans-serif",fontSize:"1rem",fontWeight:700,color:tierMastery.advanced>=75?"#00ffcc":tierMastery.advanced>=50?"#ffaa00":"#ff6644"}}>
+                      {tierMastery.advanced!=null?`${tierMastery.advanced}%`:"—"}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* ── DAILY QUEST CARD ── */}
         {(
